@@ -1718,7 +1718,7 @@ const aUI = {
 					[2, createSwitch('aExplorers_AutoStart', aSettings.Explorers.autoStart)],
 					[1, $('<img>', { id: 'aExplorers_Menu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
 				]),
-				createTableRow([[9, "Template: " + aUtils.createSpan('aExplorers_Template', aSettings.Explorers.template)], [3, aUtils.createButton('selectExplAutoTemp', loca.GetText("LAB", "Select"))]]),
+				createTableRow([[9, "Template: " + aUtils.createSpan('aExplorers_Template', aSettings.Explorers.template)], [3, aUtils.createButton('aExplorers_SelectTemplate', loca.GetText("LAB", "Select"))]]),
 				createTableRow([[9, "Override default task with template: "], [3, createSwitch('aExplorers_UseTemplate', aSettings.Explorers.useTemplate)]]),
 				createTableRow([[6, '&#10551; On: Use template'],[6, 'Off: Use default task']]),
 				$('<br>'),
@@ -1898,6 +1898,12 @@ const aUI = {
 				$("#aAdventure_SavedPool").empty().append(aSettings.Adventures.templates.map(function(adv, i){
 					return $('<option>', { value: i }).text(adv.label);
 				}));
+			});
+			autoWindow.withBody('#aExplorers_SelectTemplate').click(function(e) { 
+				auto.chooseFile(function(event){
+					$("#aExplorers_Template").html(event.currentTarget.nativePath);
+					aSettings.Explorers.template = event.currentTarget.nativePath;
+				});
 			});
 			autoWindow.Footer().prepend($("<button>").attr({'class':"btn btn-primary pull-left"}).text('Save').click(function(){
 				// Auto Adventures

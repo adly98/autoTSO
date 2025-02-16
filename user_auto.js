@@ -1900,7 +1900,7 @@ const aUI = {
 				}));
 			});
 			autoWindow.withBody('#aExplorers_SelectTemplate').click(function(e) { 
-				auto.chooseFile(function(event){
+				aUtils.chooseFile(function(event){
 					$("#aExplorers_Template").html(event.currentTarget.nativePath);
 					aSettings.Explorers.template = event.currentTarget.nativePath;
 				});

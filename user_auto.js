@@ -434,12 +434,12 @@ const aAdventure = {
 			return aUI.alert('Please select an adventure first','ARMY');
 		try {
 			aWindow = new Modal("aAdventureModal", getImage(assets.GetBuffIcon("MapPart").bitmapData) + " Auto Adventure");
-			var aAdventueSBs = aUtils.createSelect("aAdventueSBs").append(aAdventure.speedBuffs.map(function(buff){
+			var aAdventure_SpeedBuffs = aUtils.createSelect("aAdventure_SpeedBuffs").append(aAdventure.speedBuffs.map(function(buff){
 				buff = 'GeneralSpeedBuff_' + buff;
-				var amount = aUtils.getBuff(buff) ? aUtils.getBuff(buff).amount : 0;
-				return $('<option>', { value: buff }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
+				var buffVO = aUtils.getBuff(buff)
+				var amount = buffVO ? buffVO.amount : 0;
+				return $('<option>', { value: buff, disabled: buffVO ? false : true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
 			}));
-
 			//aWindow.size = '';
 			aWindow.create();
 			aWindow.Body().empty().append(
@@ -458,19 +458,17 @@ const aAdventure = {
 									[3, $('<label>', { 'id': 'aAdventureName', 'class':'small'})],
 									[2, "Inventory: " + $('<span>', { 'id': 'aAdventureAmount' }).prop('outerHTML')],
 									[2, 'Speed Buff:'],
-									[4, aAdventueSBs],
+									[4, aAdventure_SpeedBuffs],
 								], 'remTable'),
 								aUtils.createRow([
 									[1, "File: "], 
 									[3,  $('<label>', { 'id': 'aAdventureFile', 'class':'text-muted small'})],
 									[2, "Repeats: " + $('<label>', { 'id': 'aAdventureRepeats' }).prop('outerHTML')],
 									[2, "Black Vortex ({0}):".format(aUtils.getBuff("PropagationBuff_AdventureZoneTravelBoost_BlackTree").amount)],
-									[1, createSwitch('aAdventueBV', aSettings.Adventures.blackVortex)],
+									[1, createSwitch('aAdventure_BlackVortex', aSettings.Adventures.blackVortex)],
 									[2, "Retrain lost units:"],
-									[1, createSwitch('autoRetrainUnits', aSettings.Adventures.reTrain)],
+									[1, createSwitch('aAdventure_RetrainUnits', aSettings.Adventures.reTrain)],
 								], 'remTable'),
-								//createTableRow([[2, "Speed Buff:"], [10, aAdventueSBs.prop('outerHTML')]]),
-								//createTableRow([[9, getImage(assets.GetBuffIcon("PropagationBuff_AdventureZoneTravelBoost_BlackTree").bitmapData, "23px") + " Black Vortex ({0}):".format(aUtils.getBuff("PropagationBuff_AdventureZoneTravelBoost_BlackTree").amount)], [3, createSwitch('autoBlackVortex', aSettings.Adventures.blackVortex)]]),
 							]).css("padding","-20px 15px")
 						]], 'remTable')
 					]),
@@ -496,8 +494,8 @@ const aAdventure = {
 			]).append(
 				$("<button>", { 'class': "btn btn-primary btnClose", 'data-dismiss': 'modal' }).text("Close")
 			);
-			aWindow.withBody('#aAdventueBV').change(function(e) { aSettings.Adventures.blackVortex = $(e.target).is(':checked');});
-			aWindow.withBody('#autoReTrain').change(function(e) { aSettings.Adventures.reTrain = $(e.target).is(':checked');});
+			aWindow.withBody('#aAdventure_BlackVortex').change(function(e) { aSettings.Adventures.blackVortex = $(e.target).is(':checked');});
+			aWindow.withBody('#aAdventure_RetrainUnits').change(function(e) { aSettings.Adventures.reTrain = $(e.target).is(':checked');});
 			$('#aAdventureModal').on('click','#aAdventureToggle', function(e) {
 				switch($(this).data('cmd')){
 					case 'start':
@@ -1437,8 +1435,9 @@ const aUtils = {
 					template: t.target.nativePath
 				});
 				auto.SaveSettings(1);
-				$("#autoAdventuresBool").empty();
-				$.each(aSettings.Adventures.templates, function(i, adv){ $("#autoAdventuresBool").append($('<option>', { value: i }).text(adv.label)); });	
+				$("#aAdventure_SavedPool").empty().append(aSettings.Adventures.templates.map(function(adv, i){
+					return $('<option>', { value: i }).text(adv.label);
+				}));
 				aUI.makeMenu();
             })), file.save(JSON.stringify(template, null, " "))
 	},
@@ -1687,52 +1686,51 @@ const aUI = {
 				$('<li>').append($('<a>', { 'data-toggle': 'tab', 'href': '#menu_Misc' }).text('Misc')),
 			]);
 			// Auto Adventure Settings
-			var autoAdventuresBool = aUtils.createSelect('autoAdventuresBool');
-			$.each(aSettings.Adventures.templates, function(i, adv){ autoAdventuresBool.append($('<option>', { value: i }).text(adv.label)); });	
-			var aAdventueSBs = aUtils.createSelect("aAdventueSBs");
-			$.each(aAdventure.speedBuffs, function(i, buff){
-				var buffVO = aUtils.getBuff('GeneralSpeedBuff_' + buff)
+			var aAdventure_SavedPool = aUtils.createSelect('aAdventure_SavedPool').append(aSettings.Adventures.templates.map(function(adv, i){
+				return $('<option>', { value: i }).text(adv.label);
+			}));
+			var aAdventure_SpeedBuffs = aUtils.createSelect("aAdventure_SpeedBuffs").append(aAdventure.speedBuffs.map(function(buff){
+				buff = 'GeneralSpeedBuff_' + buff;
+				var buffVO = aUtils.getBuff(buff)
 				var amount = buffVO ? buffVO.amount : 0;
-				aAdventueSBs.append($('<option>', { value: buff, disabled: buffVO ? false:true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff))));
-			});
+				return $('<option>', { value: buff, disabled: buffVO ? false : true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
+			}));
 			const BV = aUtils.getBuff("PropagationBuff_AdventureZoneTravelBoost_BlackTree");
-			var autoBBBook = aUtils.createSelect("autoBBBook");
-			$.each(["Manuscript", "Tome", "Codex"], function(i, buff){
-				autoBBBook.append($('<option>', { value: buff }).text(buff));
-			});
-			var autoBBBuff = aUtils.createSelect("autoBBBuff");
-			for(var i = 1; i < 7; i++) { 
-				var buffName = "BookbinderBuffLvl" + i;
-				var buffVO = aUtils.getBuff(buffName);
+			var aBuildings_BB_Book = aUtils.createSelect("aBuildings_BB_Book").append(["Manuscript", "Tome", "Codex"].map(function(buff){
+				return $('<option>', { value: buff }).text(buff);
+			}));
+			var aBuildings_BB_Buff = aUtils.createSelect("aBuildings_BB_Buff").append([1,2,3,4,5,6].map(function(i){
+				buff = "BookbinderBuffLvl" + i;
+				var buffVO = aUtils.getBuff(buff);
 				var amount = buffVO ? buffVO.amount : 0;
-				autoBBBuff.append($('<option>', { value: buffName, disabled: buffVO ? false:true }).text("{0}({1}): {2}".format(loca.GetText('RES', buffName), amount, loca.GetText('DES', buffName)))); 
-			}
+				return $('<option>', { value: buff, disabled: buffVO ? false:true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
+			}));
 			const specialistsMenu = container().append([
-				createTableRow([[8, "Auto Adventures"], [4, $('<a>', { href: '#', text: "Create new auto template!", 'id': 'showTemplateMaker' })]], true),
-				createTableRow([[3, "Adventures: "],[5, autoAdventuresBool.prop('outerHTML')], [2, aUtils.createButton('autoAddAdv','Add')],[2, aUtils.createButton('autoRemAdv','Remove')]]),
-				createTableRow([[3, "Speed Buff:"], [9, aAdventueSBs.prop('outerHTML')]]),
-				createTableRow([[9, "Retrain lost units?:"], [3, createSwitch('autoReTrain', aSettings.Adventures.reTrain)]]),
-				createTableRow([[5, "Use Black Vortex?:"], [4, "Own: {0}".format(BV ? BV.amount : 0)], [3, createSwitch('autoBlackVortex', aSettings.Adventures.blackVortex)]]),
+				createTableRow([[8, "Auto Adventures"], [4, $('<a>', { href: '#', text: "Create new auto template!", 'id': 'aAdventure_TemplateMaker' })]], true),
+				createTableRow([[3, "Adventures: "],[5, aAdventure_SavedPool], [2, aUtils.createButton('aAdventure_AddTemplate','Add')],[2, aUtils.createButton('aAdventure_RemoveTemplate','Remove')]]),
+				createTableRow([[3, "Speed Buff:"], [9, aAdventure_SpeedBuffs]]),
+				createTableRow([[9, "Retrain lost units?:"], [3, createSwitch('aAdventure_RetrainUnits', aSettings.Adventures.reTrain)]]),
+				createTableRow([[5, "Use Black Vortex?:"], [4, "Own: {0}".format(BV ? BV.amount : 0)], [3, createSwitch('aAdventure_BlackVortex', aSettings.Adventures.blackVortex)]]),
 				$('<br>'),
 				createTableRow([[9, 'Explorers'], [3, '&nbsp;']], true),
 				createTableRow([
 					[9, "Run on Startup"],
-					[2, createSwitch('explAutoStart', aSettings.Explorers.autoStart)],
-					[1, $('<img>', { id: 'autoExplorersMenu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
+					[2, createSwitch('aExplorers_AutoStart', aSettings.Explorers.autoStart)],
+					[1, $('<img>', { id: 'aExplorers_Menu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
 				]),
-				createTableRow([[9, "Template: " + aUtils.createSpan('explAutoTemp', aSettings.Explorers.template)], [3, aUtils.createButton('selectExplAutoTemp', loca.GetText("LAB", "Select"))]]),
-				createTableRow([[9, "Override default task with template: "], [3, createSwitch('explUseTemp', aSettings.Explorers.useTemplate)]]),
+				createTableRow([[9, "Template: " + aUtils.createSpan('aExplorers_Template', aSettings.Explorers.template)], [3, aUtils.createButton('selectExplAutoTemp', loca.GetText("LAB", "Select"))]]),
+				createTableRow([[9, "Override default task with template: "], [3, createSwitch('aExplorers_UseTemplate', aSettings.Explorers.useTemplate)]]),
 				createTableRow([[6, '&#10551; On: Use template'],[6, 'Off: Use default task']]),
 				$('<br>'),
 				createTableRow([[9, 'Geologists & Deposits'], [3, '&nbsp;']], true),
 				createTableRow([
 					[9, "Run on Startup"],
-					[2, createSwitch('depoAutoStart', aSettings.Deposits.autoStart)],
-					[1, $('<img>', { id: 'autoDepoMenu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
+					[2, createSwitch('aDeposits_AutoStart', aSettings.Deposits.autoStart)],
+					[1, $('<img>', { id: 'aDeposits_Menu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
 				]),
 				$('<br>')
 			]);
-			var mMonitor = aUtils.createSelect("aOptionsMailMonitor");
+			var mMonitor = aUtils.createSelect("aMail_Monitor");
 			for(var i = 3; i < 11; i++) { 
 				mMonitor.append($('<option>', { value: i }).text("{0} Minutes".format(i))); 
 			}
@@ -1740,7 +1738,7 @@ const aUI = {
 				createTableRow([[9, 'Mail & Trades'], [3, '&nbsp;']], true),
 				createTableRow([
 					[9, "Run on Startup"],
-					[3, createSwitch('aOptionsMailAutoStart', aSettings.Mail.AutoStart)],
+					[3, createSwitch('aMail_AutoStart', aSettings.Mail.AutoStart)],
 				]),
 				createTableRow([
 					[9, "Check every:"],
@@ -1748,63 +1746,63 @@ const aUI = {
 				]),
 				createTableRow([
 					[5, '&#10551; Accept Explorers loots'],
-					[1, createSwitch("aOptionsMailLoots", aSettings.Mail.AcceptLoots) ],
+					[1, createSwitch("aMail_Loots", aSettings.Mail.AcceptLoots) ],
 					[5, '&#10551; Accept Geologist messages'],
-					[1, createSwitch("aOptionsMailGeologist", aSettings.Mail.AcceptGeologistMsg) ],
+					[1, createSwitch("aMail_Geologist", aSettings.Mail.AcceptGeologistMsg) ],
 				], false),
 				createTableRow([
 					[5, "&#10551; Accept Adventures loot"],
-					[1, createSwitch("aOptionsMailAdvLoots", aSettings.Mail.AcceptAdventureLoot) ],
+					[1, createSwitch("aMail_AdvLoots", aSettings.Mail.AcceptAdventureLoot) ],
 					[5, "&#10551; Accept Adventures messages"],
-					[1, createSwitch("aOptionsMailAdvMsg", aSettings.Mail.AcceptAdventureMessage) ],
+					[1, createSwitch("aMail_AdvMsg", aSettings.Mail.AcceptAdventureMessage) ],
 				], false),
 				createTableRow([
 					[5, "&#10551; Decline unacceptable trades (no resources)"],
-					[1, createSwitch("aOptionsMailDecline", aSettings.Mail.DeclineTrades) ],
+					[1, createSwitch("aMail_Decline", aSettings.Mail.DeclineTrades) ],
 					[5, "&#10551; Send resources to STAR MENU"],
-					[1, createSwitch("aOptionsMailStar ", aSettings.Mail.ToStar) ],
+					[1, createSwitch("aMail_Star ", aSettings.Mail.ToStar) ],
 				], false),
 				createTableRow([
 					[5, "&#10551; Complete Accepted & declined trades"],
-					[1, createSwitch("aOptionsMailComplete", aSettings.Mail.CompleteTrades) ],
+					[1, createSwitch("aMail_Complete", aSettings.Mail.CompleteTrades) ],
 					[5, 'Accept Gifts'],
 					[1, createSwitch('aOptionsMailGifts', aSettings.Mail.AcceptGifts)]
 				], false),
 				createTableRow([
 					[5, "&#10551; Trade: Filter Friends"],
-					[1, $('<img>', { id: 'aOptionsMailFriendsFilter', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})],
+					[1, $('<img>', { id: 'aMail_FriendsFilter', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})],
 					[5, "&#10551; Trade: Filter Resources"],
-					[1, $('<img>', { id: 'aOptionsMailResourcesFilter', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
+					[1, $('<img>', { id: 'aMail_ResourcesFilter', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
 				], false),
 				$('<label>').text('More Filters and options in future updates ^^')
 			]);
 			const questsMenu = container().append([
 				createTableRow([[9, 'Short Quests'], [3, '&nbsp;']], true),
-				createTableRow([[9, "Run on Startup"], [3, createSwitch('shortAutoStart', aSettings.Quests.Short.autoStart)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_SharpClaw").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SharpClaw")], [3, createSwitch('shortSharpClaw', aSettings.Quests.Short.Enabled.SharpClaw)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_StrangeIdols").bitmapData, "23px") + loca.GetText('RES', "QuestStart_StrangeIdols")], [3, createSwitch('shortStrangeIdols', aSettings.Quests.Short.Enabled.StrangeIdols)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_Annoholics").bitmapData, "23px") + loca.GetText('RES', "QuestStart_Annoholics")], [3, createSwitch('shortAnnoholics', aSettings.Quests.Short.Enabled.Annoholics)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_SilkCat").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SilkCat")], [3, createSwitch('shortSilkCat', aSettings.Quests.Short.Enabled.SilkCat)]]),
+				createTableRow([[9, "Run on Startup"], [3, createSwitch('aQuests_Short_AutoStart', aSettings.Quests.Short.autoStart)]]),
+				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_SharpClaw").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SharpClaw")], [3, createSwitch('aQuests_Short_SharpClaw', aSettings.Quests.Short.Enabled.SharpClaw)]]),
+				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_StrangeIdols").bitmapData, "23px") + loca.GetText('RES', "QuestStart_StrangeIdols")], [3, createSwitch('aQuests_Short_StrangeIdols', aSettings.Quests.Short.Enabled.StrangeIdols)]]),
+				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_Annoholics").bitmapData, "23px") + loca.GetText('RES', "QuestStart_Annoholics")], [3, createSwitch('aQuests_Short_Annoholics', aSettings.Quests.Short.Enabled.Annoholics)]]),
+				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_SilkCat").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SilkCat")], [3, createSwitch('aQuests_Short_SilkCat', aSettings.Quests.Short.Enabled.SilkCat)]]),
 			]);
 			const buildingsMenu = container().append([
 				createTableRow([[9, 'Book Binder'], [3, '&nbsp;']], true),
-				createTableRow([[9, 'Run on Startup'], [3, createSwitch('autoStartBB', aSettings.Buildings.BookBinder.autoStart)]]),
-				createTableRow([[4, "Which Book to produce:"], [8, autoBBBook.prop('outerHTML')]]),
-				createTableRow([[5, "Auto Buff BookBinder?"], [2, createSwitch('autoBuffBB', aSettings.Buildings.BookBinder.autoBuff)], [5, autoBBBuff.prop('outerHTML')]]),
+				createTableRow([[9, 'Run on Startup'], [3, createSwitch('aBuildings_BB_AutoStart', aSettings.Buildings.BookBinder.autoStart)]]),
+				createTableRow([[4, "Which Book to produce:"], [8, aBuildings_BB_Book]]),
+				createTableRow([[5, "Auto Buff BookBinder?"], [2, createSwitch('aBuildings_BB_AutoBuff', aSettings.Buildings.BookBinder.autoBuff)], [5, aBuildings_BB_Buff]]),
 			]);
 			const toolsMenu = container().append([
 				createTableRow([[9, 'Auto Star to Store'], [3, '&nbsp;']], true),
 				createTableRow([
 					[9, 'Run on Startup'],
-					[2, createSwitch('autoStar2Store', aSettings.Star2Store.autoStart)],
-					[1, $('<img>', { id: 'autoStar2StoreMenu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
+					[2, createSwitch('aStar2Store_AutoStart', aSettings.Star2Store.autoStart)],
+					[1, $('<img>', { id: 'aStar2Store_Menu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
 				]),
 				$('<br>'),
 				createTableRow([[9, 'Auto Open Mystery Boxs'], [3, '&nbsp;']], true),
 				createTableRow([
 					[9, 'Run on Startup'], 
-					[2, createSwitch('autoStarBoxs', aSettings.StarBoxs.autoStart)],
-					[1, $('<img>', { id: 'autoStarBoxsMenu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
+					[2, createSwitch('aStarBoxes_AutoStart', aSettings.StarBoxs.autoStart)],
+					[1, $('<img>', { id: 'aStarBoxes_Menu', src: 'images/icon_settings.png' , style: 'height: 23px; cursor: pointer;'})]
 				]),
 				$('<br>'),
 				createTableRow([[9, 'Auto Collect'], [3, '&nbsp;']], true),
@@ -1866,46 +1864,64 @@ const aUI = {
 			autoWindow.Body().html(tabs.prop("outerHTML") + '<br>' + tabcontent.prop("outerHTML"));
 			autoWindow.withBody('div.row').addClass('nohide');
 			autoWindow.withBody('.nav-justified > li').css("width", "20%");
-			autoWindow.withBody('#showTemplateMaker').click(aUI.advTemplateMaker);
-			autoWindow.withBody('#autoExplorersMenu').click(aExplorers.Modal);
-			autoWindow.withBody('#autoDepoMenu').click(aDeposits.Modal);
-			autoWindow.withBody('#autoStar2StoreMenu').click(aStar2Store.Modal);
-			autoWindow.withBody('#autoStarBoxsMenu').click(aStarBoxs.Modal);
-			autoWindow.withBody('#aOptionsMailMonitor').val(aSettings.Mail.TimerMinutes);
-			autoWindow.withBody('#aOptionsMailFriendsFilter').click(function(){ aMail.Modal(1) });
-			autoWindow.withBody('#aOptionsMailResourcesFilter').click(function(){ aMail.Modal(2) });
+			autoWindow.withBody('#aAdventure_TemplateMaker').click(aUI.advTemplateMaker);
+			autoWindow.withBody('#aExplorers_Menu').click(aExplorers.Modal);
+			autoWindow.withBody('#aDeposits_Menu').click(aDeposits.Modal);
+			autoWindow.withBody('#aStar2Store_Menu').click(aStar2Store.Modal);
+			autoWindow.withBody('#aStarBoxes_Menu').click(aStarBoxs.Modal);
+			autoWindow.withBody('#aMail_Monitor').val(aSettings.Mail.TimerMinutes);
+			autoWindow.withBody('#aMail_FriendsFilter').click(function(){ aMail.Modal(1) });
+			autoWindow.withBody('#aMail_ResourcesFilter').click(function(){ aMail.Modal(2) });
+			autoWindow.withBody('#aAdventure_AddTemplate').click(function(e) { 
+				aUtils.chooseFile(function(event){
+					var text = prompt("Custom adventure name");
+					var defaultTemp = aUtils.readFile(event.currentTarget.nativePath);
+					var hashed = defaultTemp.hash;
+					delete defaultTemp.hash;
+					if(!defaultTemp.name || !defaultTemp.steps || hash(JSON.stringify(defaultTemp)) != hashed){
+						return alert(getText("bad_template"));
+					}
+					aSettings.Adventures.templates.push({
+						label: text,
+						name: defaultTemp.name,
+						template: event.currentTarget.nativePath
+					});
+					auto.SaveSettings();
+					$("#aAdventure_SavedPool").empty().append(aSettings.Adventures.templates.map(function(adv, i){
+						return $('<option>', { value: i }).text(adv.label);
+					}));
+					aUI.makeMenu();
+				});
+			});
+			autoWindow.withBody('#aAdventure_RemoveTemplate').click(function(e) { 
+				autoSettings.adv.templates.splice(parseInt($("#aAdventure_SavedPool").val()), 1);
+				$("#aAdventure_SavedPool").empty().append(aSettings.Adventures.templates.map(function(adv, i){
+					return $('<option>', { value: i }).text(adv.label);
+				}));
+			});
 			autoWindow.Footer().prepend($("<button>").attr({'class':"btn btn-primary pull-left"}).text('Save').click(function(){
 				// Auto Adventures
-
+				aSettings.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
+				aSettings.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');
+				aSettings.Adventures.speedBuff = $('#aAdventure_SpeedBuffs').val();
 				// Explorers
-				aSettings.Explorers.autoStart = $('#explAutoStart').is(':checked');
-				aSettings.Explorers.useTemplate = $('#explUseTemp').is(':checked');
-				aSettings.Explorers.template = $('#explAutoTemp').text();
+				aSettings.Explorers.autoStart = $('#aExplorers_AutoStart').is(':checked');
+				aSettings.Explorers.useTemplate = $('#aExplorers_UseTemplate').is(':checked');
+				aSettings.Explorers.template = $('#aExplorers_Template').text();
 				// Deposits
-				aSettings.Deposits.autoStart = $('#depoAutoStart').is(':checked');
-				$('.depoOption').each(function(i, checkBox){
-					var op = $(this).attr("id").split("_");
-					if($(this).is(":disabled")) return;
-					if(op[0] == "depo"){
-						var val = isNaN(parseInt($(this).val())) ? $(this).val() : parseInt($(this).val());
-						aSettings.Deposits.data[op[1]].options[op[2]] = $(this).attr("type") == "checkbox" ? $(this).is(":checked") : val;
-					}else if(op[0] == "geo"){
-						if(aSettings.Deposits.data[op[1]].geos.indexOf(parseInt(op[2])) == -1 && $(this).is(":checked"))
-							aSettings.Deposits.data[op[1]].geos.push(parseInt(op[2]));
-					}
-				});
+				aSettings.Deposits.autoStart = $('#aDeposits_AutoStart').is(':checked');
 				// Short Quests
-				aSettings.Quests.Short.autoStart = $('#shortAutoStart').is(':checked');
-				aSettings.Quests.Short.Enabled.SharpClaw = $('#shortSharpClaw').is(':checked');
-				aSettings.Quests.Short.Enabled.StrangeIdols = $('#shortStrangeIdols').is(':checked');
-				aSettings.Quests.Short.Enabled.Annoholics = $('#shortAnnoholics').is(':checked');
-				aSettings.Quests.Short.Enabled.SilkCat = $('#shortSilkCat').is(':checked');
+				aSettings.Quests.Short.autoStart = $('#aQuests_Short_AutoStart').is(':checked');
+				aSettings.Quests.Short.Enabled.SharpClaw = $('#aQuests_Short_SharpClaw').is(':checked');
+				aSettings.Quests.Short.Enabled.StrangeIdols = $('#aQuests_Short_StrangeIdols').is(':checked');
+				aSettings.Quests.Short.Enabled.Annoholics = $('#aQuests_Short_Annoholics').is(':checked');
+				aSettings.Quests.Short.Enabled.SilkCat = $('#aQuests_Short_SilkCat').is(':checked');
 
 				//Book binder
-				aSettings.Buildings.BookBinder.autoStart = $('#autoStartBB').is(':checked');
-				aSettings.Buildings.BookBinder.bookType = $('#autoBBBook').val();
-				aSettings.Buildings.BookBinder.autoBuff = $('#autoBuffBB').is(':checked');
-				aSettings.Buildings.BookBinder.buffType = $('#autoBBBuff').val();
+				aSettings.Buildings.BookBinder.autoStart = $('#aBuildings_BB_AutoStart').is(':checked');
+				aSettings.Buildings.BookBinder.bookType = $('#aBuildings_BB_Book').val();
+				aSettings.Buildings.BookBinder.autoBuff = $('#aBuildings_BB_AutoBuff').is(':checked');
+				aSettings.Buildings.BookBinder.buffType = $('#aBuildings_BB_Buff').val();
 				//Tweaks
 				aSettings.Tweaks.ChatMax = $('#aTweaks_ChatMax').is(':checked');
 				aSettings.Tweaks.TradeAdventureMax = $('#aTweaks_TradeAdventureMax').is(':checked');
@@ -1915,26 +1931,24 @@ const aUI = {
 				aSettings.Tweaks.GUIMaxAnimals = $('#aTweaks_GUIMaxAnimals').is(':checked');
 				aSettings.Tweaks.MailPageSize = $('#aTweaks_MailPageSize').is(':checked');
 				//Mail
-				aSettings.Mail.AcceptAdventureLoot = $('#aOptionsMailAdvLoots').is(':checked');
-				aSettings.Mail.AcceptAdventureMessage = $('#aOptionsMailAdvMsg').is(':checked');
-				aSettings.Mail.AcceptGuildTrades = $('#aOptionsMailGuildTrades').is(':checked');
-				aSettings.Mail.AcceptLoots = $('#aOptionsMailLoots').is(':checked');
-				aSettings.Mail.AcceptGifts = $('#aOptionsMailGifts').is(':checked');
-				aSettings.Mail.AcceptGeologistMsg = $('#aOptionsMailGeologist').is(':checked');
-				aSettings.Mail.AutoStart = $('#aOptionsMailAutoStart').is(':checked');
-				aSettings.Mail.DeclineTrades = $('#aOptionsMailDecline').is(':checked');
-				aSettings.Mail.CompleteTrades = $('#aOptionsMailComplete').is(':checked');
-				aSettings.Mail.ToStar = $('#aOptionsMailStar').is(':checked');
-				aSettings.Mail.TimerMinutes = parseInt($('#aOptionsMailMonitor').val());
-
+				aSettings.Mail.AutoStart = $('#aMail_AutoStart').is(':checked');
+				aSettings.Mail.AcceptAdventureLoot = $('#aMail_AdvLoots').is(':checked');
+				aSettings.Mail.AcceptAdventureMessage = $('#aMail_AdvMsg').is(':checked');
+				aSettings.Mail.AcceptGuildTrades = $('#aMail_GuildTrades').is(':checked');
+				aSettings.Mail.AcceptLoots = $('#aMail_Loots').is(':checked');
+				aSettings.Mail.AcceptGifts = $('#aMail_Gifts').is(':checked');
+				aSettings.Mail.AcceptGeologistMsg = $('#aMail_Geologist').is(':checked');
+				aSettings.Mail.DeclineTrades = $('#aMail_Decline').is(':checked');
+				aSettings.Mail.CompleteTrades = $('#aMail_Complete').is(':checked');
+				aSettings.Mail.ToStar = $('#aMail_Star').is(':checked');
+				aSettings.Mail.TimerMinutes = parseInt($('#aMail_Monitor').val());
 				//Misc
 				aSettings.Collect.Pickups = $('#aCollect_Pickups').is(':checked');
 				aSettings.Collect.LootBoxes = $('#aCollect_LootBoxes').is(':checked');
-				aSettings.Star2Store.autoStart = $('#autoStar2Store').is(':checked');
+				aSettings.Star2Store.autoStart = $('#aStar2Store_AutoStart').is(':checked');
 				auto.isOn.Star2Store = aSettings.Star2Store.autoStart;
-				aSettings.StarBoxs.autoStart = $('#autoStarBoxs').is(':checked');
+				aSettings.StarBoxs.autoStart = $('#aStarBoxes_AutoStart').is(':checked');
 				auto.isOn.StarBoxs = aSettings.StarBoxs.autoStart;
-				aSettings.misc.applyTweaks = $('#autoApplyTweaks').is(':checked');
 				aSettings.misc.showGrid = $('#autoShowGrid').is(':checked');
 				auto.SaveSettings(1);
 				aTweaks.Apply();
@@ -2171,7 +2185,7 @@ const aUI = {
 			auto.isOn.Adventure = true;
 			aAdventure.ModalLoadInfo();
 			aUI.MenuAdventure = event.target.name;
-			aUI.makeMenu(event);
+			aUI.makeMenu();
 		}catch(e){ debug(e) }
 	},
 	alert: function(message, icon)

@@ -517,8 +517,8 @@ const aAdventure = {
 			});
 			aAdventure.ModalLoadInfo();
 			aWindow.withBody(".remTable").css({"background": "inherit", "margin-top": "5px"});
-
 			aWindow.show();
+			$('#aAdventure_SpeedBuffs').val(aSettings.Adventures.speedBuff);
 		} catch (e) { debug(e); }
 	},
 	ModalLoadInfo: function(){
@@ -1760,13 +1760,13 @@ const aUI = {
 					[5, "&#10551; Decline unacceptable trades (no resources)"],
 					[1, createSwitch("aMail_Decline", aSettings.Mail.DeclineTrades) ],
 					[5, "&#10551; Send resources to STAR MENU"],
-					[1, createSwitch("aMail_Star ", aSettings.Mail.ToStar) ],
+					[1, createSwitch("aMail_Star", aSettings.Mail.ToStar) ],
 				], false),
 				createTableRow([
 					[5, "&#10551; Complete Accepted & declined trades"],
 					[1, createSwitch("aMail_Complete", aSettings.Mail.CompleteTrades) ],
 					[5, 'Accept Gifts'],
-					[1, createSwitch('aOptionsMailGifts', aSettings.Mail.AcceptGifts)]
+					[1, createSwitch('aMail_Gifts', aSettings.Mail.AcceptGifts)]
 				], false),
 				createTableRow([
 					[5, "&#10551; Trade: Filter Friends"],
@@ -1961,7 +1961,7 @@ const aUI = {
 				autoWindow.hide();
 			}));
 			autoWindow.show();
-			
+			$('#aAdventure_SpeedBuffs').val(aSettings.Adventures.speedBuff);
 		} catch (e){ debug(e) }
 	},
 	advTemplateMaker: function (){
@@ -2533,6 +2533,7 @@ const aShortQuests = {
 		if(!game.gi.isOnHomzone() || !auto.isOn.ShortQuests)  return;
 		try{
 			aShortQuests.questList.forEach(function(mission){
+				if(!aSettings.Quests.Short.Enabled[mission]) return;
 				var mQuestName = 'BuffQuest' + mission + 'Main';
 				var mActiveQuest = game.quests.getQuest(mQuestName);
 				if(mActiveQuest == null){
@@ -4018,7 +4019,7 @@ const aTweaks = {
 }
 
 const auto = {
-	version: '1.0.0',
+	version: '1.0.1',
 	iProgress: 0,
 	iTimer: null,
     isOn: {

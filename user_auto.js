@@ -1569,6 +1569,7 @@ const aUI = {
 			{ label: 'Tools', mnemonicIndex: 0, items: [
 				{ label: "Auto Adventure", mnemonicIndex: 0, onSelect: aAdventure.ControlModal },
 				{ label: "Auto Trade", mnemonicIndex: 0, onSelect: aTrade.Modal },
+				{ label: "Event Deposits Needed", enabled: aEvent.EventWithDepo(), mnemonicIndex:0, onSelect: aEvent.DepositNeeded }
 			]},
 			{ type: 'separator' },
 			{ label: aUI.mFeatureLabel('Explorers'), name: "auto_Explorers", mnemonicIndex: 0, onSelect: function(){
@@ -1962,6 +1963,9 @@ const aUI = {
 			}));
 			autoWindow.show();
 			$('#aAdventure_SpeedBuffs').val(aSettings.Adventures.speedBuff);
+			$('#aBuildings_BB_Book').val(aSettings.Buildings.BookBinder.bookType);
+			$('#aBuildings_BB_Buff').val(aSettings.Buildings.BookBinder.buffType );
+			$('#aMail_Monitor').val(aSettings.Mail.TimerMinutes);
 		} catch (e){ debug(e) }
 	},
 	advTemplateMaker: function (){
@@ -3190,7 +3194,7 @@ const aMail = {
 		this.aWaitingResponse = null;
 	},
 	GetHeaders: function(){
-		if (!game.gi.isOnHomzone()) return aMail.resetNextRun();
+		if (!game.gi.isOnHomzone()) return false;
 		try
 		{
 			var responder = game.createResponder(aMail.GetHeadersHandler, aMail.aWaitingResponse_NoResponse)
@@ -3198,7 +3202,7 @@ const aMail = {
 				v.value = 5000;
 			aUtils.sendServerMessage(1175, game.gi.mCurrentViewedZoneID, v, responder);
 			return true;
-		} catch (e) {}
+		} catch (e) { return false; }
 	},
 	GetHeadersHandler: function(event, data)
 	{
@@ -4017,9 +4021,43 @@ const aTweaks = {
 		} catch(e){}
 	}
 }
+//-------------- Event ----------------
+const aEvent = {
+	DepositNeeded: function(){
+		const cEvent = game.gi.mEventManager.GetActiveEventNames().filter(function(e){ return e.indexOf('_Shop') > -1; })[0];
+		if(!cEvent) return aUI.alert("Something is wrong, can't find event", 'ERROR');
+		var eEndTime = game.gi.mEventManager.GetEventStopDate(cEvent);
+			eEndTime = eEndTime - (new Date());
+		if(cEvent.indexOf('Valentine') > -1){
+			var eWorkTime = game.def("ServerState::gEconomics").GetResourcesCreationDefinitionForBuilding('FlowerFarm').workTime;
+				eWorkTime = (eWorkTime + 12) * 1000;
+			var Refills = Math.ceil(eEndTime / eWorkTime);
+			aUI.alert("Each Flower Farm should have {0} deposit".format(Refills), 'ValentinesFlower');
+		}else if(cEvent.indexOf('Halloween') > -1){
+			for(i = 1; i < 4; i++){
+				const wName = 'pumpkinfield_0' + i;
+				var eWorkTime = game.def("ServerState::gEconomics").GetResourcesCreationDefinitionForBuilding(wName).workTime;
+					eWorkTime = (eWorkTime + 12) * 1000;
+				var Refills = Math.ceil(eEndTime / eWorkTime);
+				aUI.alert('Each {0} should have {1} deposits'.format(loca.GetText('BUI', wName), Refills), 'HalloweenResource');
+			}
+		}else{
+			aUI.alert("This event doesn't have any farms ;)", 'ERROR');
+		}
+	},
+	EventWithDepo: function(){
+		const cEvent = game.gi.mEventManager.GetActiveEventNames().filter(function(e){ return e.indexOf('_Shop') > -1; })[0];
+		if(!cEvent) return false;
+		if(cEvent.indexOf('Valentine') > -1 || cEvent.indexOf('Halloween') > -1){
+			return true;
+		}else{
+			return false;
+		}
+	}
+}
 
 const auto = {
-	version: '1.0.1',
+	version: '1.0.2',
 	iProgress: 0,
 	iTimer: null,
     isOn: {

@@ -1562,9 +1562,10 @@ const aUI = {
 		
 
 		var m = [
-			{ label: "v{0}".format(auto.version), enabled: false },
+			{ label: "v{0}".format(auto.version), mnemonicIndex: 0, onSelect: auto.Changelog },
 			{ type: 'separator' },
-			{ label: "Options", mnemonicIndex: 0, onSelect: aUI.SettingsHandler },
+			{ label: "Settings", mnemonicIndex: 0, onSelect: aUI.SettingsHandler },
+			{ label: "Check for update", mnemonicIndex: 0, onSelect: auto.CheckforUpdate },
 			{ type: 'separator' },
 			{ label: 'Tools', mnemonicIndex: 0, items: [
 				{ label: "Auto Adventure", mnemonicIndex: 0, onSelect: aAdventure.ControlModal },
@@ -1882,6 +1883,8 @@ const aUI = {
 					if(!defaultTemp.name || !defaultTemp.steps || hash(JSON.stringify(defaultTemp)) != hashed){
 						return alert(getText("bad_template"));
 					}
+					if(!Array.isArray(defaultTemp.steps)) return alert('Invalid Template, please make a new one ^^');
+
 					aSettings.Adventures.templates.push({
 						label: text,
 						name: defaultTemp.name,
@@ -1970,19 +1973,19 @@ const aUI = {
 	},
 	advTemplateMaker: function (){
 		try{
-			var template = [];
+			var aTemplate = [];
 				
-			var saveTemplate = function(){
+			var aTemplate_Save = function(){
 				var defaultTemp = {
-					name: $('#tempAdvSelect').val(),
+					name: $('#aTemplate_AdventureMap').val(),
 					steps: [
-						{ name: 'InHomeLoadGenerals', data: $('#homeLoadTemp').text() },
+						{ name: 'InHomeLoadGenerals', data: $('#aTemplate_HomeTemplate').text() },
 						{ name: 'StartAdventure' },
 						{ name: 'SendGeneralsToAdventure' },
 					]
 				};
-				template.push(["LoadGeneralsToEnd"]);
-				template.forEach(function(item){
+				aTemplate.push(["LoadGeneralsToEnd"]);
+				aTemplate.forEach(function(item){
 					var trueData = ["AdventureTemplate", "ProduceItem", "ApplyBuff"];
 					if(trueData.indexOf(item[0]) != -1)
 						defaultTemp.steps.push({ name: item[0], data: item[1] });
@@ -1993,12 +1996,12 @@ const aUI = {
 				aUtils.saveTemplate(defaultTemp);
 				autoWindow.shide();
 			}
-			autoWindow.settings(saveTemplate);
-			var autoAdvTempUpdateView = function(){
-				autoWindow.withsBody('#templateSteps').empty();
+			autoWindow.settings(aTemplate_Save);
+			var aTemplate_UpdateView = function(){
+				autoWindow.withsBody('#aTemplate_Steps').empty();
 				var out = [];
 				
-				template.forEach(function(i, idx) {
+				aTemplate.forEach(function(i, idx) {
 					switch(i[0]){
 						case 'AdventureTemplate':
 							var typename = i[1].split("\\").pop();
@@ -2010,11 +2013,11 @@ const aUI = {
 							break;
 						case 'ProduceItem':
 						case 'ApplyBuff':
-							var amount = autoData.adventureItems[$("#tempAdvSelect").val()][i[1]];
+							var amount = autoData.adventureItems[$("#aTemplate_AdventureMap").val()][i[1]];
 								amount = Array.isArray(amount[0]) ? amount[1] : amount.length;
 							out.push(createTableRow([
-								[3, '&#8597;&nbsp;&nbsp;' + 'Home'],
-								[7, '{0}: {1} x{2}'.format(i[0]=="ApplyBuff" ? "Apply" : "Produce", loca.GetText('RES', i[1]), amount )],
+								[3, '&#8597;&nbsp;&nbsp;' + 'Bot'],
+								[7, '{0}: {1}{2} x{3}'.format(i[0]=="ApplyBuff" ? "Apply" : "Produce", getImage(assets.GetBuffIcon(i[1]).bitmapData, "23px"), loca.GetText('RES', i[1]), amount )],
 								[2, $('<button>', { 'type': 'button', 'class': 'close', 'value': idx, 'disabled': 'disabled' }).html($('<span>').html('&times;'))],
 							], false));
 							break;
@@ -2027,65 +2030,61 @@ const aUI = {
 					}
 					
 				});
-				autoWindow.withsBody('#templateSteps').append($('<div>', { 'class': "container-fluid", 'style': "user-select: none;cursor:move;" }).append(out));
+				autoWindow.withsBody('#aTemplate_Steps').append($('<div>', { 'class': "container-fluid", 'style': "user-select: none;cursor:move;" }).append(out));
 				autoWindow.withsBody('.close').click(function(e){
-					template.splice(parseInt($(this).val()), 1);
-					autoAdvTempUpdateView();
+					aTemplate.splice(parseInt($(this).val()), 1);
+					aTemplate_UpdateView();
 				});
-				autoWindow.withsBody('#templateSteps .container-fluid').sortable({
+				autoWindow.withsBody('#aTemplate_Steps .container-fluid').sortable({
 					update: function( event, ui ) {
 						var prevIndex = $(ui.item).find('.close').val();
-						shortcutsMoveElement(template, prevIndex, ui.item.index());
-						autoAdvTempUpdateView();
+						shortcutsMoveElement(aTemplate, prevIndex, ui.item.index());
+						aTemplate_UpdateView();
 					} 
 				});
 			}
-			var autoAdvTempRowUpdate = function(){
-				template = [];
-				template.push(["VisitAdventure", "Load Adventure Island!"]);
-				template.push(["StarGenerals", "Star Generals after they arrive!"]);
-				template.push(["UseSpeedBuff", "Use Speed Buff!"]);
-				$.each(autoData.adventureItems[$("#tempAdvSelect").val()], function(k, v){
-					template.push(["CollectPickups", "Collect Pickups"]);
-					template.push(["ReturnHome", "Return Home"]);
-					template.push(["ProduceItem", k]);
-					template.push(["VisitAdventure", "Visit Adventure Island"]);
-					template.push(["ApplyBuff", k]);
+			var aTemplate_Update = function(){
+				aTemplate = [];
+				aTemplate.push(["VisitAdventure", "Load Adventure Island!"]);
+				aTemplate.push(["StarGenerals", "Star Generals after they arrive!"]);
+				aTemplate.push(["UseSpeedBuff", "Use Speed Buff!"]);
+				$.each(autoData.adventureItems[$("#aTemplate_AdventureMap").val()], function(k, v){
+					aTemplate.push(["CollectPickups", "Collect Pickups"]);
+					aTemplate.push(["ReturnHome", "Return Home"]);
+					aTemplate.push(["ProduceItem", k]);
+					aTemplate.push(["VisitAdventure", "Visit Adventure Island"]);
+					aTemplate.push(["ApplyBuff", k]);
 				});
-				autoAdvTempUpdateView();
+				aTemplate_UpdateView();
 			}
 			autoWindow.sDialog().css("height", "80%");
 			autoWindow.sTitle().html("{0} {1}".format(
 				getImageTag('icon_general.png'),
 				"Auto Adventure Template maker")
 			);
-			var tempAdvSelect = aUtils.createSelect('tempAdvSelect');
+			var aTemplate_AdventureMap = aUtils.createSelect('aTemplate_AdventureMap');
 			$.each(autoData.adventures, function(key, value){
 				var optGroup = $('<optgroup>', { label: key.replace(/_/gi,' ') });
 				$.each(value, function(i, adv){
 					optGroup.append($('<option>', { value: adv }).text(loca.GetText('ADN', adv)));
 				});
-				tempAdvSelect.append(optGroup);
+				aTemplate_AdventureMap.append(optGroup);
 			});
 			
 	
 			autoWindow.sData().append($('<div>', { 'class': 'container-fluid', 'style' : 'height:auto;' }).append([
 				createTableRow([[12, "Template Options"]], true),
-				createTableRow([[4, "Adventure:"], [8, tempAdvSelect]]),
-				createTableRow([[9, "Home load template: " + aUtils.createSpan('homeLoadTemp')],[3, aUtils.createButton("selectHomeLoadTemp", "Select")]]),
+				createTableRow([[4, "Adventure:"], [8, aTemplate_AdventureMap]]),
+				createTableRow([[9, "Home load template: " + aUtils.createSpan('aTemplate_HomeTemplate')],[3, aUtils.createButton("aTemplate_HomeTemplateSelect", "Select")]]),
 				createTableRow([[12, "+ Template that load generals to send"]]),
-				//createTableRow([[10, "Use speed buff: (change type from options)"],[2, createSwitch("useSpeedBuff")]]),
-				//createTableRow([[10, "Star Generals: (star generals at the beginning)"],[2, createSwitch("starGenerals")]]),
 				$('<br>'),
 				createTableRow([[12, "Notes:"]], true),
-				createTableRow([[12, "*This section starts when adventure island is loaded! (order is important)"]]),
-				createTableRow([[12, "*Loading adventure island isn't auto in (Ventures & Senarios) so add below accordingly"]]),
-				createTableRow([[12, "*Tool Autimatcally (load your units, finish quests and end adveture)\n after doing what is listed below!"]]),
+				createTableRow([[12, "*Tool Autimatcally (load units, finish quests, end adventure) after finishing the list!"]]),
 				$('<br>'),
 				createTableRow([[3, loca.GetText("LAB", "Type")],[5, getText('shortcutsFilename')],[4, '']], true)
 			]));
 			
-			var tempAdvCmds = $('<div>', { 'class': 'btn-group dropup tempAdvCmds' }).append([
+			var aTemplate_Commands = $('<div>', { 'class': 'btn-group dropup aTemplate_Commands' }).append([
 				$('<button>').attr({ 
 					"class": "btn btn-success dropdown-toggle",
 					'aria-haspopup': 'true',
@@ -2102,15 +2101,15 @@ const aUI = {
 				])
 			]);
 	
-			autoWindow.withsBody('#selectHomeLoadTemp').click(function(e) { 
+			autoWindow.withsBody('#aTemplate_HomeTemplateSelect').click(function(e) { 
 				aUtils.chooseFile(function(event){
-					$('#homeLoadTemp').html(event.currentTarget.nativePath);
+					$('#aTemplate_HomeTemplate').html(event.currentTarget.nativePath);
 				});
 			});
 	
-			autoWindow.sFooter().prepend(tempAdvCmds);
+			autoWindow.sFooter().prepend(aTemplate_Commands);
 			autoWindow.sFooter().append([
-				$('<button>').attr({ "id": "autoTempLoad", "class": "btn btn-primary pull-left autoTempLoad" }).text(getText('load_template'))
+				$('<button>').attr({ "id": "aTemplate_Load", "class": "btn btn-primary pull-left" }).text(getText('load_template'))
 			]);
 			autoWindow.sFooter().find('.dropdown-menu a').click(function() {
 				switch(this.name){
@@ -2120,30 +2119,61 @@ const aUI = {
 						root.browseForOpenMultiple("Open", new window.runtime.Array(txtFilter)); 
 						root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, function(event) {
 							event.files.forEach(function(item) {
-								template.push(["AdventureTemplate", item.nativePath]);
+								aTemplate.push(["AdventureTemplate", item.nativePath]);
 							});
-							autoAdvTempUpdateView();
+							aTemplate_UpdateView();
 						});
 						break;
 					default:
-						template.push([this.name, $(this).text()]);
+						aTemplate.push([this.name, $(this).text()]);
 				}
-				autoAdvTempUpdateView();
+				aTemplate_UpdateView();
 			});
-			autoWindow.withsBody('#selectHomeLoadTemp').click(function(e) { 
+			autoWindow.withsBody('#aTemplate_HomeTemplateSelect').click(function(e) { 
 				aUtils.chooseFile(function(event){
-				$('#homeLoadTemp').html(event.currentTarget.nativePath);
-					//autoSettings.expl.template = event.currentTarget.nativePath;
+					$('#aTemplate_HomeTemplate').html(event.currentTarget.nativePath);
 				});
 			});
-			autoWindow.withsBody('#tempAdvSelect').change(function(e) { 
+			autoWindow.withsBody('#aTemplate_AdventureMap').change(function(e) { 
 				try {
-					autoAdvTempRowUpdate();
-				}catch(e){debug(e)}
+					$('#aTemplate_HomeTemplate').empty();
+					aTemplate_Update();
+				}catch(e){ debug(e) }
 			});
-			autoWindow.sData().append($('<div>', { 'id': 'templateSteps' }));
+			$('#aTemplate_Load').click(function(e) { 
+				aUtils.chooseFile(function(event){
+					try{
+						var Template = aUtils.readFile(event.currentTarget.nativePath);
+						var Hash = Template.hash;
+						delete Template.hash;
+						if(!Template.name || !Template.steps || hash(JSON.stringify(Template)) != Hash){
+							return alert(getText("bad_template"));
+						}
+						aTemplate = [];
+						if(!Array.isArray(Template.steps)) return alert('Invalid Template, please make a new one ^^');
+						$('#aTemplate_AdventureMap').val(Template.name);
+						$('#aTemplate_HomeTemplate').html(Template.steps[0].data);
+						var Steps = Template.steps.slice(3);
+						Steps.pop();
+						Steps.forEach(function(step){
+							switch(step.name){
+								case 'AdventureTemplate':
+								case 'ProduceItem':
+								case 'ApplyBuff':
+									aTemplate.push([step.name, step.data]);
+									break;
+								default:
+									aTemplate.push([step.name, step.name.replace(/([A-Z])/g, ' $1').trim()])
+							}
+						});
+						//aTemplate = Template.steps.slice(3);
+						aTemplate_UpdateView();
+					} catch(e) { debug(e) }
+				});
+			});
+			autoWindow.sData().append($('<div>', { 'id': 'aTemplate_Steps' }));
 			autoWindow.sshow();
-			autoAdvTempRowUpdate();
+			aTemplate_Update();
 		} catch(e){}
 		
 	},
@@ -3869,7 +3899,7 @@ const aStar2Store = {
 				buffList.buffList = game.def("mx.collections::ArrayCollection", 1);
 				buffList.target_string = "Mayorhouse";
 			aSettings.Star2Store.boxTypes.forEach(function(item) {
-				var buffItem = aUtils.getBuff(item);
+				var buffItem = aUtils.getBuff(item, 'AddResource');
 				if(!buffItem) return;
 				var storeItem = game.gi.mCurrentPlayerZone.GetResources(game.gi.mHomePlayer).GetPlayerResource(item)
 				if (storeItem.amount != storeItem.maxLimit)
@@ -3887,7 +3917,7 @@ const aStar2Store = {
 						game.gi.SendServerAction(63, 0, 8825, 0, buffList); 
 					} catch (e) {}
 				});
-		} catch (ex) {}
+		} catch (ex) { debug(ex) }
 	}
 }
 //-------------- Auto Open Mystery Boxs --------------
@@ -4057,7 +4087,7 @@ const aEvent = {
 }
 
 const auto = {
-	version: '1.0.2',
+	version: '1.0.3',
 	iProgress: 0,
 	iTimer: null,
     isOn: {
@@ -4075,6 +4105,7 @@ const auto = {
     timerID: null,
 	lastExec: 0,
 	watchID: null,
+	cLog: null,
 	load:function(){
 		auto.iProgress = 0;
 		aUI.makeMenu();
@@ -4088,11 +4119,15 @@ const auto = {
 			}
 		}, 600);
 	},
+	Changelog: function(){
+		alert(auto.cLog[auto.version]);
+	},
 	CheckforUpdate: function(){
 		aUI.alert("Checking for update!",'MEMORY');
 		try{
 			$.get('https://raw.githubusercontent.com/adly98/autoTSO/main/version.json', function(data){
 				var json = JSON.parse(data);
+				auto.cLog = json.changelog;
 				if(auto.CompareVersions(json.version, auto.version) === 1){
 					aUI.alert("New Update Available, updating...",'MEMORY');
 					auto.iProgress = 40;

@@ -1,8 +1,23 @@
 {
-  "version": "1.0.3",
+  "version": "1.1.0",
   "changelog": {
-    "1.0.1": ["Fixed Some Bugs"],
-    "1.0.2": ["Fixed Save Issues","Added Event Deposit Calculator in Automation Tools Menu"],
-    "1.0.3": ["Fixed Load Template in Auto Template Maker","Fixed Star 2 Store not working","Add a button to manually check for updates","Add Changelog"]
+    "1.0.1": [
+      "Fixed Some Bugs"
+    ],
+    "1.0.2": [
+      "Fixed Save Issues",
+      "Added Event Deposit Calculator in Automation Tools Menu"
+    ],
+    "1.0.3": [
+      "Fixed Load Template in Auto Template Maker",
+      "Fixed Star 2 Store not working",
+      "Add a button to manually check for updates","Add Changelog"
+    ],
+    "1.1.0": [
+      "Auto Short Quests: Reworked to make it fully auto",
+      "Auto Geologist: Fixed geologists selection not saving",
+      "Auto Deposits: Fixed Disabled buff selection",
+      "Update Changelog"
+    ]
   }
 }

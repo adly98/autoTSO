@@ -4415,7 +4415,7 @@ const aEvent = {
 }
 
 const auto = {
-	version: '1.1.1',
+	version: '1.1.2',
 	iProgress: 0,
 	iTimer: null,
     isOn: {
@@ -4453,6 +4453,7 @@ const auto = {
 		}, 300);
 	},
 	Changelog: function(){
+		//alert(auto.cLog[auto.version]);
 		$("div[role='dialog']:not(#aChangelogModal):visible").modal("hide");
 		$('#aChangelogModal').remove();
 		createModalWindow('aChangelogModal', utils.getImageTag('icon_dice.png', '45px') + ' Changelog');
@@ -4477,7 +4478,7 @@ const auto = {
 			$.get('https://raw.githubusercontent.com/adly98/autoTSO/main/version.json', function(data){
 				var json = JSON.parse(data);
 				auto.cLog = json.changelog;
-				if(auto.CompareVersions(json.version, auto.version)){
+				if(auto.CompareVersions(json.version, auto.version) === 1){
 					aUI.alert("New Update Available, updating...",'MEMORY');
 					auto.iProgress = 50;
 					auto.UpdateScript();
@@ -4576,7 +4577,7 @@ const aSettings = {
 		AutoUpdate: true,
 	},
 	Explorers: {
-		autoStart: true,
+		autoStart: false,
 		template: "",
 		useTemplate: false
 	},

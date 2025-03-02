@@ -18,6 +18,11 @@
       "Auto Geologist: Fixed geologists selection not saving",
       "Auto Deposits: Fixed Disabled buff selection",
       "Update Changelog"
+    ],
+    "1.1.1": [
+      "Auto Adventure: Fix retrain lost units not working",
+      "Auto Deposits: Fix some saving issues",
+      "Add Option to disable Auto update"
     ]
   }
 }

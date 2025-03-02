@@ -598,7 +598,7 @@ const aAdventure = {
 	CheckLostUnits: function(){
 		try {
 			aAdventure.data.rEnemies = aUtils.remainingEnemies();
-			var freeArmy = aUtils.freeArmy(0) || {};
+			var freeArmy = aUtils.GetFreeArmy(0) || {};
 			var assignedArmy = aUtils.assignedArmy();
 			Object.keys(autoData.unitCosts).forEach(function(uName){
 				const initial = aAdventure.data.army[uName];
@@ -747,12 +747,12 @@ const aAdventure = {
 				return this.result(false, "You must be on home island!");
 			if(aUtils.getBuff(data))
 				return this.result(true, "{0} produced successfully".format(loca.GetText('RES', data)), 3);
-			else if(aUtils.checkInPH(data))
+			else if(aUtils.CheckInProduction(data))
 				return this.result(false, "{0} is being produced".format(loca.GetText('RES', data)), 3);
 			else {
 				var itemData = autoData.adventureItems[aAdventure.data.name][data];
 				var amount = itemData.length;
-				if(Array.isArray(itemData[0])){
+				if($.isArray(itemData[0])){
 					amount = itemData[1];
 				}
 				auto.timedQueue.add(function(){
@@ -771,7 +771,7 @@ const aAdventure = {
 				return this.result(false, "You must be on adventure island!");
 			if(aUtils.getBuff(data)){
 				var itemData = autoData.adventureItems[aAdventure.data.name][data];
-					itemData = Array.isArray(itemData[0]) ? itemData[0] : itemData;
+					itemData = $.isArray(itemData[0]) ? itemData[0] : itemData;
 				$.each(itemData, function(i, grid){
 					auto.timedQueue.add(function(){
 						try {
@@ -897,7 +897,7 @@ const aAdventure = {
 				return aAdventure.result(false, "Waiting for generals to kill enemies!!");
 			}
 				
-			var freeArmy = aUtils.freeArmy(1);
+			var freeArmy = aUtils.GetFreeArmy(1);
 			if(freeArmy){
 				aUtils.assignFreeArmy(freeArmy);
 				return aAdventure.result(false, "Loading all units to finish adventure");
@@ -997,7 +997,7 @@ const aUtils = {
 	},
 	areGensBusy: function(generals, attackersOnly){
 		try{
-			var checkList = Array.isArray(generals) ? generals : Object.keys(generals);
+			var checkList = $.isArray(generals) ? generals : Object.keys(generals);
 			if(attackersOnly) {
 				checkList = checkList.filter(function(general){
 					return generals[general].target > 0;
@@ -1062,7 +1062,7 @@ const aUtils = {
 			return generals.length == 0 ? true : false;
 		}catch(er){}
 	},
-	freeArmy: function(Categorized){
+	GetFreeArmy: function(Categorized){
 		try{
 			if (!game.zone.GetArmy(game.player.GetPlayerId()).HasUnits())
 				return null;
@@ -1254,19 +1254,20 @@ const aUtils = {
 		menu.nativeMenu.getItemByName("AutoAdvTrack").label = "Status: " + status;
 		$("#aAdventureStatus").text("Status: " + status);
 	},
-    checkInPH: function(buff){
+    CheckInProduction: function(item, buildings){
 		try{
-			var provisionHs = game.zone.GetProductionQueue_vector().filter(function(b){ 
-				return b.productionBuilding.GetBuildingName_string() == "ProvisionHouse" || b.productionBuilding.GetBuildingName_string() == "ProvisionHouse2"
+			buildings = buildings ? (typeof buildings == 'string' ? [buildings] : buildings) : ['ProvisionHouse', 'ProvisionHouse2']
+			var pQueues = $.map(buildings, function(building){
+				return game.zone.mStreetDataMap.getBuildingByName(building).productionQueue;
 			});
-			var exists = false;
-			provisionHs.forEach(function(ph){
-				ph.mTimedProductions_vector.forEach(function(tp){
-					if(tp.GetType() == buff) exists	= ph.productionBuilding.GetBuildingName_string();
+			var result = 0;
+			pQueues.forEach(function(q){
+				q.mTimedProductions_vector.forEach(function(tp){
+					if(tp.GetType() == item) result += tp.GetAmount();
 				})
 			});
-			return exists;
-		}catch(er){}
+			return result;
+		}catch(er){ return debug('No Buildings'), 0; }
 	},
 	startProduction: function(building, item, amount, stack){
 		try{
@@ -1284,26 +1285,27 @@ const aUtils = {
 		return game.def('global').map_BuffName_BuffDefinition[name].GetCosts_vector();
 	},
 	ProduceInPH: function(name, amount){
-		if(!aUtils.checkInPH(name)){
-			if(!aUtils.CanAfford(aUtils.GetBuffCost(name), amount)) 
-				return aUI.alert("Not enough resources to produce {0} x{1}".format(loca.GetText("RES", name), amount), name);
-			
-			if (amount > 25) {
-				auto.timedQueue.add(function () {
-					try {
-						aUtils.startProduction("ProvisionHouse", name, 25, Math.floor(amount / 25));
-					} catch (e) {}
-				});
-			}
-			if (amount % 25) {
-				auto.timedQueue.add(function () {
-					try {
-						aUtils.startProduction("ProvisionHouse", name, amount % 25, 1);
-					} catch (e) {}
-				});
-			}
-			aUI.alert("Start production of {0} x{1}".format(loca.GetText("RES", name), amount), name);
+		const inProduction = aUtils.CheckInProduction(name, barracksType);
+		if(inProduction >= amount) return;
+		amount -= inProduction;
+		if(!aUtils.CanAfford(aUtils.GetBuffCost(name), amount)) 
+			return aUI.alert("Not enough resources to produce {0} x{1}".format(loca.GetText("RES", name), amount), name);
+		
+		if (amount > 25) {
+			auto.timedQueue.add(function () {
+				try {
+					aUtils.startProduction("ProvisionHouse", name, 25, Math.floor(amount / 25));
+				} catch (e) {}
+			});
 		}
+		if (amount % 25) {
+			auto.timedQueue.add(function () {
+				try {
+					aUtils.startProduction("ProvisionHouse", name, amount % 25, 1);
+				} catch (e) {}
+			});
+		}
+		aUI.alert("Start production of {0} x{1}".format(loca.GetText("RES", name), amount), name);
 	},
     getMinefromDepositGrid: function(grid)
 	{
@@ -1381,13 +1383,18 @@ const aUtils = {
 		else
 			return true;
 	},
-	TrainUnit: function(name, amount){
+	TrainUnit: function(name, amount, abs){
 		const unitData = aUtils.GetUnitData(name);
+		const barracksType = unitData.GetIsElite() ? "EliteBarracks" : "Barracks";
+		const inProduction = aUtils.CheckInProduction(name, barracksType);
+		if(!abs){
+			if(inProduction >= amount) return;
+			amount -= inProduction;
+		}
 		if(!aUtils.CanAfford(unitData.GetCosts_vector(), amount)) 
 			return aUI.alert("Not enough resources to produce {0} x{1}".format(loca.GetText("RES", name), amount), name);
 		
 		var trainQ = new TimedQueue(1500);
-		var barracksType = unitData.GetIsElite() ? "EliteBarracks" : "Barracks";
 		trainQ.add(function(){ game.chatMessage("Training {0} x{1}".format(name, amount)); });
 		if (amount > 25) {
 			trainQ.add(function() {
@@ -1398,7 +1405,8 @@ const aUtils = {
 			trainQ.add(function() {
 				aUtils.startProduction(barracksType, name, amount % 25, 1);
 			});
-		}	
+		}
+		trainQ.run();
 	},
 	trainLostTroops: function(){
 		var trainQ = new TimedQueue(1500);
@@ -1409,7 +1417,7 @@ const aUtils = {
 		trainQ.add(function(){
 			aUI.alert("Training Lost Troops!", 'ARMY');
 			$.each(aAdventure.data.lostArmy, function(unitName, unitsNeeded){
-				aUtils.TrainUnit(unitName, unitsNeeded);
+				aUtils.TrainUnit(unitName, unitsNeeded, true);
 			});
 		}, 15000);
 		trainQ.run();
@@ -1496,6 +1504,23 @@ const aUtils = {
 		const minutes = Math.floor(tSeconds / 60);
 		const seconds = tSeconds % 60;
 		return "{0}:{1}".format(minutes, seconds < 10 ? '0' + seconds : seconds);
+	},
+	cExtend: function(target, source) {
+		for (var prop in source) {
+			if (source.hasOwnProperty(prop)) {
+				if ($.isArray(source[prop]) && source[prop].length === 0) {
+					target[prop] = [];
+				} else if (typeof source[prop] === 'object' && source[prop] !== null) {
+					if (typeof target[prop] !== 'object' || target[prop] === null) {
+						target[prop] = $.isArray(source[prop]) ? [] : {};
+					}
+					aUtils.cExtend(target[prop], source[prop]);
+				} else {
+					target[prop] = source[prop];
+				}
+			}
+		}
+		return target;
 	}
 }
 const aCycle = {
@@ -1518,7 +1543,7 @@ const aCycle = {
 		auto.timedQueue = new TimedQueue(1000);
 		if(aCycle.waitingQueue.length > 0){
 			aCycle.waitingQueue.forEach(function(item){
-				if(Array.isArray(item))
+				if($.isArray(item))
 					auto.timedQueue.add(item[0], item[1]);
 				else
 					auto.timedQueue.add(item);
@@ -1872,6 +1897,12 @@ const aUI = {
 				$('<br>'),
 			]);
 			const miscMenu = container().append([
+				createTableRow([[9, 'Script'], [3, '&nbsp;']], true),
+				createTableRow([
+					[9, "Auto Update on start up"],
+					[3, createSwitch('aScript_AutoUpdate', aSettings.Auto.AutoUpdate)],
+				]),
+				$('<br>'),
 				createTableRow([[9, 'Tweaks'], [3, '&nbsp;']], true),
 				createTableRow([
 					[9, "&#10551; Chat: Reduce Message Histroy"],
@@ -1936,7 +1967,7 @@ const aUI = {
 					if(!defaultTemp.name || !defaultTemp.steps || hash(JSON.stringify(defaultTemp)) != hashed){
 						return alert(getText("bad_template"));
 					}
-					if(!Array.isArray(defaultTemp.steps)) return alert('Invalid Template, please make a new one ^^');
+					if(!$.isArray(defaultTemp.steps)) return alert('Invalid Template, please make a new one ^^');
 
 					aSettings.Adventures.templates.push({
 						label: text,
@@ -1963,6 +1994,8 @@ const aUI = {
 				});
 			});
 			autoWindow.Footer().prepend($("<button>").attr({'class':"btn btn-primary pull-left"}).text('Save').click(function(){
+				//Script
+				aSettings.Auto.AutoUpdate = $('#aScript_AutoUpdate').is(':checked');
 				// Auto Adventures
 				aSettings.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
 				aSettings.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');
@@ -2067,7 +2100,7 @@ const aUI = {
 						case 'ProduceItem':
 						case 'ApplyBuff':
 							var amount = autoData.adventureItems[$("#aTemplate_AdventureMap").val()][i[1]];
-								amount = Array.isArray(amount[0]) ? amount[1] : amount.length;
+								amount = $.isArray(amount[0]) ? amount[1] : amount.length;
 							out.push(createTableRow([
 								[3, '&#8597;&nbsp;&nbsp;' + 'Bot'],
 								[7, '{0}: {1}{2} x{3}'.format(i[0]=="ApplyBuff" ? "Apply" : "Produce", getImage(assets.GetBuffIcon(i[1]).bitmapData, "23px"), loca.GetText('RES', i[1]), amount )],
@@ -2203,7 +2236,7 @@ const aUI = {
 							return alert(getText("bad_template"));
 						}
 						aTemplate = [];
-						if(!Array.isArray(Template.steps)) return alert('Invalid Template, please make a new one ^^');
+						if(!$.isArray(Template.steps)) return alert('Invalid Template, please make a new one ^^');
 						$('#aTemplate_AdventureMap').val(Template.name);
 						$('#aTemplate_HomeTemplate').html(Template.steps[0].data);
 						var Steps = Template.steps.slice(3);
@@ -2611,6 +2644,7 @@ const aDeposits = {
 const aShortQuests = {
 	questList: ["SharpClaw", "StrangeIdols", "Annoholics", "SilkCat"],
 	IdolTrades: [false, false, false],
+	TOTrades:[],
 	exec: function(){
 		if(!game.gi.isOnHomzone())  return;
 		try{
@@ -2740,7 +2774,7 @@ const aShortQuests = {
 						$.each(qTriggers, function(i, trig){
 							if(trig.status) return;
 							if(sQuestName == "BuffQuestSilkCat_Sub1" && i === 1){
-								if(aUtils.freeArmy(0).Recruit < 6)
+								if(aUtils.GetFreeArmy().Recruit < 6)
 									return aUtils.TrainUnit('Recruit', 6);
 								auto.timedQueue.add(function(){
 									try{ game.quests.InitiatePayForQuestFinish(sQuest.GetUniqueId()); }catch(e){}
@@ -2930,6 +2964,109 @@ const aShortQuests = {
 		}
 		
 		autoWindow.sshow();
+	},
+	IsQuestReadyForSubmit: function(Quest){
+		return game.def('converted.bluebyte.tso.quests.logic.QuestManagerStatic').IsQuestReadyForSubmit(Quest, true);
+	},
+	DailyQuests: function(){
+		const Quests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function(q){ 
+			return q && /^Dai[A-Z]/.test(q.getQuestName_string()) && q.IsRunning() 
+		}); 
+		$.each(Quests, function(i, Quest){
+			aShortQuests.DoQuest(Quest);
+		});
+	},
+	DoQuest: function(Quest){
+		try{
+			if(Quest.isFinished()) 
+				return game.quests.RewardOkButtonPressedFromGui(Quest);
+			if(aShortQuests.IsQuestReadyForSubmit(Quest))
+				return game.quests.InitiatePayForQuestFinish(Quest.GetUniqueId());
+			
+			$.each(Quest.mQuestDefinition.questTriggers_vector.toArray(), function(t, trigger){
+				t = trigger.triggerIdx;
+				if(Quest.GetTriggerStatus(t)) return;
+				const rName = trigger.name_string,
+					rAmount = trigger.amount,
+					rDelta = Quest.GetDeltaStart(t);
+				const fAmount = rAmount - rDelta;
+				switch(trigger.type){
+					// TYPE_RESOURCE
+					case 2:
+						//Produce
+						if(trigger.condition == 15){
+							const review = game.def("ServerState::cEconomyOverviewData",1).GetResourceProductionAndConsumptionValues(null, rName);
+							if(review.mProductionValue > 0)
+								return aUI.alert('Waiting to gather enough {0} ({1}/{2})'.format(rName, rDelta, rAmount), assets.GetResourceIcon(rName));
+							else
+								return aUI.alert('Please make sure that your {0} production is running!'.format(loca.GetText('RES', rName)), assets.GetResourceIcon(rName));
+						}
+						//Sell
+						else if(trigger.condition == 18){
+							if(!aUtils.EnoughResource(rName, fAmount)) return;
+							aShortQuests.TOTrades.push([
+								Quest.getQuestName_string(), 
+								t,
+								rName,
+								fAmount
+							]);
+						}
+						break;
+					// TYPE_PAY_FOR_QUEST_FINISH
+					case 18:
+						if(aUtils.GetUnitData(rName)){
+							const fUnit = aUtils.GetFreeArmy()[rName] || 0;
+							const aUnit = aUtils.assignedArmy()[rName] || 0;
+							if(fUnit >= fAmount)
+								return;
+							else if((fUnit + aUnit) > fAmount)
+								shortcutsFreeAllUnits();
+							else
+								aUtils.TrainUnit(rName, fAmount);
+						} else {
+							//Resource
+							if(aUtils.EnoughResource(rName, fAmount)) return;
+						}
+						break;
+					// TYPE_NEW_QUEST_TRIGGER
+					case 45:
+						const tQuest = Quest.mQuestDefinition.endConditions_vector[t];
+						const buffVO = aUtils.getBuff(tQuest.item_string);
+						if(tQuest.action_string == 'buffowned'){
+							if(!buffVO)
+								aUtils.ProduceInPH(tQuest.item_string, tQuest.min);
+						}
+						else if(tQuest.action_string == 'buffapplied'){
+							const grid = game.zone.mStreetDataMap.getBuildingByName(aUtils.capitalize(tQuest.target_string)).GetGrid()
+							if(buffVO){
+								aUtils.applyBuff(buffVO, grid);
+							} else {
+								aUtils.ProduceInPH(tQuest.item_string, tQuest.min);
+							}
+						}
+						else if(tQuest.action_string == 'buffproduced'){
+							aUtils.ProduceInPH(tQuest.item_string, tQuest.min)
+						}
+						else if(tQuest.action_string == 'produceditemlist'){
+							if(aUtils.GetUnitData(tQuest.item_string))
+								aUtils.TrainUnit(tQuest.item_string, tQuest.amount);
+						}
+						else if(tQuest.action_string == 'soldgoods'){
+							if(!aUtils.EnoughResource(tQuest.item_string, tQuest.amount - rDelta)) return;
+							aShortQuests.TOTrades.push([
+								Quest.getQuestName_string(), 
+								t,
+								tQuest.item_string,
+								tQuest.amount - rDelta
+							]);
+						}
+						else if(tQuest.action_string == 'completeadventurelist'){
+							aUI.alert(loca.GetText('completeadventurelist_{0}'.format(tQuest.loca_string)));
+						}
+						break;
+				}
+			});
+		}catch(e){ debug(e) }
 	}
 }
 //-------------- Auto Book Binder --------------
@@ -4278,7 +4415,7 @@ const aEvent = {
 }
 
 const auto = {
-	version: '1.1.0',
+	version: '1.1.1',
 	iProgress: 0,
 	iTimer: null,
     isOn: {
@@ -4300,18 +4437,22 @@ const auto = {
 	load:function(){
 		auto.iProgress = 0;
 		aUI.makeMenu();
-		auto.CheckforUpdate();
 		auto.iTimer = setInterval(function(){
 			auto.iProgress += 1;
 			aUtils.updateStatus("Initiating {0}%".format(auto.iProgress));
+			if(auto.iProgress == 10){
+				if(aSettings.Auto.AutoUpdate)
+					auto.CheckforUpdate();
+				else
+					auto.iProgress = 70;
+			}
 			if (auto.iProgress >= 100) {
 				clearInterval(auto.iTimer);
 				auto.init();
 			}
-		}, 600);
+		}, 300);
 	},
 	Changelog: function(){
-		//alert(auto.cLog[auto.version]);
 		$("div[role='dialog']:not(#aChangelogModal):visible").modal("hide");
 		$('#aChangelogModal').remove();
 		createModalWindow('aChangelogModal', utils.getImageTag('icon_dice.png', '45px') + ' Changelog');
@@ -4336,13 +4477,13 @@ const auto = {
 			$.get('https://raw.githubusercontent.com/adly98/autoTSO/main/version.json', function(data){
 				var json = JSON.parse(data);
 				auto.cLog = json.changelog;
-				if(auto.CompareVersions(json.version, auto.version) === 25){
+				if(auto.CompareVersions(json.version, auto.version)){
 					aUI.alert("New Update Available, updating...",'MEMORY');
 					auto.iProgress = 50;
 					auto.UpdateScript();
 				} else { 
-					aUI.alert("You are using the lastest version :D",'MEMORY');
-					auto.iProgress = 85;
+					aUI.alert("You are using the latest version :D",'MEMORY');
+					auto.iProgress = 80;
 				}
 			});
 		}catch(e){ debug(e) }
@@ -4356,7 +4497,7 @@ const auto = {
 				fileStream.open(file, air.FileMode.WRITE);
 				fileStream.writeUTFBytes(data);
 				fileStream.close();
-				auto.iProgress = 85;
+				auto.iProgress = 90;
 				setTimeout(function() {
 					aUI.alert("Updated Successfuly ^_^",'MEMORY');
 					reloadScripts();
@@ -4385,8 +4526,7 @@ const auto = {
 			game.gi.channels.SPECIALIST.addPropertyObserver(
 				"generalbattlefought", game.getTracker('battleFinished', aUtils.battleFinished)
 			);
-
-			$.extend(true, aSettings, readSettings(null, 'auto'));
+			aSettings = aUtils.cExtend(aSettings, readSettings(null, 'auto'));
 			this.isOn.Explorers = aSettings.Explorers.autoStart;
 			this.isOn.Deposits = aSettings.Deposits.autoStart;
 			this.isOn.BookBinder = aSettings.Buildings.BookBinder.autoStart;
@@ -4432,7 +4572,8 @@ const auto = {
 }
 const aSettings = {
 	Auto:{
-		LastWatchID: 0
+		LastWatchID: 0,
+		AutoUpdate: true,
 	},
 	Explorers: {
 		autoStart: true,

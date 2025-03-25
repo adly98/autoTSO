@@ -26,6 +26,18 @@
     ],
     "1.1.2": [
       "Fix Script major restarting issue!"
+    ],
+    "1.1.3": [
+        "Auto Collect: Added Ballon Market Tribute Box",
+        "Auto Quest: Fixed Short Letters quests not working",
+        "Auto Quest: Added all Excelsior Letter quests",
+        "Auto Quest: Added Mini quests",
+        "Auto Quest: Added Daily and Guild Quests",
+        "Auto Mail: Fixed not working after first time and improved filters",
+        "Auto Mail: Add option to Turn On/Off in Menu",
+        "Auto Mail: Add option to save accepted/declined trades",
+        "Auto Deposits: No longer delete depleted deposit",
+        "Auto Adventure: Fixed retrain lost units"
     ]
   }
 }

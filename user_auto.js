@@ -1,92 +1,6 @@
 var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
 var autoWindow, aWindow, aZoneAction = null;
-const autoData = {
-    adventures: {
-        Mini_Missions: [
-            "MiadArcticExplosion",
-            "MiadBastilleIsland",
-            "MiadPirateLife",
-            "MiadSleepyReef",
-            "TheDarkPriests",
-            "MiadTheLostSkull",
-            "MiadTheSleepingVolcano",
-            "MiadTikkiIsland",
-            "MiadTropicalSun"
-        ],
-        Missions: [
-            "BanditNest",
-            "BonabertiBusiness",
-            "Gunpowder",
-            "Horseback",
-            "MoreSecludedExperiments",
-            "MotherLove",
-            "OldFriends",
-            "Outlaws",
-            "NewBanditNest",
-            "RoaringBull",
-            "SecludedExperiments",
-            "SonsOfTheVeld",
-            "StealingFromTheRich",
-            "SurpriseAttack",
-            "TheBlackKnights",
-            "TheDarkBrotherhood",
-            "TheNords2",
-            "TheIslandOfThePirates",
-            "TheNords",
-            "Traitors",
-            "VictorTheVicious",
-            "MadHenry",
-            "WitchOfTheSwamp"
-        ],
-        FairyTales: [
-            "TheValiantLittleTailor",
-            "TheCleverLittleTailor",
-            "TheSonsOfTheLittleTailor",
-            "TheBetrayedLittleTailor",
-            "TheHeroicLittleTailor"
-        ],
-        Arabian_Nights: [
-            "1001NightsWoodcutter",
-            "1001NightsFirstThief",
-            "1001NightsSecondThief",
-            "1001NightsThirdThief",
-            "1001NightsTreasureKnowledge",
-            "1001NightsTreasureWisdom",
-            "1001NightsBesiegedCity",
-            "1001NightsOilLamp",
-            "1001NightsSeaSnake",
-            "1001NightsPrincess"
-        ],
-        Ventures: [
-            "BuffAdventures_ValuableIntel",
-            "BuffAdventures_OfSongsAndCurses",
-            "BuffAdventures_ElChupacabra",
-            "BuffAdventures_RaidOfTheNords",
-            "BuffAdventures_LostCity",
-            "BuffAdventures_OneStepAhead"
-        ],
-        Evil_Queen_Ventures: [
-            "BuffAdventures_Evil_Queen_Fisherman",
-            "BuffAdventures_Evil_Queen_Hansel_Gretel",
-            "BuffAdventures_Evil_Queen_Piper_of_Hamelin",
-            "BuffAdventures_Evil_Queen_Red_Riding_Hood",
-            "BuffAdventures_Evil_Queen_Snow_White"
-        ],
-        The_Mountain_Clan_Ventures: [
-            "BuffAdventures_TMC_At_the_foot_of_the_Mountain",
-            "BuffAdventures_TMC_Unknown_Regions",
-            "BuffAdventures_TMC_Mountain_Labyrinth",
-            "BuffAdventures_TMC_A_giant_battle",
-            "BuffAdventures_TMC_The_People_of_the_Mountain"
-        ],
-        Senarios: [
-            "BuffAdventures_safeTheTowns_easy",
-            "BuffAdventures_twins_easy",
-            "BuffAdventures_heartOfTheWood_medium",
-            "BuffAdventures_Riches_of_the_Mountain",
-            "BuffAdventures_Storm_Recovery"
-        ]
-    },
+const aData = {
     adventureItems: {
         BuffAdventures_Evil_Queen_Fisherman:{
             BattleBuffHurt_BuffAd_FishCurseLifter: [1030]
@@ -229,20 +143,20 @@ const autoData = {
 			]
 		},
         "SenarioRichesOfTheMountain": {
-			"name": "BuffAdventures_heartOfTheWood_medium",
+			"name": "BuffAdventures_Riches_of_the_Mountain",
 			"steps": [
 				{ name: "StartAdventure" },
 				{ name: "VisitAdventure" },
 				{ name: "CollectPickups" },
 				{ name: "ReturnHome" },
-				{ name: "ProduceItem", data: "ChangeSkin_BuffAd_wildlife" },
+				{ name: "ProduceItem", data: "ChangeSkin_BuffAd_PureOre" },
 				{ name: "ProduceItem", data: "BattleBuffHurt_BuffAd_Dynamite" },
 				{ name: "ProduceItem", data: "BattleBuffHurt_BuffAd_Shovel" },
 				{ name: "ProduceItem", data: "ChangeSkin_BuffAd_TavernKit" },
 				{ name: "ProduceItem", data: "ChangeSkin_BuffAd_StorageKit" },
 				{ name: "ProduceItem", data: "ChangeSkin_BuffAd_MasonKit" },
 				{ name: "VisitAdventure" },
-				{ name: "ApplyByff", data: "ChangeSkin_BuffAd_wildlife" },
+				{ name: "ApplyByff", data: "ChangeSkin_BuffAd_PureOre" },
 				{ name: "ApplyByff", data: "BattleBuffHurt_BuffAd_Dynamite" },
 				{ name: "ApplyByff", data: "BattleBuffHurt_BuffAd_Shovel" },
 				{ name: "ApplyByff", data: "ChangeSkin_BuffAd_TavernKit" },
@@ -316,68 +230,56 @@ const autoData = {
 			]
 		}
     },
-	unitCosts: {
-		"Recruit": 			{"Population": 1, "Beer": 5, "BronzeSword": 10},
-		"Bowman": 			{"Population": 1, "Beer": 10, "Bow": 10},
-		"Militia": 			{"Population": 1, "Beer": 10, "IronSword": 10},
-		"Cavalry": 			{"Population": 1, "Beer": 30, "Horse": 40},
-		"Longbowman":		{"Population": 1, "Beer": 20, "Longbow": 10},
-		"Soldier": 			{"Population": 1, "Beer": 15, "SteelSword": 10},
-		"Crossbowman": 		{"Population": 1, "Beer": 50, "Crossbow": 10},
-		"EliteSoldier": 	{"Population": 1, "Beer": 50, "TitaniumSword": 10},
-		"Cannoneer": 		{"Population": 1, "Beer": 50, "Cannon": 10},
-
-		"Swordsman": 		{"Population": 1, "Beer": 50, "PlatinumSword": 1},
-		"MountedSwordsman": {"Population": 1, "Beer": 50, "PlatinumSword": 2, "BattleHorse": 2},
-		"Knight":			{"Population": 1, "Beer": 50, "BattleHorse": 1},
-		"Marksman": 		{"Population": 1, "Beer": 50, "Archebuse": 1},
-		"ArmoredMarksman": 	{"Population": 1, "Beer": 50, "PlatinumSword": 1, "Archebuse": 1},
-		"MountedMarksman": 	{"Population": 1, "Beer": 50, "Archebuse": 2, "BattleHorse": 2},
-		"Besieger": 		{"Population": 1, "Beer": 50, "Mortar": 1}
+	Adventures: function(){
+		var Result = {};
+		game.def('AdventureSystem::cAdventureDefinition').map_AdventureName_AdventureDefinition.valueSet().forEach(function(adv){
+			if(adv.mName_string.indexOf('Expedition') == -1 && adv.GetRequiresEvent() == ''){
+				const Cat = adv.GetCampaign_string() == 'None'? adv.GetType_string() : loca.GetText('LAB','Campaign_{0}'.format(adv.GetCampaign_string()));
+				if(Cat == 'Scenario' && adv.mName_string.indexOf('Easter') != -1 && adv.mName_string.indexOf('BuffAdventures') == -1) return;
+				if(loca.GetText('ADN', adv.mName_string).indexOf('undefined') != -1) return;
+				if(!Result[Cat])
+					Result[Cat] = [];
+				Result[Cat].push(adv.mName_string);
+			}
+		})
+		return Result;
 	},
-	resources: [
-		"HalloweenResource","Water","Archebuse","Bow","Longbow","Bronze","Iron",
-		"Gold","Barrel","CollectibleChristmasCandy","ExpeditionCrossbow","Crossbow",
-		"Nib","EMEventResource","WMDummy","CollectibleBronzeCauldron","Cannon","WMHelmet",
-		"Meat","CollectibleFoodCart","Wagon","Carriage","Coal","WMBanana","BattleHorse",
-		"Horse","CollectibleKettle","WMStuds","WMRedColor","CollectibleFurs","CollectibleHerbs",
-		"WMCorner","PlatinumSword","TitaniumSword","SteelSword","BronzeSword","IronSword",
-		"CollectibleScarecrow","CollectibleBanner","Flour","MagicBean","Beer","Tool",
-		"AdvancedTools","ValentinesFlower","MapPart","WMWetGrass","Granite","WMGrease",
-		"Wool","BattleLance","Sausage","SpikedMace","MahoganyWood","RealWood","ExoticWood","Wood","Marble","CakeDough",
-		"CollectibleAdamantium","BronzeOre","IronOre","GoldOre","PlatinumOre","TitaniumOre",
-		"Coin","GuildCoins","WMElasticSpring","Mortar","Oilseed","Oil","WMShoulderPad",
-		"StripedEggs","Bread","CollectibleChristmasGingerbread","AdvancedPaper",
-		"IntermediatePaper","SimplePaper","MagicBeanstalk","BookFitting","Stone","Fish","Pike","Steel",
-		"Platinum","Gunpowder","ChristmasResource","WMFist","Grout","Wheel","Saber",
-		"CollectibleGrainSacks","Salpeter","WMShoe","CollectibleChristmasBells",
-		"RealPlank","ExoticPlank","Plank","MahoganyPlank",
-		"Cloth","Saddlecloth","WMTelescope","Titanium","Corn","Candles"
-	],
-	Star2Store: [
-		"HalloweenResource","Water","Archebuse","Bow","Longbow","Bronze","Iron",
-		"Gold","Barrel","CollectibleChristmasCandy","ExpeditionCrossbow","Crossbow",
-		"Nib","EMEventResource","WMDummy","CollectibleBronzeCauldron","Cannon","WMHelmet","CollectibleWineBarrel",
-		"Meat","CollectibleFoodCart","Wagon","Carriage","Coal","WMBanana","BattleHorse",
-		"Horse","CollectibleKettle","WMStuds","WMRedColor","CollectibleFurs","CollectibleHerbs",
-		"WMCorner","PlatinumSword","TitaniumSword","SteelSword","BronzeSword","IronSword",
-		"CollectibleScarecrow","CollectibleBanner","Flour","MagicBean","Beer","Tool",
-		"AdvancedTools","ValentinesFlower","MapPart","WMWetGrass","Granite","WMGrease",
-		"Wool","BattleLance","Sausage","SpikedMace","MahoganyWood","RealWood","ExoticWood","Wood","Marble","CakeDough",
-		"CollectibleAdamantium","BronzeOre","IronOre","GoldOre","PlatinumOre","TitaniumOre",
-		"Coin","GuildCoins","WMElasticSpring","Mortar","Oilseed","Oil","WMShoulderPad",
-		"StripedEggs","Bread","CollectibleChristmasGingerbread","AdvancedPaper",
-		"IntermediatePaper","SimplePaper","MagicBeanstalk","BookFitting","Stone","Fish","Pike","Steel",
-		"Platinum","Gunpowder","ChristmasResource","WMFist","Grout","Wheel","Saber",
-		"CollectibleGrainSacks","Salpeter","WMShoe","CollectibleChristmasBells",
-		"RealPlank","ExoticPlank","Plank","MahoganyPlank",
-		"Cloth","Saddlecloth","WMTelescope","Titanium","Corn","Candles",
-		"CrystalShard", "Token", "Crystal", "StarCoin" , "StarfallStarShards",
-		"Manuscript","Tome","Codex","AdventureTale","ObsidianOre"
-	]
+	SpeedBuffs: function(toOptions){
+		const buffs = ["Bronze", "Platinum", "Blackened_Titanium", "Obsidian", "Mystical"];
+		if(toOptions)
+			return buffs.map(function(buff){
+				buff = 'GeneralSpeedBuff_' + buff;
+				var buffVO = aUtils.getBuff(buff)
+				var amount = buffVO ? buffVO.amount : 0;
+				return $('<option>', { value: buff, disabled: buffVO ? false : true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
+			});
+		else
+			return buffs.map(function(buff){ return 'GeneralSpeedBuff_' + buff; });
+	},
+	Units: function(Unit){
+		const Data = game.def('MilitarySystem::cMilitaryUnitBase').GetAllUnit(1);
+		if(!Unit) return Data;
+		return Data.filter(function(unit){ return unit.GetType() == Unit; })[0] || null;
+	},
+	Resources: function(AllResources, toOptions){
+		var Result = [];
+		const Resources = game.getResources().GetPlayerResources_vector("").sort(function(a,b){
+			return loca.GetText("RES", a).localeCompare(loca.GetText("RES", b))
+		});
+		$.each(Resources, function(i, Resource){
+			const event = game.def('ServerState::gEconomics').mMap_EventResourceDefaultDefinition[Resource.name_string];
+			if (game.def('ServerState::gEconomics').GetResourcesDefaultDefinition(Resource.name_string).tradable && ((event == null) || (game.gi.mEventManager.isEventStarted(event.requiredEventName_string) || AllResources))){
+				Result.push(Resource.name_string);
+			};
+		});
+		return Result;
+	},
+	Excelsior: function(){
+		const Definitions = game.def('converted.bluebyte.tso.contentgenerator.logic::ContentGeneratorDefinitions').getInstance().getDefinitions();
+		return Definitions;
+	}
 }
 const aAdventure = {
-	speedBuffs: ["Bronze", "Platinum", "Blackened_Titanium", "Obsidian", "Mystical"],
 	data: {
 		fileName: null,
 		name: null,
@@ -434,12 +336,7 @@ const aAdventure = {
 			return aUI.alert('Please select an adventure first','ARMY');
 		try {
 			aWindow = new Modal("aAdventureModal", getImage(assets.GetBuffIcon("MapPart").bitmapData) + " Auto Adventure");
-			var aAdventure_SpeedBuffs = aUtils.createSelect("aAdventure_SpeedBuffs").append(aAdventure.speedBuffs.map(function(buff){
-				buff = 'GeneralSpeedBuff_' + buff;
-				var buffVO = aUtils.getBuff(buff)
-				var amount = buffVO ? buffVO.amount : 0;
-				return $('<option>', { value: buff, disabled: buffVO ? false : true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
-			}));
+			var aAdventure_SpeedBuffs = aUtils.createSelect("aAdventure_SpeedBuffs").append(aData.SpeedBuffs(1));
 			//aWindow.size = '';
 			aWindow.create();
 			aWindow.Body().empty().append(
@@ -600,7 +497,8 @@ const aAdventure = {
 			aAdventure.data.rEnemies = aUtils.remainingEnemies();
 			var freeArmy = aUtils.GetFreeArmy(0) || {};
 			var assignedArmy = aUtils.assignedArmy();
-			Object.keys(autoData.unitCosts).forEach(function(uName){
+			aData.Units().forEach(function(uName){
+				uName = uName.GetType();
 				const initial = aAdventure.data.army[uName];
 				if(!initial) return;
 				const free = freeArmy[uName] ? freeArmy[uName] : 0;
@@ -750,7 +648,7 @@ const aAdventure = {
 			else if(aUtils.CheckInProduction(data))
 				return this.result(false, "{0} is being produced".format(loca.GetText('RES', data)), 3);
 			else {
-				var itemData = autoData.adventureItems[aAdventure.data.name][data];
+				var itemData = aData.adventureItems[aAdventure.data.name][data];
 				var amount = itemData.length;
 				if($.isArray(itemData[0])){
 					amount = itemData[1];
@@ -770,7 +668,7 @@ const aAdventure = {
 			if(game.gi.mCurrentViewedZoneID != aUtils.adventureID())
 				return this.result(false, "You must be on adventure island!");
 			if(aUtils.getBuff(data)){
-				var itemData = autoData.adventureItems[aAdventure.data.name][data];
+				var itemData = aData.adventureItems[aAdventure.data.name][data];
 					itemData = $.isArray(itemData[0]) ? itemData[0] : itemData;
 				$.each(itemData, function(i, grid){
 					auto.timedQueue.add(function(){
@@ -913,7 +811,7 @@ const aUtils = {
         try {
             var file = new air.File(fileName);
             if (!file.exists)
-                return aUI.alert("File doesn't Exist", 'ERROR');
+                return aUI.alert("File doesn't Exist", 'ERROR'), false;
 
             var fileStream = new air.FileStream();
             fileStream.open(file, air.FileMode.READ);
@@ -922,7 +820,6 @@ const aUtils = {
             if (data == "") { return; }
             return JSON.parse(data);
         } catch (e) {
-            aUI.alert(e.message, 'ERROR');
             return {};
         }
     },
@@ -1251,7 +1148,7 @@ const aUtils = {
 		}catch(er){}
 	},
 	updateStatus: function(status){
-		menu.nativeMenu.getItemByName("AutoAdvTrack").label = "Status: " + status;
+		menu.nativeMenu.getItemByName("aStatus").label = "Status: " + status;
 		$("#aAdventureStatus").text("Status: " + status);
 	},
     CheckInProduction: function(item, buildings){
@@ -1282,29 +1179,33 @@ const aUtils = {
 		}catch(er){}
 	},
 	GetBuffCost: function(name){
-		return game.def('global').map_BuffName_BuffDefinition[name].GetCosts_vector();
+		try{
+			return game.def('global').map_BuffName_BuffDefinition[name].GetCosts_vector();
+		}catch(e){ debug(name), debug(e) }
 	},
 	ProduceInPH: function(name, amount){
-		const inProduction = aUtils.CheckInProduction(name, barracksType);
+		if(!name) return;
+		const inProduction = aUtils.CheckInProduction(name, 'ProvisionHouse');
 		if(inProduction >= amount) return;
 		amount -= inProduction;
 		if(!aUtils.CanAfford(aUtils.GetBuffCost(name), amount)) 
-			return aUI.alert("Not enough resources to produce {0} x{1}".format(loca.GetText("RES", name), amount), name);
-		
+			return aUI.alert("Not enough resources to produce x{1} {0}".format(loca.GetText("RES", name), amount), name);
+		var productionQueue = new TimedQueue(1500)
 		if (amount > 25) {
-			auto.timedQueue.add(function () {
+			productionQueue.add(function () {
 				try {
 					aUtils.startProduction("ProvisionHouse", name, 25, Math.floor(amount / 25));
 				} catch (e) {}
 			});
 		}
 		if (amount % 25) {
-			auto.timedQueue.add(function () {
+			productionQueue.add(function () {
 				try {
 					aUtils.startProduction("ProvisionHouse", name, amount % 25, 1);
 				} catch (e) {}
 			});
 		}
+		productionQueue.run();
 		aUI.alert("Start production of {0} x{1}".format(loca.GetText("RES", name), amount), name);
 	},
     getMinefromDepositGrid: function(grid)
@@ -1358,33 +1259,37 @@ const aUtils = {
 	remainingEnemies: function(){
 		return aAdventure.data.enemies.filter(function(e){return game.zone.GetBuildingFromGridPosition(e) && game.zone.GetBuildingFromGridPosition(e).getPlayerID() == -1; }).length;
 	},
-	GetUnitData: function(name){
-		var data = null;
-		game.def('MilitarySystem::cMilitaryUnitBase').GetAllUnit(1).forEach(function(unit){
-			if(unit.GetType() == name) data = unit;
-		});
-		return data;
-	},
 	CanAfford: function(data, amount){
 		try{
 			var canAfford = true;
 			$.each(data, function(i, res){
 				const resource = res.name_string == 'Population' ? game.getResources().GetFree() : game.getResources().GetResourceAmount(res.name_string)
-				if(resource < (res.amount * amount))
+				if(resource < (res.amount * amount)){
 					canAfford = false;
+					if(aSettings.Quests.Config.GatherfromStar){
+						const buffVO = aUtils.getBuff(res.name_string, 'AddResource');
+						if(buffVO && buffVO.amount >= (res.amount * amount)){
+							auto.timedQueue.add(function(){
+								aUtils.applyBuff(buffVO, 8825, (res.amount * amount));
+							});
+						}
+					}
+				}
 			});
 			return canAfford;
 		} catch(e){ debug(e) }
 	},
-	EnoughResource: function(name, amount){
-		if(game.getResources().GetPlayerResource(name).amount < amount)
-			return aUI.alert('You need to have {0} {1}'.format(amount, loca.GetText('RES', name)), assets.GetResourceIcon(name)),
-			false;
+	EnoughResource: function(name, amount, alert){
+		if(game.getResources().GetPlayerResource(name).amount < amount){
+			if(alert)
+				aUI.alert('You need to have {0} {1}'.format(amount, loca.GetText('RES', name)), assets.GetResourceIcon(name));
+			return false;
+		}	 
 		else
 			return true;
 	},
 	TrainUnit: function(name, amount, abs){
-		const unitData = aUtils.GetUnitData(name);
+		const unitData = aData.Units(name);
 		const barracksType = unitData.GetIsElite() ? "EliteBarracks" : "Barracks";
 		const inProduction = aUtils.CheckInProduction(name, barracksType);
 		if(!abs){
@@ -1395,7 +1300,10 @@ const aUtils = {
 			return aUI.alert("Not enough resources to produce {0} x{1}".format(loca.GetText("RES", name), amount), name);
 		
 		var trainQ = new TimedQueue(1500);
-		trainQ.add(function(){ game.chatMessage("Training {0} x{1}".format(name, amount)); });
+		trainQ.add(function(){ 
+			aUI.alert("Training {0} x{1}".format(name, amount), assets.GetMilitaryIcon(name));
+			game.chatMessage("Training {0} x{1}".format(name, amount)); 
+		});
 		if (amount > 25) {
 			trainQ.add(function() {
 				aUtils.startProduction(barracksType, name, 25, Math.floor(amount / 25));
@@ -1409,14 +1317,20 @@ const aUtils = {
 		trainQ.run();
 	},
 	trainLostTroops: function(){
+		const lArmy = aAdventure.data.lostArmy;
+		if(!Object.keys(lArmy).length) return;
+		var all = 0;
+		$.each(lArmy, function(k, v){ all += v; });
 		var trainQ = new TimedQueue(1500);
-		trainQ.add(function(){
-			var population = aUtils.getBuff("Population");
-			aUtils.applyBuff(population, 8825, population.amount);
-		});
+		if(game.getResources().GetFree() < all){
+			trainQ.add(function(){
+				var population = aUtils.getBuff("Population");
+				aUtils.applyBuff(population, 8825, population.amount);
+			});
+		}
 		trainQ.add(function(){
 			aUI.alert("Training Lost Troops!", 'ARMY');
-			$.each(aAdventure.data.lostArmy, function(unitName, unitsNeeded){
+			$.each(lArmy, function(unitName, unitsNeeded){
 				aUtils.TrainUnit(unitName, unitsNeeded, true);
 			});
 		}, 15000);
@@ -1505,11 +1419,39 @@ const aUtils = {
 		const seconds = tSeconds % 60;
 		return "{0}:{1}".format(minutes, seconds < 10 ? '0' + seconds : seconds);
 	},
+	formatDate: function(milliseconds) {
+		var date = new Date(milliseconds);
+		var day = String(date.getDate());
+		if (day.length < 2) { 
+			day = '0' + day;
+		}
+		var month = date.getMonth() + 1;
+		var year = String(date.getFullYear()).slice(-2);
+		var hours = date.getHours();
+		var minutes = String(date.getMinutes());
+		if (minutes.length < 2) {
+			minutes = '0' + minutes;
+		}
+		var ampm = hours >= 12 ? 'PM' : 'AM';
+		hours %= 12;
+		hours = hours ? hours : 12; // the hour '0' should be '12'
+		return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes + ' ' + ampm;
+	},
 	cExtend: function(target, source) {
 		for (var prop in source) {
-			if (source.hasOwnProperty(prop)) {
-				if ($.isArray(source[prop]) && source[prop].length === 0) {
-					target[prop] = [];
+			if (source.hasOwnProperty(prop) && target.hasOwnProperty(prop)) {
+				if ($.isArray(source[prop])) {
+					if (source[prop].length === 0) {
+						target[prop] = []; // Assign empty array if needed
+					} else {
+						if ($.isArray(target[prop])) {
+							target[prop] = source[prop].slice(); // copy the array.
+						} else if (typeof target[prop] !== 'object' || target[prop] === null) {
+							target[prop] = $.isArray(source[prop]) ? [] : {};
+						} else {
+							target[prop] = source[prop];
+						}
+					}
 				} else if (typeof source[prop] === 'object' && source[prop] !== null) {
 					if (typeof target[prop] !== 'object' || target[prop] === null) {
 						target[prop] = $.isArray(source[prop]) ? [] : {};
@@ -1524,12 +1466,12 @@ const aUtils = {
 	}
 }
 const aCycle = {
-	waitingQueue: [],
+	wQueue: [],
 	cInterval: 10000,
 	features: [
 		'Explorers',
 		'Deposits',
-		'ShortQuests',
+		'Quests',
 		'BookBinder',
 		'CollectPickups',
 		'WeeklyQuest',
@@ -1541,14 +1483,14 @@ const aCycle = {
     run: function(){
 		auto.stop();
 		auto.timedQueue = new TimedQueue(1000);
-		if(aCycle.waitingQueue.length > 0){
-			aCycle.waitingQueue.forEach(function(item){
+		if(aCycle.wQueue.length > 0){
+			aCycle.wQueue.forEach(function(item){
 				if($.isArray(item))
 					auto.timedQueue.add(item[0], item[1]);
 				else
 					auto.timedQueue.add(item);
 			});
-			aCycle.waitingQueue = [];
+			aCycle.wQueue = [];
 		}
 		try{
 			aCycle.features.forEach(function(feature){
@@ -1560,7 +1502,7 @@ const aCycle = {
 			auto.timerID = setTimeout(aCycle.run, aCycle.cInterval);
 		}); 
 		auto.timedQueue.run();
-		auto.lastExec = new Date();
+		auto.lastExec = new Date().getTime();
 	},
 	Adventure: function(){
 		if(!auto.isOn.Adventure) return aUtils.updateStatus("idle...");
@@ -1603,8 +1545,8 @@ const aCycle = {
 	CollectPickups: function(){
 		aCollect.exec();
 	},
-	ShortQuests: function(){
-		if(auto.isOn.ShortQuests) aShortQuests.exec();
+	Quests: function(){
+		if(auto.isOn.Quests) aQuests.test();
 	},
     BookBinder: function(){
 		aBookBinder.exec();
@@ -1614,7 +1556,7 @@ const aCycle = {
 	},
 	Mail: function(){
 		if(!game.gi.isOnHomzone() || !auto.isOn.Mail) return;
-		if(aMail.nextRun < new Date())
+		if(aMail.nextRun < new Date().getTime())
 			aMail.run();
 	},
 	Star2Store: function(){
@@ -1626,9 +1568,13 @@ const aCycle = {
 }
 const aUI = {
 	MenuAdventure: null,
-	makeMenu: function(){
+	makeMenu: function(first){
+		if(first){
+			this.initMenuItem("aStatus", 'Status: ---', false);
+			return;
+		}
 		this.initMenuItem("Automation", '~Automation~', true);
-		this.initMenuItem("AutoAdvTrack", 'Status: ---', false);
+		this.initMenuItem("aStatus", 'Status: ---', false);
 		
 
 		var m = [
@@ -1640,14 +1586,15 @@ const aUI = {
 			{ label: 'Tools', mnemonicIndex: 0, items: [
 				{ label: "Auto Adventure", mnemonicIndex: 0, onSelect: aAdventure.ControlModal },
 				{ label: "Auto Trade", mnemonicIndex: 0, onSelect: aTrade.Modal },
+				{ label: "Auto Mail: Trades Log", mnemonicIndex: 0, onSelect: aMail.SavedTradesModal },
 				{ label: "Event Deposits Needed", enabled: aEvent.EventWithDepo(), mnemonicIndex:0, onSelect: aEvent.DepositNeeded }
 			]},
 			{ type: 'separator' },
 			{ label: aUI.mFeatureLabel('Explorers'), name: "auto_Explorers", mnemonicIndex: 0, onSelect: function(){
 				aUI.toggleFeature('Explorers');
 			} },
-			{ label: aUI.mFeatureLabel('Short_Quests'), name: "auto_ShortQuests", mnemonicIndex: 0, onSelect: function(){
-				aUI.toggleFeature('Short_Quests');
+			{ label: aUI.mFeatureLabel('Quests'), name: "auto_Quests", mnemonicIndex: 0, onSelect: function(){
+				aUI.toggleFeature('Quests');
 			} },
 			{ label: aUI.mFeatureLabel('Deposits'), name: "auto_Deposits", mnemonicIndex: 0, onSelect: function(){
 				aUI.toggleFeature('Deposits');
@@ -1655,8 +1602,8 @@ const aUI = {
 			{ label: aUI.mFeatureLabel('Book_Binder'), name: "auto_BookBinder", mnemonicIndex: 0, onSelect: function(){
 				aUI.toggleFeature('Book_Binder');
 			} },
-			{ label: aUI.mFeatureLabel('Weekly_Quest'), name: "auto_WeeklyQuest", mnemonicIndex: 0, onSelect: function(){
-				aUI.toggleFeature('Weekly_Quest');
+			{ label: aUI.mFeatureLabel('Mail'), name: "auto_Mail", mnemonicIndex: 0, onSelect: function(){
+				aUI.toggleFeature('Mail');
 			} },
 			{ label: aUI.mFeatureLabel('Adventure'), name: "auto_Adventure", mnemonicIndex: 0, onSelect: function(){
 				if(!aAdventure.data.fileName) 
@@ -1721,7 +1668,7 @@ const aUI = {
 	},
 	addAdventuresItems: function(){
 		var items = [];
-		$.each(autoData.adventures, function(cat, advs){
+		$.each(aData.Adventures(), function(cat, advs){
 			var catAdvs = [];
 			$.each(aSettings.Adventures.templates, function(index, template){
 				if(advs.indexOf(template.name) > -1){
@@ -1735,7 +1682,7 @@ const aUI = {
 				}
 			});
 			if(catAdvs.length)
-				items.push({ label: cat.replace(/_/gi,' '), mnemonicIndex: 0, items: catAdvs });
+				items.push({ label: cat, mnemonicIndex: 0, items: catAdvs });
 		});
 		return items;
 	},
@@ -1761,12 +1708,7 @@ const aUI = {
 			var aAdventure_SavedPool = aUtils.createSelect('aAdventure_SavedPool').append(aSettings.Adventures.templates.map(function(adv, i){
 				return $('<option>', { value: i }).text(adv.label);
 			}));
-			var aAdventure_SpeedBuffs = aUtils.createSelect("aAdventure_SpeedBuffs").append(aAdventure.speedBuffs.map(function(buff){
-				buff = 'GeneralSpeedBuff_' + buff;
-				var buffVO = aUtils.getBuff(buff)
-				var amount = buffVO ? buffVO.amount : 0;
-				return $('<option>', { value: buff, disabled: buffVO ? false : true }).text("{0}({1}): {2}".format(loca.GetText('RES', buff), amount, loca.GetText('DES', buff).split("Target")[0]));
-			}));
+			var aAdventure_SpeedBuffs = aUtils.createSelect("aAdventure_SpeedBuffs").append(aData.SpeedBuffs(1));
 			const BV = aUtils.getBuff("PropagationBuff_AdventureZoneTravelBoost_BlackTree");
 			var aBuildings_BB_Book = aUtils.createSelect("aBuildings_BB_Book").append(["Manuscript", "Tome", "Codex"].map(function(buff){
 				return $('<option>', { value: buff }).text(buff);
@@ -1837,7 +1779,7 @@ const aUI = {
 				createTableRow([
 					[5, "&#10551; Complete Accepted & declined trades"],
 					[1, createSwitch("aMail_Complete", aSettings.Mail.CompleteTrades) ],
-					[5, 'Accept Gifts'],
+					[5, '&#10551; Accept Gifts'],
 					[1, createSwitch('aMail_Gifts', aSettings.Mail.AcceptGifts)]
 				], false),
 				createTableRow([
@@ -1846,20 +1788,108 @@ const aUI = {
 					[5, "&#10551; Trade: Filter Resources"],
 					[1,  aUtils.createSettingsImg('aMail_ResourcesFilter')]
 				], false),
+				createTableRow([
+					[5, "&#10551; Save Accepted/Declined Trades"],
+					[1, createSwitch("aMail_SaveTrades", aSettings.Mail.SaveFriendsTrades) ],
+					[6, ''],
+				], false),
 				$('<label>').text('More Filters and options in future updates ^^')
 			]);
 			const questsMenu = container().append([
-				createTableRow([[9, 'Short Quests'], [3, '&nbsp;']], true),
-				createTableRow([[9, "Run on Startup"], [3, createSwitch('aQuests_Short_AutoStart', aSettings.Quests.Short.autoStart)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_SharpClaw").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SharpClaw")], [3, createSwitch('aQuests_Short_SharpClaw', aSettings.Quests.Short.Enabled.SharpClaw)]]),
+				createTableRow([[9, 'Quests Settings'], [3, '&nbsp;']], true),
+				createTableRow([[9, "Run on Startup"], [3, createSwitch('aQuests_Config_AutoStart', aSettings.Quests.Config.utoStart)]]),
 				createTableRow([
-					[5, '&#10551; Sub-Quest: ' + loca.GetText('QUL', "BuffQuestSharpClaw_Sub1")], 
-					[1, aUtils.createSettingsImg('aQuests_Short_SharpClaw_Sub1')],
-					[5, '&#10551; Sub-Quest: ' + loca.GetText('QUL', "BuffQuestSharpClaw_Sub2")],
-					[1, aUtils.createSettingsImg('aQuests_Short_SharpClaw_Sub2')]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_StrangeIdols").bitmapData, "23px") + loca.GetText('RES', "QuestStart_StrangeIdols")], [3, createSwitch('aQuests_Short_StrangeIdols', aSettings.Quests.Short.Enabled.StrangeIdols)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_Annoholics").bitmapData, "23px") + loca.GetText('RES', "QuestStart_Annoholics")], [3, createSwitch('aQuests_Short_Annoholics', aSettings.Quests.Short.Enabled.Annoholics)]]),
-				createTableRow([[9, getImage(assets.GetBuffIcon("QuestStart_SilkCat").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SilkCat")], [3, createSwitch('aQuests_Short_SilkCat', aSettings.Quests.Short.Enabled.SilkCat)]]),
+					[5, "&#10551; Gather Resources from STAR:"],
+					[1,  createSwitch('aQuests_Config_Gather', aSettings.Quests.Config.GatherfromStar)],
+					[5, "&#10551; Pay Resources & Units:"],
+					[1,  createSwitch('aQuests_Config_Pay', aSettings.Quests.Config.PayResources)]
+				], false),
+				createTableRow([
+					[5, "&#10551; Produce Buffs:"],
+					[1, createSwitch('aQuests_Config_ProduceBuffs', aSettings.Quests.Config.ProduceBuffs)],
+					[5, "&#10551; Apply Buffs:"],
+					[1,  createSwitch('aQuests_Config_ApplyBuffs', aSettings.Quests.Config.ApplyBuffs)]
+				]),
+
+				createTableRow([
+					[5, "&#10551; Sell: Resources on Trade office"],
+					[1, createSwitch('aQuests_Config_Sell', aSettings.Quests.Config.SellinTO)],
+					[5, "&#10551; Train Units: "],
+					[1, createSwitch('aQuests_Config_TrainUnits', aSettings.Quests.Config.TrainUnits)]
+				]),
+				createTableRow([
+					[5, '&#10551; Explorers Treasure Search:'], 
+					[1, aUtils.createSettingsImg('aQuests_ExplorerTask_Treasure')],
+					[5, '&#10551; Explorers Adventure Search:'],
+					[1, aUtils.createSettingsImg('aQuests_ExplorerTask_Adventure')]
+				]),
+				createTableRow([[9, "&#10551; Geologists Task: is the same as Auto Deposits settings!"], [3, aUtils.createSettingsImg('aQuests_GeologistTask')]]),
+				$('<br>'),
+				createTableRow([[9, 'Quests'], [3, '&nbsp;']], true),
+				createTableRow([
+					[5, getImage(assets.GetResourceIcon("QuestShort").bitmapData, "23px") + 'Daily Quests'], 
+					[1, createSwitch('aQuests_Daily', aSettings.Quests.Other.Daily)],
+					[5, getImage(assets.GetResourceIcon("QuestMedium").bitmapData, "23px") + 'Guild Daily Quests'],
+					[1, createSwitch('aQuests_DailyGuild', aSettings.Quests.Other.DailyGuild)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuildingIcon("EventMonster_WeeklyChallengeShip").bitmapData, "23px") + 'Weekly Quests'], 
+					[1, createSwitch('aQuests_Weekly', aSettings.Quests.Other.Weekly)],
+					[5, ''],
+					[1, '']
+				]),
+				$('<br>'),
+				createTableRow([[9, 'Excelsior Letter Quests'], [3, '&nbsp;']], true),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_SharpClaw").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SharpClaw")], 
+					[1, createSwitch('aQuests_Letters_SharpClaw', aSettings.Quests.Letters.SharpClaw)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_StrangeIdols").bitmapData, "23px") + loca.GetText('RES', "QuestStart_StrangeIdols")],
+					[1, createSwitch('aQuests_Letters_StrangeIdols', aSettings.Quests.Letters.StrangeIdols)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_Annoholics").bitmapData, "23px") + loca.GetText('RES', "QuestStart_Annoholics")],
+					[1, createSwitch('aQuests_Letters_Annoholics', aSettings.Quests.Letters.Annoholics)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_SilkCat").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SilkCat")],
+					[1, createSwitch('aQuests_Letters_SilkCat', aSettings.Quests.Letters.SilkCat)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_Miranda").bitmapData, "23px") + loca.GetText('RES', "QuestStart_Miranda")],
+					[1, createSwitch('aQuests_Letters_Miranda', aSettings.Quests.Letters.Miranda)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_BartTheBarter").bitmapData, "23px") + loca.GetText('RES', "QuestStart_BartTheBarter")],
+					[1, createSwitch('aQuests_Letters_BartTheBarter', aSettings.Quests.Letters.BartTheBarter)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_Vigilante").bitmapData, "23px") + loca.GetText('RES', "QuestStart_Vigilante")],
+					[1, createSwitch('aQuests_Letters_Vigilante', aSettings.Quests.Letters.Vigilante)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_SettlersBandits").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SettlersBandits")],
+					[1, createSwitch('aQuests_Letters_SettlersBandits', aSettings.Quests.Letters.SettlersBandits)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_LostCompass").bitmapData, "23px") + loca.GetText('RES', "QuestStart_LostCompass")],
+					[1, createSwitch('aQuests_Letters_LostCompass', aSettings.Quests.Letters.LostCompass)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_AThreat").bitmapData, "23px") + loca.GetText('RES', "QuestStart_AThreat")],
+					[1, createSwitch('aQuests_Letters_AThreat', aSettings.Quests.Letters.AThreat)]
+				]),
+				$('<br>'),
+				createTableRow([[9, 'Mini Quests'], [3, '&nbsp;']], true),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_TheLittlePanda").bitmapData, "23px") + loca.GetText('RES', "QuestStart_TheLittlePanda")], 
+					[1, createSwitch('aQuests_Letters_TheLittlePanda', aSettings.Quests.Mini.TheLittlePanda)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_MysteriousCoin").bitmapData, "23px") + loca.GetText('RES', "QuestStart_MysteriousCoin")],
+					[1, createSwitch('aQuests_Letters_MysteriousCoin', aSettings.Quests.Mini.MysteriousCoin)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_WeddingInvitation").bitmapData, "23px") + loca.GetText('RES', "QuestStart_WeddingInvitation")], 
+					[1, createSwitch('aQuests_Letters_WeddingInvitation', aSettings.Quests.Mini.WeddingInvitation)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_ANewStone").bitmapData, "23px") + loca.GetText('RES', "QuestStart_ANewStone")],
+					[1, createSwitch('aQuests_Letters_ANewStone', aSettings.Quests.Mini.ANewStone)]
+				]),
+				createTableRow([
+					[5, getImage(assets.GetBuffIcon("QuestStart_SaveTheDeers").bitmapData, "23px") + loca.GetText('RES', "QuestStart_SaveTheDeers")], 
+					[1, createSwitch('aQuests_Letters_SaveTheDeers', aSettings.Quests.Mini.SaveTheDeers)],
+					[5, getImage(assets.GetBuffIcon("QuestStart_WolfPuppy").bitmapData, "23px") + loca.GetText('LAB', "QuestStart_WolfPuppy")],
+					[1, createSwitch('aQuests_Letters_WolfPuppy', aSettings.Quests.Mini.WolfPuppy)]
+				]),
 			]);
 			//
 			const buildingsMenu = container().append([
@@ -1951,13 +1981,14 @@ const aUI = {
 			autoWindow.withBody('#aAdventure_TemplateMaker').click(aUI.advTemplateMaker);
 			autoWindow.withBody('#aExplorers_Menu').click(aExplorers.Modal);
 			autoWindow.withBody('#aDeposits_Menu').click(aDeposits.Modal);
-			autoWindow.withBody('#aQuests_Short_SharpClaw_Sub1').click(function(){ aShortQuests.Short_SCModal(1) });
-			autoWindow.withBody('#aQuests_Short_SharpClaw_Sub2').click(function(){ aShortQuests.Short_SCModal(2) });
+			autoWindow.withBody('#aQuests_GeologistTask').click(aDeposits.Modal);
+			autoWindow.withBody('#aQuests_ExplorerTask_Treasure').click(function(){ aQuests.ExplorersModal('Treasure') });
+			autoWindow.withBody('#aQuests_ExplorerTask_Adventure').click(function(){ aQuests.ExplorersModal('AdventureZone') });
 			autoWindow.withBody('#aStar2Store_Menu').click(aStar2Store.Modal);
 			autoWindow.withBody('#aStarBoxes_Menu').click(aStarBoxs.Modal);
 			autoWindow.withBody('#aMail_Monitor').val(aSettings.Mail.TimerMinutes);
-			autoWindow.withBody('#aMail_FriendsFilter').click(function(){ aMail.Modal(1) });
-			autoWindow.withBody('#aMail_ResourcesFilter').click(function(){ aMail.Modal(2) });
+			autoWindow.withBody('#aMail_FriendsFilter').click(function(){ aMail.Modal('Friends') });
+			autoWindow.withBody('#aMail_ResourcesFilter').click(function(){ aMail.Modal('Resources') });
 			autoWindow.withBody('#aAdventure_AddTemplate').click(function(e) { 
 				aUtils.chooseFile(function(event){
 					var text = prompt("Custom adventure name");
@@ -2006,12 +2037,36 @@ const aUI = {
 				aSettings.Explorers.template = $('#aExplorers_Template').text();
 				// Deposits
 				aSettings.Deposits.autoStart = $('#aDeposits_AutoStart').is(':checked');
-				// Short Quests
-				aSettings.Quests.Short.autoStart = $('#aQuests_Short_AutoStart').is(':checked');
-				aSettings.Quests.Short.Enabled.SharpClaw = $('#aQuests_Short_SharpClaw').is(':checked');
-				aSettings.Quests.Short.Enabled.StrangeIdols = $('#aQuests_Short_StrangeIdols').is(':checked');
-				aSettings.Quests.Short.Enabled.Annoholics = $('#aQuests_Short_Annoholics').is(':checked');
-				aSettings.Quests.Short.Enabled.SilkCat = $('#aQuests_Short_SilkCat').is(':checked');
+				// Quests
+				aSettings.Quests.Config.AutoStart = $('#aQuests_Config_AutoStart').is(':checked');
+				aSettings.Quests.Config.GatherfromStar = $('#aQuests_Config_Gather').is(':checked');
+				aSettings.Quests.Config.PayResources = $('#aQuests_Config_Pay').is(':checked');
+				aSettings.Quests.Config.SellinTO = $('#aQuests_Config_Sell').is(':checked');
+				aSettings.Quests.Config.TrainUnits = $('#aQuests_Config_TrainUnits').is(':checked');
+				aSettings.Quests.Config.ProduceBuffs = $('#aQuests_Config_ProduceBuffs').is(':checked');
+				aSettings.Quests.Config.ApplyBuffs = $('#aQuests_Config_ApplyBuffs').is(':checked');
+				aSettings.Quests.Other.Daily = $('#aQuests_Daily').is(':checked');
+				aSettings.Quests.Other.DailyGuild = $('#aQuests_DailyGuild').is(':checked');
+				aSettings.Quests.Other.Weekly = $('#aQuests_Weekly').is(':checked');
+				//Letter Quests
+				aSettings.Quests.Letters.SharpClaw = $('#aQuests_Letters_SharpClaw').is(':checked');
+				aSettings.Quests.Letters.StrangeIdols = $('#aQuests_Letters_StrangeIdols').is(':checked');
+				aSettings.Quests.Letters.Annoholics = $('#aQuests_Letters_Annoholics').is(':checked');
+				aSettings.Quests.Letters.SilkCat = $('#aQuests_Letters_SilkCat').is(':checked');
+				aSettings.Quests.Letters.Miranda = $('#aQuests_Letters_Miranda').is(':checked');
+				aSettings.Quests.Letters.BartTheBarter = $('#aQuests_Letters_BartTheBarter').is(':checked');
+				aSettings.Quests.Letters.Vigilante = $('#aQuests_Letters_Vigilante').is(':checked');
+				aSettings.Quests.Letters.SettlersBandits = $('#aQuests_Letters_SettlersBandits').is(':checked');
+				aSettings.Quests.Letters.LostCompass = $('#aQuests_Letters_LostCompass').is(':checked');
+				aSettings.Quests.Letters.AThreat = $('#aQuests_Letters_AThreat').is(':checked');
+				//Mini Quests
+				aSettings.Quests.Mini.TheLittlePanda = $('#aQuests_Letters_TheLittlePanda').is(':checked');
+				aSettings.Quests.Mini.MysteriousCoin = $('#aQuests_Letters_MysteriousCoin').is(':checked');
+				aSettings.Quests.Mini.WeddingInvitation = $('#aQuests_Letters_WeddingInvitation').is(':checked');
+				aSettings.Quests.Mini.ANewStone = $('#aQuests_Letters_ANewStone').is(':checked');
+				aSettings.Quests.Mini.SaveTheDeers = $('#aQuests_Letters_SaveTheDeers').is(':checked');
+				aSettings.Quests.Mini.WolfPuppy = $('#aQuests_Letters_WolfPuppy').is(':checked');
+
 
 				//Book binder
 				aSettings.Buildings.BookBinder.autoStart = $('#aBuildings_BB_AutoStart').is(':checked');
@@ -2030,7 +2085,6 @@ const aUI = {
 				aSettings.Mail.AutoStart = $('#aMail_AutoStart').is(':checked');
 				aSettings.Mail.AcceptAdventureLoot = $('#aMail_AdvLoots').is(':checked');
 				aSettings.Mail.AcceptAdventureMessage = $('#aMail_AdvMsg').is(':checked');
-				aSettings.Mail.AcceptGuildTrades = $('#aMail_GuildTrades').is(':checked');
 				aSettings.Mail.AcceptLoots = $('#aMail_Loots').is(':checked');
 				aSettings.Mail.AcceptGifts = $('#aMail_Gifts').is(':checked');
 				aSettings.Mail.AcceptGeologistMsg = $('#aMail_Geologist').is(':checked');
@@ -2038,6 +2092,7 @@ const aUI = {
 				aSettings.Mail.CompleteTrades = $('#aMail_Complete').is(':checked');
 				aSettings.Mail.ToStar = $('#aMail_Star').is(':checked');
 				aSettings.Mail.TimerMinutes = parseInt($('#aMail_Monitor').val());
+				aSettings.Mail.SaveFriendsTrades = $('#aMail_SaveTrades').is(':checked');
 				//Misc
 				aSettings.Collect.Pickups = $('#aCollect_Pickups').is(':checked');
 				aSettings.Collect.LootBoxes = $('#aCollect_LootBoxes').is(':checked');
@@ -2099,7 +2154,7 @@ const aUI = {
 							break;
 						case 'ProduceItem':
 						case 'ApplyBuff':
-							var amount = autoData.adventureItems[$("#aTemplate_AdventureMap").val()][i[1]];
+							var amount = aData.adventureItems[$("#aTemplate_AdventureMap").val()][i[1]];
 								amount = $.isArray(amount[0]) ? amount[1] : amount.length;
 							out.push(createTableRow([
 								[3, '&#8597;&nbsp;&nbsp;' + 'Bot'],
@@ -2134,7 +2189,7 @@ const aUI = {
 				aTemplate.push(["VisitAdventure", "Load Adventure Island!"]);
 				aTemplate.push(["StarGenerals", "Star Generals after they arrive!"]);
 				aTemplate.push(["UseSpeedBuff", "Use Speed Buff!"]);
-				$.each(autoData.adventureItems[$("#aTemplate_AdventureMap").val()], function(k, v){
+				$.each(aData.adventureItems[$("#aTemplate_AdventureMap").val()], function(k, v){
 					aTemplate.push(["CollectPickups", "Collect Pickups"]);
 					aTemplate.push(["ReturnHome", "Return Home"]);
 					aTemplate.push(["ProduceItem", k]);
@@ -2149,8 +2204,9 @@ const aUI = {
 				"Auto Adventure Template maker")
 			);
 			var aTemplate_AdventureMap = aUtils.createSelect('aTemplate_AdventureMap');
-			$.each(autoData.adventures, function(key, value){
-				var optGroup = $('<optgroup>', { label: key.replace(/_/gi,' ') });
+			$.each(aData.Adventures(), function(key, value){
+				if(['Scenario', 'Coop'].indexOf(key) != -1) return;
+				var optGroup = $('<optgroup>', { label: key });
 				$.each(value, function(i, adv){
 					optGroup.append($('<option>', { value: adv }).text(loca.GetText('ADN', adv)));
 				});
@@ -2270,7 +2326,7 @@ const aUI = {
 			var adventure = null;
 			var data = event.target.name;
 			if(data.indexOf('Senario') > -1)
-				adventure = autoData.savedSenarios[data];
+				adventure = aData.savedSenarios[data];
 			else {
 				data = aSettings.Adventures.templates[parseInt(data.split("_")[1])].template;
 				adventure = aUtils.readFile(data);
@@ -2473,9 +2529,9 @@ const aDeposits = {
 			var createBuffSelect = function(id){
 				var select = aUtils.createSelect(id).addClass("depoOption");
 				aUtils.getWYBuffs().forEach(function(buff){
-					var name = buff.CreateBuffVOFromBuff().buffName_string;
+					if(!buff) return;
 					select.append(
-						$('<option>', { value: name})
+						$('<option>', { value: buff.GetType()})
 						.text("{0}({1})".format(buff.getName(), buff.amount))
 						);
 				});
@@ -2493,7 +2549,11 @@ const aDeposits = {
 			table.push(createTableRow([ [3, "Buff Mine/Mason:"] ].concat(types.map(function(r){ return [1, createCheck("depo_{0}_4".format(r))]}))));
 			table.push(createTableRow([ [3, "Buff Type:"] ].concat(types.map(function(r){ return [1, createBuffSelect("depo_{0}_5".format(r))]}))));
 			table.push($('<br>'));
-			table.push(createTableRow([ [12, 'Which geologists search for the deposit?'] ], true));
+			table.push(createTableRow([
+				[9, 'Which geologists search for the deposit?'],
+				[2, $('<a>', { href: '#', text: 'Recommendation', 'id': 'aDeposits_Recommend' })],
+				[1, $('<a>', { href: '#', text: 'Reset', 'id': 'aDeposits_Reset' })] 
+			], true));
 			var geos = [];
 			game.getSpecialists().sort(specNameSorter).forEach(function(geo){
 				try{
@@ -2514,6 +2574,32 @@ const aDeposits = {
 			autoWindow.sData().append($('<div>', { 'class': 'container-fluid', 'style' : 'height:auto;' }).append(table));
 			autoWindow.sData().find(".tblHeader img").css({ "display": "block", "margin": "0 auto" });
 			autoWindow.sData().find('a').tooltip();
+			autoWindow.withsBody('#aDeposits_Recommend').click(function(e){
+				const data = { 
+					Stone: [35, 62, 38, 49],
+					BronzeOre: [62, 38, 49],
+					Marble: [35, 62, 59, 38, 49],
+					IronOre: [40, 62, 59, 38, 49],
+					GoldOre: [42, 45, 62, 59, 38, 49],
+					Coal: [45, 62, 59, 38, 49],
+					Granite: [35, 45, 62, 59, 38, 49],
+					TitaniumOre: [45, 40, 62, 59, 38, 49],
+					Salpeter: [45, 40, 62, 59, 38, 49]
+				};
+				$.each(data, function(key, value){
+					value.forEach(function(v){
+						autoWindow.sData().find("#geo_{0}_{1}".format(key, v)).prop("checked", true);
+					});
+				});
+			});
+			autoWindow.withsBody('#aDeposits_Reset').click(function(e){
+				$('.depoOption').each(function(i, checkBox){
+					var op = $(this).attr("id").split("_");
+					if(op[0] == "geo"){
+						$(this).prop("checked", false);
+					}
+				});
+			});
 			// Load Saved Settings
 			Object.keys(aSettings.Deposits.data).forEach(function(deposit){
 				$.each(aSettings.Deposits.data[deposit].options, function(i, v){
@@ -2532,13 +2618,13 @@ const aDeposits = {
 				});
 			});
 			autoWindow.sshow();
-		} catch(e){}
+		} catch(e){ debug(e) }
 	},
 	exec: function(){
 		if(!game.gi.isOnHomzone() || !auto.isOn.Deposits) return; 
 		try{
             // Remove all depleted mines
-            var depletedDeposits = 0;
+            /*var depletedDeposits = 0;
             game.getBuildings().forEach(function(building){
 				if(building && building.GetBuildingName_string().indexOf("Depleted") != -1){
 					auto.timedQueue.add(function(){
@@ -2556,7 +2642,7 @@ const aDeposits = {
 				return aDeposits.dRemoved = false, auto.timedQueue.add(function(){ 
 					game.gi.mClientMessages.SendMessagetoServer(1037, game.gi.mCurrentViewedZoneID, null);
 				});
-
+			*/
             var buildingSlots = game.gi.mCurrentPlayer.mBuildQueue.GetTotalAvailableSlots() - game.gi.mCurrentPlayer.mBuildQueue.GetQueue_vector().length;
 			var buildingLisences = game.gi.mCurrentPlayer.GetMaxBuildingCount() - game.gi.mCurrentPlayer.mCurrentBuildingsCountAll;
 
@@ -2640,257 +2726,304 @@ const aDeposits = {
         } catch(er) { debug(er); }
     }
 }
-//-------------- Auto Short Quests --------------
-const aShortQuests = {
-	questList: ["SharpClaw", "StrangeIdols", "Annoholics", "SilkCat"],
-	IdolTrades: [false, false, false],
-	TOTrades:[],
-	exec: function(){
-		if(!game.gi.isOnHomzone())  return;
+//-------------- Auto Quests --------------
+const aQuests = {
+	TOTrades: {},
+	IsQuestReadyForSubmit: function(Quest){
+		return game.def('converted.bluebyte.tso.quests.logic.QuestManagerStatic').IsQuestReadyForSubmit(Quest, true);
+	},
+	StartQuest: function(BName, QName){
+		if(aUtils.getBuff(BName)){
+			aUI.alert('Starting ' + loca.GetText('QUL', QName), BName);
+			auto.timedQueue.add(function(){
+				try {
+					aUtils.applyBuff(aUtils.getBuff(BName), 8825);
+				} catch (e) {}
+			});
+		}
+	},
+	DoQuests: function(Regex){
+		const Quests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function(q){
+			return q && Regex.test(q.getQuestName_string());
+		}); 
+		$.each(Quests, function(i, Quest){
+			aQuests.DoQuest(Quest.getQuestName_string());
+		});
+	},
+	DoQuest: function(QName){
 		try{
-			aShortQuests.questList.forEach(function(mission){
-				if(!aSettings.Quests.Short.Enabled[mission]) return;
-				const mQuestName = 'BuffQuest' + mission + 'Main';
-				const mQuest = game.quests.getQuest(mQuestName);
-				if(aShortQuests.Short_mQuestCheck(mQuest, mQuestName, mission)) return;
-				var sQuestNum = null;
-				$.each(mQuest.mQuestTriggersFinished_vector.toArray(), function(i, mTrig){
-					if(!mTrig.status && !sQuestNum) sQuestNum = i + 1;
+			const Quest = game.quests.getQuest(QName);
+			if(!Quest) return;
+			if(!Quest.IsRunning() && !Quest.isFinished()) return;
+			if(Quest.isFinished()){
+				$.each(Object.keys(aQuests.TOTrades), function(i, key){
+					if(key.indexOf(Quest.getQuestName_string()) != -1)
+						delete aQuests.TOTrades[key];
 				});
-				const sQuestName = 'BuffQuest' + mission + '_Sub' + sQuestNum;
-				const sQuest = game.quests.getQuest(sQuestName);
-				if(!sQuest) return;
-				if(aShortQuests.Short_sQuestCheck(sQuest, sQuestName)) return;
-				const qTriggers = game.quests.getQuest(sQuestName).mQuestTriggersFinished_vector.toArray();
-				switch(sQuestName){
-					// Unique
-					case "BuffQuestAnnoholics_Sub1":
-					case "BuffQuestSilkCat_Sub2":
-						if(sQuestName.indexOf('Cat') > -1){
-							if(!aUtils.EnoughResource('Flour', 200)) return;
-						} else {
-							if(!aUtils.EnoughResource('Coin', 100)) return;
-							if(!aUtils.EnoughResource('SimplePaper', 100)) return;
+				return game.quests.RewardOkButtonPressedFromGui(Quest);
+			}
+			if(aQuests.IsQuestReadyForSubmit(Quest))
+				return game.quests.InitiatePayForQuestFinish(Quest.GetUniqueId());
+
+			$.each(Quest.mQuestDefinition.questTriggers_vector.toArray(), function(t, trigger){
+				const idx = trigger.triggerIdx;
+				if(Quest.mQuestTriggersFinished_vector[idx].status) return;
+				const rName = trigger.name_string,
+					rAmount = trigger.amount,
+					rDelta = Quest.mQuestTriggersFinished_vector[idx].deltaStart;
+				const fAmount = rAmount - rDelta;
+				switch(trigger.type){
+					// TYPE_RESOURCE
+					case 2:
+						//Gather
+						if(trigger.condition == 14){
+							//if use res from star
+							const buffVO = aUtils.getBuff(rName, 'AddResource');
+							if(buffVO && buffVO.amount > fAmount && aSettings.Quests.Config.GatherfromStar){
+								auto.timedQueue.add(function(){
+									aUtils.applyBuff(buffVO, 8825, fAmount);
+								});
+							}else{
+								aQuests.ResourceEconomy(rName, rAmount, rDelta);
+							}
 						}
-						const subQuest = sQuestName;
-						auto.timedQueue.add(function(){
-							try {
-								game.quests.InitiatePayForQuestFinish(game.quests.getQuest(subQuest).GetUniqueId());
-							} catch (e) {}
-						});
+						//Produce
+						else if(trigger.condition == 15){
+							aQuests.ResourceEconomy(rName, rAmount, rDelta);
+						}
+						//Buy
+						else if(trigger.condition == 17){
+							const total = game.quests.GetTotalValuesForQuestTrigger(game.player, Quest, idx);
+							aUI.alert(game.quests.GetTriggerText(trigger, total), assets.GetQuestTriggerIcon(trigger));
+						}
+						//Sell
+						else if(trigger.condition == 18){
+							if(!aSettings.Quests.Config.SellinTO)
+								return aUI.alert("Please sell {0} x{1} to a friend".format(loca.GetText('RES', rName), fAmount), rName);
+							const tradeName = Quest.getQuestName_string() + "#" + idx;
+							if(aQuests.TOTrades[tradeName]) return;
+							if(!aUtils.EnoughResource(rName, fAmount, true)){
+								const buffVO = aUtils.getBuff(rName, 'AddResource');
+								if(buffVO && buffVO.amount > fAmount && aSettings.Quests.Config.GatherfromStar)
+									auto.timedQueue.add(function(){
+										aUtils.applyBuff(buffVO, 8825, fAmount);
+									});
+								return;
+							}
+							aQuests.TOTrades[tradeName] = { Send: [rName, fAmount], Live: false}
+						}
 						break;
-					// Unique
-					case "BuffQuestAnnoholics_Sub4":
-					case "BuffQuestStrangeIdols_Sub2":
-						var fishDepo = aUtils.getBuff("Fish", 'FillDeposit');
-						if(fishDepo && fishDepo.GetAmount() > 50){
-							var friendList = globalFlash.gui.mFriendsList.GetFilteredFriends("", true).slice(-10);
+					// TYPE_MILITARYUNIT
+					case 7:
+						const fUnit = aUtils.GetFreeArmy()[rName] || 0;
+						const aUnit = aUtils.assignedArmy()[rName] || 0;
+						if((fUnit + aUnit) < fAmount && aSettings.Quests.Config.TrainUnits)
+							auto.timedQueue.add(function(){
+								aUtils.TrainUnit(rName, fAmount);
+							});
+						else
+							aUI.alert('Please Train {0} x{1}'.format(loca.GetText('RES', rName), fAmount));
+						break;
+					// TYPE_BUFF_ON_FRIEND
+					case 16:
+						const buffVO = aUtils.getBuff(rName);
+						if(buffVO && buffVO.amount > fAmount){
+							var friendList = globalFlash.gui.mFriendsList.GetFilteredFriends("", true).slice(-15);
 							if(!friendList.length) return aUI.alert('Come on! Get Some friends!!');
 							var friend = friendList[Math.floor(Math.random() * friendList.length)];
 							auto.timedQueue.add(function(){ game.gi.visitZone(friend.id); });
-							auto.timedQueue.add(function(){ aUtils.applyBuff(aUtils.getBuff("Fish", 'FillDeposit'), 9622, 50); }, 25000);
+							auto.timedQueue.add(function(){
+								const buff = aUtils.getBuff(rName);
+								aUI.alert('You are on {0} island'.format(friend.username));
+								const workyards = game.getBuildings().filter(function(b){return b.ui == 'workyard' && !b.productionBuff }).slice(0, fAmount);
+								$.each(workyards, function(i, wy){
+									aUtils.applyBuff(buff, wy.GetGrid()); 
+								});
+							}, 25000);
 							auto.timedQueue.add(function(){
 								game.gi.visitZone(game.gi.mCurrentPlayer.GetHomeZoneId());
 							}, 25000);
 							auto.timedQueue.add(function(){ aUI.alert("Back at Home Island"); }, 25000);
-						} else {
-							aUtils.ProduceInPH('FillDeposit_Fishfood', 50);
+						}else{
+							auto.timedQueue.add(function(){
+								aUtils.ProduceInPH(rName, fAmount);
+							});
 						}
 						break;
-					// Unique
-					case "BuffQuestStrangeIdols_Sub1":
-						const res = ['Bronze', 'Stone', 'Marble']
-						$.each(qTriggers, function(i, trig){
-							if(trig.status === 1) return;
-							var resource = game.zone.GetResources(game.player).GetResource(res[i]);
-							if((resource.maxLimit - resource.amount) < 200) return aUI.alert('Please free space to gather 200 {0}'.format(res[i]), assets.GetResourceIcon(res[i]));
-							const buff = aUtils.getBuff(res[i], 'AddResource');
-							if(buff){
-								const amount = buff.GetAmount() >= 200 ? (200 - trig.deltaStart) : buff.GetAmount();
-								auto.timedQueue.add(function(){ aUtils.applyBuff(buff, 8825, amount); });
-							}else{
-								const review = game.def("ServerState::cEconomyOverviewData",1).GetResourceProductionAndConsumptionValues(null, res[i]);
-								if(review.mProductionValue > 0)
-									return aUI.alert('Waiting to gather enough {0}'.format(res[i]), assets.GetResourceIcon(res[i]));
-								else
-									return aUI.alert('Please make sure that your {0} production is running!'.format(res[i]), assets.GetResourceIcon(res[i]));
-							}
-						});
-						break;
-					// Unique
-					case "BuffQuestSharpClaw_Sub1":
-						const expls = game.getSpecialists().filter(function(e){ return e && e.GetBaseType() == 1;}).sort(specNameSorter);
-						var searchs = (i === 0 ? 5 : 6) - qTriggers[0].deltaStart;
-						expls.forEach(function(expl){
-							if(expl.IsInUse() && expl.GetTask().GetSubType() === 0) 
-								searchs--;
-						});
-						if(searchs <= 0) return;
-						if(!aSettings.Quests.Short.Config.ShortSearch.length)
-							return aUI.alert('Please select some Explorers to start Short Treasure Searchs', 'ERROR');
-						expls.forEach(function(expl){
-							if(expl.IsInUse() || searchs <= 0) return;
-							if(aSettings.Quests.Short.Config.ShortSearch.indexOf(expl.GetType()) == -1) return;
-							const id = expl.GetUniqueID();
-							auto.timedQueue.add(function(){
-								try{ aUtils.sendSpecPacket(id, 1, 0); }catch(e){}
-							});
-							searchs--;
-						});
-						break;
-					// Unique
-					case "BuffQuestSharpClaw_Sub2":
-						const find = [1, 0];
-						const geos = game.getSpecialists().filter(function(e){ return e && e.GetBaseType() == 2;}).sort(specNameSorter);
-						$.each(qTriggers, function(i, trig){
-							if(trig.status === 1) return;
-							var searchs = (i === 0 ? 5 : 6) - trig.deltaStart;
-							geos.forEach(function(geo){
-								if(geo.IsInUse() && geo.GetTask().GetSubType() === find[i]) 
-									searchs--;
-							});
-							if(searchs <= 0) return;
-							if(!aSettings.Quests.Short.Config[i === 0 ? "GeoBronzeOre":"GeoStone"].length)
-								return aUI.alert('Please select some Geologists to search for ' + (i === 0 ? "Copper":"Stone"), 'ERROR');
-							geos.forEach(function(geo){
-								if(geo.IsInUse() || searchs <= 0) return;
-								if(aSettings.Quests.Short.Config[i === 0 ? "GeoBronzeOre":"GeoStone"].indexOf(geo.GetType()) == -1) return;
-								const id = geo.GetUniqueID();
-								const task = find[i];
-								auto.timedQueue.add(function(){ 
-									try { aUtils.sendSpecPacket(id, 0, task); }catch(e){}
-								});
-								searchs--;
-							});
-						});
-						break;
-					// Unique
-					case "BuffQuestAnnoholics_Sub2":
-					case "BuffQuestAnnoholics_Sub3":
-					case "BuffQuestSilkCat_Sub1":
-					case "BuffQuestSilkCat_Sub4":
-					case "BuffQuestStrangeIdols_Sub3":
-					case "BuffQuestSharpClaw_Sub3":
-						$.each(qTriggers, function(i, trig){
-							if(trig.status) return;
-							if(sQuestName == "BuffQuestSilkCat_Sub1" && i === 1){
-								if(aUtils.GetFreeArmy().Recruit < 6)
-									return aUtils.TrainUnit('Recruit', 6);
+					// TYPE_PAY_FOR_QUEST_FINISH
+					case 18:
+						if(aData.Units(rName)){
+							const fUnit = aUtils.GetFreeArmy()[rName] || 0;
+							const aUnit = aUtils.assignedArmy()[rName] || 0;
+							if(fUnit >= fAmount)
+								return;
+							else if((fUnit + aUnit) > fAmount)
+								shortcutsFreeAllUnits();
+							else if(aSettings.Quests.Config.TrainUnits)
+								if(!aQuests.InQuestTriggers(Quest, 'itemproducedlist', rName, fAmount))
+									auto.timedQueue.add(function(){ aUtils.TrainUnit(rName, fAmount); });
+							else
+								aUI.alert('Please Train x{1} {0}'.format(loca.GetText('RES', rName), fAmount));
+						} else {
+							//Resource
+							if(aUtils.EnoughResource(rName, fAmount)) return;
+							const buffVO = aUtils.getBuff(rName, 'AddResource');
+							if(buffVO && buffVO.amount > fAmount && aSettings.Quests.Config.GatherfromStar)
 								auto.timedQueue.add(function(){
-									try{ game.quests.InitiatePayForQuestFinish(sQuest.GetUniqueId()); }catch(e){}
+									aUtils.applyBuff(buffVO, 8825, fAmount);
 								});
-							}else{
-								const buffName = sQuest.mQuestDefinition.endConditions_vector[i].item_string;
-								const buffVO = aUtils.getBuff(buffName);
-								if(buffVO){
-									auto.timedQueue.add(function(){ 
-										try{ aUtils.applyBuff(buffVO, 8825); }catch(e){}
-									});
-								} else {
-									aUtils.ProduceInPH(buffName, 1);
-								}
-							}
-						});
+							else
+								aQuests.ResourceEconomy(rName, rAmount, game.getResources().GetPlayerResource(rName).amount);
+						}
 						break;
-					// Unique
-					case "BuffQuestSilkCat_Sub3":
-						const review = game.def("ServerState::cEconomyOverviewData",1).GetResourceProductionAndConsumptionValues(null, 'Fish');
-						if(review.mProductionValue > 0)
-							return aUI.alert('Waiting to gather enough Fish ({0}/500)'.format(qTriggers[0].deltaStart), assets.GetResourceIcon('Fish'));
+					// TYPE_NEW_QUEST_TRIGGER
+					case 45:
+						const NTQuest = Quest.mQuestDefinition.endConditions_vector.toArray().filter(function(ec){
+							return ec.triggerIdx == idx;
+						})[0] || null;
+						if(!NTQuest) return;
+						const args = [Quest.mQuestTriggersFinished_vector[NTQuest.triggerIdx].deltaStart];
+						if(NTQuest.action_string == 'buffapplied')
+							args.push(aQuests.InQuestTriggers(Quest, ['buffowned','buffproduced']));
+						if(NTQ.action_string == 'soldgoods')
+							args.push(Quest.getQuestName_string())
+						if(aQuests.NewTriggerQuest[NTQuest.action_string])
+							aQuests.NewTriggerQuest[NTQuest.action_string](NTQuest, args);
 						else
-							return aUI.alert('Please make sure that your Fish production is running!', assets.GetResourceIcon('Fish'));
-					// Unique
-					case "BuffQuestStrangeIdols_Sub4":
-						var trades = [
-							['BronzeSword', 100],
-							['Corn', 1000],
-							['Plank', 1500]
-						];
-						$.each(qTriggers, function(i, trig){
-							if(trig.status) return;
-							if(i === 3){
-								aUtils.ProduceInPH('ProductivityBuffLvl3', (30 - trig.deltaStart));
-							} else {
-								trades[i][2] = (trades[i][1] - trig.deltaStart);
-							}
-						});
-						$.each(trades, function(i, trade){
-							if(aShortQuests.IdolTrades[i] || !trade[2]) return;
-							if(!aUtils.EnoughResource(trade[0], trade[2])) return;
-							aShortQuests.IdolTrades[i] = true;
-							auto.timedQueue.add(function(){
-								aTrade.SendTOTrade(trade[0], trade[2], 'Fish', 1);
-							}, 15000);
-						});
+							aUI.alert(game.quests.getNewTriggerText(NTQuest), assets.GetNewQuestTriggerIcon(NTQuest));
 						break;
-					// Unique
-					case "BuffQuestSharpClaw_Sub4":
-						const data = ['Recurit', 'Bowman'];
-						$.each(qTriggers, function(i, trig){
-							if(trig.status) return;
-							aUtils.TrainUnit(data[i], (30 - trig.deltaStart));
-						});
-						break;
-					default:
-						auto.timedQueue.add(function(){
-							aUI.alert('Sub-Quest: {0} of Quest: {1} need your intervention'.format(loca.GetText('QUL', sQuestName), loca.GetText('QUL', mQuestName)))
-						});
 				}
 			});
+		}catch(e){ debug(e), debug(QName) }
+	},
+	ResourceEconomy: function(name, amount, delta){
+		const review = game.def("ServerState::cEconomyOverviewData",1).GetResourceProductionAndConsumptionValues(null, name);
+		if(review.mProductionValue > 0)
+			aUI.alert('Waiting to gather enough {0} ({1}/{2})'.format(name, delta, amount), assets.GetResourceIcon(name));
+		else
+			aUI.alert('Please make sure that your {0} production is running!'.format(loca.GetText('RES', name)), assets.GetResourceIcon(name));			
+	},
+	GetResourceBuildings: function(resource){
+		return game.getBuildings().filter(function(building){
+			try{
+				return building.GetResourceCreation().GetResourceCreationDefinition().defaultSetting.resourceName_string == resource;
+			}catch(e){ return false;}
+		});
+	},
+	GetEffectiveBuff: function(unit){
+		var result = null;
+		$.each(game.def('global').map_BuffName_BuffDefinition, function(name, def){
+			def.GetBuffEfficiencies_vector().forEach(function(effect){
+				if(effect.buffName == unit) result = name;
+			});
+		});
+		return result;
+	},
+	QuestName: {
+		BartTheBarter: "Bart",
+		ANewStone: "NewStone"
+	},
+	test: function(){
+		try{
+			if(!game.gi.isOnHomzone())  return;
+			//.SetProductionActiveCommand()
+			//Short Quests
+			$.each(aSettings.Quests.Letters, function(name, enabled){
+				if(!enabled) return;
+				const QName = 'BuffQuest{0}Main'.format(aQuests.QuestName[name] || name);
+				if(!game.quests.getQuest(QName)){
+					aQuests.StartQuest("QuestStart_" + name, QName);
+				}else{
+					aQuests.DoQuest(QName);
+				}
+			});
+			$.each(aSettings.Quests.Mini, function(name, enabled){
+				if(!enabled) return;
+				const QName = 'BuffQuest{0}'.format(aQuests.QuestName[name] || name);
+				if(!game.quests.getQuest(QName)){
+					aQuests.StartQuest("QuestStart_" + name, QName);
+				}else{
+					aQuests.DoQuest(QName);
+				}
+			});
+			if(aSettings.Quests.Other.Daily) aQuests.DoQuests(/^Dai[A-Z]/);
+			if(aSettings.Quests.Other.DailyGuild) aQuests.DoQuests(/^GuiDai[A-Z]/);
+			if(aSettings.Quests.Other.Weekly) aQuests.DoQuests(/WeeklyChallenge.*Main/);
+			aQuests.DoTrades();
 		}catch(e){ debug(e) }
 	},
-	Short_mQuestCheck: function(mQuest, mQuestName, mName){
-		if(mQuest == null){
-			if(aUtils.getBuff('QuestStart_' + mName)){
-				auto.timedQueue.add(function(){
-					try {
-						aUI.alert(loca.GetText('QUL', mQuestName) + ' Started', 'QUEST');
-						aUtils.applyBuff(aUtils.getBuff('QuestStart_' + mName), 8825);
-					} catch (e) {}
-				});
-			}
-			return true;
-		}
-		if(mQuest.isFinished()){
-			auto.timedQueue.add(function(){
-				try {
-					aUI.alert('Quest: ' + loca.GetText('QUL', mQuestName) + ' is finished', 'MISSION');
-					game.quests.RewardOkButtonPressedFromGui(game.quests.getQuest(mQuestName));
-				} catch (e) {}
-			});
-			return true;
-		}
-		return false;
-	},
-	Short_sQuestCheck: function(sQuest, sQuestName){
-		if(!sQuest.isFinished()) return false;
-		if(sQuestName == 'BuffQuestStrangeIdols_Sub3' || sQuestName == 'BuffQuestStrangeIdols_Sub4')
-			aShortQuests.IdolTrades = [false, false, false];
-		auto.timedQueue.add(function(){
-			try {
-				game.quests.RewardOkButtonPressedFromGui(game.quests.getQuest(sQuestName));
-			} catch (e) {}
+	DoTrades: function(){
+		var TradeCount = 0;
+		$.each(aQuests.TOTrades, function(key, val){
+			if(!val.Live) TradeCount++;
 		});
-		return true;
+		if(!TradeCount) return;
+		var res = game.createResponder(function(e,d){
+			try{
+				if(!d || !d.data || !d.data.data) return;
+				const data = d.data.data;
+				var coinSlots = [];
+				var nextSlot = data.length ? (data.toArray().filter(function(tr){
+					if(tr.slotType == 2)
+						coinSlots.push(tr.slotPos);
+					return tr.slotType === 0;
+				}).length ? 2 : 0) : 0;
+				var nextCoinSlotPos = game.gi.mHomePlayer.mTradeData.getNextFreeSlotForType(2);
+				var tradeInTO = function(trade, key){
+					if(!data.length) return false;
+					var exist = 0;
+					$.each(data.toArray(), function(i, t){
+						if(trade == t.offer)
+							exist = t.id;
+					});
+					if(exist)
+						aQuests.TOTrades[key].Live = exist;
+					return exist;
+				}
+				$.each(aQuests.TOTrades, function(key, trade){
+					if(trade.Live) return;
+					const quest = key.split("#");
+					if(game.quests.getQuest(quest[0]).mQuestTriggersFinished_vector[quest[1]].status) return;
+					var data = {
+						Send: trade.Send,
+						Receive: [trade[0] == 'Fish'? 'Stone': 'Fish', 1],
+						slotType: nextSlot,
+						slotPos: nextSlot === 0 ? 0 : nextCoinSlotPos
+					}
+
+					const offer = "{0},{1}|{2},{3}|1".format(trade.Send[0],trade.Send[1],data.Receive[0],data.Receive[1]);
+					aQuests.TOTrades[key]["Offer"] = offer
+					if(tradeInTO(offer, key)) return;
+					auto.timedQueue.add(function(){
+						aTrade.SendTOTrade(data, key);
+					});
+					if(nextSlot === 2){
+						coinSlots.push(nextCoinSlotPos);
+						for(var i = 0; i < 9; i++){
+							if(coinSlots.indexOf(i) == -1){
+								nextCoinSlotPos = i;
+								break;
+							}
+						}
+					}else if(nextSlot === 0) nextSlot = 2;
+				});
+			}catch(e){ debug(e) }
+		})
+		auto.timedQueue.add(function(){
+			aUtils.sendServerMessage(1062, game.gi.mCurrentViewedZoneID, null, res);
+		});
 	},
-	Short_SCModal: function(sub){
-		if(!game.gi.isOnHomzone()) return aUI.alert(getText('not_home'), 'ERROR');
+	ExplorersModal: function(sub){
+		if(!game.gi.isOnHomzone()) return aUI.alert(getText("not_home"), 'ERROR');
 		var save = function(){
-			if(sub === 1)
-				aSettings.Quests.Short.Config.ShortSearch = [];
-			if(sub === 2){
-				aSettings.Quests.Short.Config.GeoStone = [];
-				aSettings.Quests.Short.Config.GeoBronzeOre = [];
-			}
+			$.each(Object.keys(aSettings.Quests.Config.Explorers[sub]), function(i, t){
+				aSettings.Quests.Config.Explorers[sub][t] = [];
+			});
 			autoWindow.withsBody('.container-fluid').find('input[type=checkbox]').each(function(i, item){
 				var id = $(item).attr('id').split('_');
-				if(id[0] === 'expl'){
+				if(id[0] === sub){
 					if($(item).is(':checked'))
-						aSettings.Quests.Short.Config.ShortSearch.push(parseInt(id[1]));
-				}
-				if(id[0] === 'geo'){
-					if($(item).is(':checked'))
-						aSettings.Quests.Short.Config[id[1]=='stone'?'GeoStone':'GeoBronzeOre'].push(parseInt(id[2]));
+						aSettings.Quests.Config.Explorers[sub][id[1]].push(parseInt(id[2]));
 				}
 			});
 			auto.SaveSettings();
@@ -2898,175 +3031,239 @@ const aShortQuests = {
 		}
 		var tableData = function(){
 			var table = [];
-			if(sub === 1){
-				table.push(createTableRow([
-					[9, 'Explorers'],
-					[3,  'Short Search'],
-				], true));
-				var expls = [];
-				game.getSpecialists().sort(specNameSorter).forEach(function(spec){
-					try{
-						if(!spec || spec.GetBaseType() != 1 || expls.indexOf(spec.GetType()) != -1) return;
-						var text = $('<span>').append([
-							$(getImageTag(spec.getIconID(), '26px', '26px')), 
-							loca.GetText("SPE", spec.GetSpecialistDescription().getName_string())
-						]);
-						table.push(createTableRow([[9, text],[3, createSwitch("expl_{0}".format(spec.GetType())), 'text-center'] ]));
-						expls.push(spec.GetType());
-					} catch (e) { debug(e); }
-				});
-			}else if(sub === 2){
-				table.push(createTableRow([
-					[8, 'Geologist'],
-					[2,  '{0} Stone'.format(getImageTag('Stone', '23px', '23px'))],
-					[2, '{0} Copper'.format(getImageTag('BronzeOre', '23px', '23px'))]
-				], true));
-				var geos = [];
-				game.getSpecialists().sort(specNameSorter).forEach(function(spec){
-					try{
-						if(!spec || spec.GetBaseType() != 2 || geos.indexOf(spec.GetType()) != -1) return;
-						var text = $('<span>').append([
-							$(getImageTag(spec.getIconID(), '26px', '26px')), 
-							loca.GetText("SPE", spec.GetSpecialistDescription().getName_string())
-						]);
-						table.push(createTableRow([[8, text] ].concat(['stone','copper'].map(function(r){ return [2, createSwitch("geo_{0}_{1}".format(r, spec.GetType())), 'text-center']}))));
-						geos.push(spec.GetType());
-					} catch (e) { debug(e); }
-				});
-			}
+			const types = Object.keys(aSettings.Quests.Config.Explorers[sub]);
+			table.push(createTableRow([ [12 - types.length, 'Explorers'] ].concat(types.map(function(r){
+				var text = loca.GetText('TOT','Find{0}{1}'.format(sub, r)) 
+				return  [1, aUtils.capitalize(text.split('(')[1].replace(')','')), 'small']
+			})), true));
+			var expls = [];
+			game.getSpecialists().sort(specNameSorter).forEach(function(spec){
+				try{
+					if(!spec || spec.GetBaseType() != 1 || expls.indexOf(spec.GetType()) != -1) return;
+					var text = $('<span>').append([
+						$(getImageTag(spec.getIconID(), '26px', '26px')), 
+						loca.GetText("SPE", spec.GetSpecialistDescription().getName_string())
+					]);
+					table.push(createTableRow([[12 - types.length, text] ].concat(types.map(function(r){ return [1, createSwitch("{0}_{1}_{2}".format(sub, r, spec.GetType()))]}))));
+					expls.push(spec.GetType());
+				} catch (e) { debug(e); }
+			});
 			return table;
 		}
 		autoWindow.settings(save, '');
 		autoWindow.sTitle().html("{0} {1}".format(
 			getImage(assets.GetBuffIcon("QuestStart_SharpClaw").bitmapData),
-			'Sub-Quest: ' + loca.GetText('QUL', 'BuffQuestSharpClaw_Sub' +  sub))
+			'Quest: Explorers Task Managment')
 		);
-		autoWindow.sDialog().css("height", "80%");
+		autoWindow.sDialog().css("height", "80%").addClass("modal-lg");
 		autoWindow.sData().append(
-			$('<label>').text('Please Choose which {0} should be used for the quest!'.format(sub === 1? 'Explorers':'Geologists')),
+			$('<label>').text('Please Choose which Explorers should be used for {0} Search'.format(sub == 'AdventureZone' ? 'Adventure':sub)),
 			$('<div>', { 'class': 'container-fluid', 'style' : 'height:auto;' }).append(tableData())
 		);
-		if(sub === 1){
-			$.each(aSettings.Quests.Short.Config.ShortSearch, function(i, v){
-				var id = "#expl_{0}".format(v);
+		$.each(aSettings.Quests.Config.Explorers[sub], function(key, types){
+			$.each(types, function(i, type){
+				var id = "#{0}_{1}_{2}".format(sub, key, type);
 				$(id).prop("checked", true);
 			});
-		}
-		if(sub === 2){
-			$.each(aSettings.Quests.Short.Config.GeoStone, function(i, v){
-				var id = "#geo_stone_{0}".format(v);
-				$(id).prop("checked", true);
-			});
-			$.each(aSettings.Quests.Short.Config.GeoBronzeOre, function(i, v){
-				var id = "#geo_copper_{0}".format(v);
-				$(id).prop("checked", true);
-			});
-		}
-		
+		});
 		autoWindow.sshow();
 	},
-	IsQuestReadyForSubmit: function(Quest){
-		return game.def('converted.bluebyte.tso.quests.logic.QuestManagerStatic').IsQuestReadyForSubmit(Quest, true);
-	},
-	DailyQuests: function(){
-		const Quests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function(q){ 
-			return q && /^Dai[A-Z]/.test(q.getQuestName_string()) && q.IsRunning() 
-		}); 
-		$.each(Quests, function(i, Quest){
-			aShortQuests.DoQuest(Quest);
-		});
-	},
-	DoQuest: function(Quest){
-		try{
-			if(Quest.isFinished()) 
-				return game.quests.RewardOkButtonPressedFromGui(Quest);
-			if(aShortQuests.IsQuestReadyForSubmit(Quest))
-				return game.quests.InitiatePayForQuestFinish(Quest.GetUniqueId());
-			
-			$.each(Quest.mQuestDefinition.questTriggers_vector.toArray(), function(t, trigger){
-				t = trigger.triggerIdx;
-				if(Quest.GetTriggerStatus(t)) return;
-				const rName = trigger.name_string,
-					rAmount = trigger.amount,
-					rDelta = Quest.GetDeltaStart(t);
-				const fAmount = rAmount - rDelta;
-				switch(trigger.type){
-					// TYPE_RESOURCE
-					case 2:
-						//Produce
-						if(trigger.condition == 15){
-							const review = game.def("ServerState::cEconomyOverviewData",1).GetResourceProductionAndConsumptionValues(null, rName);
-							if(review.mProductionValue > 0)
-								return aUI.alert('Waiting to gather enough {0} ({1}/{2})'.format(rName, rDelta, rAmount), assets.GetResourceIcon(rName));
-							else
-								return aUI.alert('Please make sure that your {0} production is running!'.format(loca.GetText('RES', rName)), assets.GetResourceIcon(rName));
-						}
-						//Sell
-						else if(trigger.condition == 18){
-							if(!aUtils.EnoughResource(rName, fAmount)) return;
-							aShortQuests.TOTrades.push([
-								Quest.getQuestName_string(), 
-								t,
-								rName,
-								fAmount
-							]);
-						}
-						break;
-					// TYPE_PAY_FOR_QUEST_FINISH
-					case 18:
-						if(aUtils.GetUnitData(rName)){
-							const fUnit = aUtils.GetFreeArmy()[rName] || 0;
-							const aUnit = aUtils.assignedArmy()[rName] || 0;
-							if(fUnit >= fAmount)
-								return;
-							else if((fUnit + aUnit) > fAmount)
-								shortcutsFreeAllUnits();
-							else
-								aUtils.TrainUnit(rName, fAmount);
-						} else {
-							//Resource
-							if(aUtils.EnoughResource(rName, fAmount)) return;
-						}
-						break;
-					// TYPE_NEW_QUEST_TRIGGER
-					case 45:
-						const tQuest = Quest.mQuestDefinition.endConditions_vector[t];
-						const buffVO = aUtils.getBuff(tQuest.item_string);
-						if(tQuest.action_string == 'buffowned'){
-							if(!buffVO)
-								aUtils.ProduceInPH(tQuest.item_string, tQuest.min);
-						}
-						else if(tQuest.action_string == 'buffapplied'){
-							const grid = game.zone.mStreetDataMap.getBuildingByName(aUtils.capitalize(tQuest.target_string)).GetGrid()
-							if(buffVO){
-								aUtils.applyBuff(buffVO, grid);
-							} else {
-								aUtils.ProduceInPH(tQuest.item_string, tQuest.min);
-							}
-						}
-						else if(tQuest.action_string == 'buffproduced'){
-							aUtils.ProduceInPH(tQuest.item_string, tQuest.min)
-						}
-						else if(tQuest.action_string == 'produceditemlist'){
-							if(aUtils.GetUnitData(tQuest.item_string))
-								aUtils.TrainUnit(tQuest.item_string, tQuest.amount);
-						}
-						else if(tQuest.action_string == 'soldgoods'){
-							if(!aUtils.EnoughResource(tQuest.item_string, tQuest.amount - rDelta)) return;
-							aShortQuests.TOTrades.push([
-								Quest.getQuestName_string(), 
-								t,
-								tQuest.item_string,
-								tQuest.amount - rDelta
-							]);
-						}
-						else if(tQuest.action_string == 'completeadventurelist'){
-							aUI.alert(loca.GetText('completeadventurelist_{0}'.format(tQuest.loca_string)));
-						}
-						break;
+	NewTriggerQuest: {
+		buffproduced: function(NTQ, args){
+			const amount = NTQ.min - args[0];
+			if(aSettings.Quests.Config.ProduceBuffs)
+				auto.timedQueue.add(function(){ aUtils.ProduceInPH(NTQ.item_string, amount) });
+			else 
+				aUI.alert(game.quests.getNewTriggerText(NTQ));
+		},
+		buffowned: function(NTQ, args){
+			const amount = NTQ.min - args[0];
+			const buffVO = aUtils.getBuff(NTQ.item_string);
+			if(buffVO && buffVO.amount >= amount) return buffVO;
+			return aQuests.NewTriggerQuest.buffproduced(NTQ, args), false;
+		},
+		buffapplied: function(NTQ, args){
+			const amount = NTQ.min - args[0];
+			const buffVO = args[1] ? aUtils.getBuff(NTQ.item_string) : aQuests.NewTriggerQuest.buffowned(NTQ, args);
+			if(!buffVO || buffVO.amount < amount || !aSettings.Quests.Config.ApplyBuffs) return;
+			const targets = buffVO.GetBuffDefinition().GetTargetDescription_string();
+			if(targets == 'Mayorhouse'){
+				auto.timedQueue.add(function(){ aUtils.applyBuff(buffVO, 8825); });
+			}
+			else if(targets.indexOf('Workyard') != -1){
+				const workyards = game.getBuildings().filter(function(b){
+					return b.isWorkyard() && b.GetBuildingName_string().indexOf('EW_') == -1 && !b.productionBuff 
+				}).slice(0, amount);
+				$.each(workyards, function(i, wy){
+					auto.timedQueue.add(function(){ aUtils.applyBuff(buffVO, wy.GetGrid()); });
+				});
+			}
+		},
+		buffappliedonfriend: function(NTQ, args){
+			var buffVO = aUtils.getBuff("Fish", 'FillDeposit');
+			const amount = NTQ.amount - args[0];
+			if(buffVO && buffVO.GetAmount() > amount){
+				var friendList = globalFlash.gui.mFriendsList.GetFilteredFriends("", true).slice(-10);
+				if(!friendList.length) return aUI.alert('Come on! Get Some friends!!');
+				var friend = friendList[Math.floor(Math.random() * friendList.length)];
+				auto.timedQueue.add(function(){ game.gi.visitZone(friend.id); });
+				auto.timedQueue.add(function(){
+					aUI.alert('You are on {0} island'.format(friend.username));
+					aUtils.applyBuff(buffVO, 9622, amount); 
+				}, 25000);
+				auto.timedQueue.add(function(){
+					game.gi.visitZone(game.gi.mCurrentPlayer.GetHomeZoneId());
+				}, 25000);
+				auto.timedQueue.add(function(){ aUI.alert("Back at Home Island"); }, 25000);
+			} else if(aSettings.Quests.Config.ProduceBuffs){
+				auto.timedQueue.add(function(){
+					aUtils.ProduceInPH('FillDeposit_Fishfood', Math.ceil(amount/100));
+				});
+			} else {
+				aUI.alert('Please Make {0} Fish Food'.format(amount));
+			}
+		},
+		buildingdestroyed: function(NTQ){
+			const Building = game.zone.mStreetDataMap.getBuildingByName(NTQ.item_string);
+			if(!Building) return;
+			const Army = Building.GetArmy().GetSquads_vector();
+			if(!Army.length) {
+				auto.timedQueue.add(function(){
+					try {
+						game.gi.SendServerAction(165, 0, Building.GetGrid(), 0, null);
+					} catch (e) {}
+				});
+				return aUI.alert("Destroying {0}!".format(loca.GetText('BUI', NTQ.item_string)), 'COMBAT');
+			}
+			$.each(Army, function(i, Squad){
+				const eBuffName = aQuests.GetEffectiveBuff(Squad.GetType());
+				const eBuffVO = aUtils.getBuff(eBuffName);
+				if(eBuffVO && eBuffVO.amount >= Squad.amount){
+					var buffList = game.def("Communication.VO::dBuffListVO", true);
+						buffList.buffList = game.def("mx.collections::ArrayCollection", true);
+					var buffVo = game.def("Communication.VO::dBuffVO", true);
+						buffVo.uniqueId1 = eBuffVO.GetUniqueId().uniqueID1;
+						buffVo.uniqueId2 = eBuffVO.GetUniqueId().uniqueID2;
+						buffVo.amount = Squad.amount;
+						buffList.buffList.addItem(buffVo);
+					aUI.alert("Using {0} x{1} on {2}".format(loca.GetText("RES", eBuffName), Squad.amount, loca.GetText('BUI', NTQ.item_string)), 'MISSION');
+					auto.timedQueue.add(function(){
+						game.gi.SendServerAction(63, 0, Building.GetGrid(), 0, buffList);
+					});
+				} else {
+					const eBuffAmount = eBuffVO ? Squad.amount - eBuffVO.amount : Squad.amount;
+					auto.timedQueue.add(function(){
+						aUtils.ProduceInPH(eBuffName, eBuffAmount);
+					});
 				}
 			});
-		}catch(e){ debug(e) }
+		},
+		completeadventurelist: function(NTQ){
+			aUI.alert(game.quests.getNewTriggerText(NTQ), assets.GetNewQuestTriggerIcon(NTQ));
+		},
+		onmap: function(NTQ){
+			aUI.alert(game.quests.getNewTriggerText(NTQ), assets.GetNewQuestTriggerIcon(NTQ));
+		},
+		produceditemlist: function(NTQ, args){
+			if(aData.Units(NTQ.item_string)){
+				if(aSettings.Quests.Config.TrainUnits){
+					const amount = NTQ.amount - args[0];
+					auto.timedQueue.add(function(){ aUtils.TrainUnit(NTQ.item_string, amount); });
+				} else {
+					aUI.alert(game.quests.getNewTriggerText(NTQ));
+				}
+			} else {
+				aQuests.ResourceEconomy(NTQ.item_string, NTQ.amount, args[0]);
+			}
+		},
+		questcomplete: function(NTQ){
+			aQuests.DoQuest(NTQ.item_string);
+		},
+		resourcegathered: function(NTQ, args){
+			const iName = NTQ.item_string ? NTQ.item_string : NTQ.type_string;
+			const buffVO = aUtils.getBuff(iName, 'AddResource');
+			const iAmount = (NTQ.amount ? NTQ.amount : NTQ.min) - args[0];
+			if(buffVO && buffVO.amount > iAmount && aSettings.Quests.Config.GatherfromStar){
+				auto.timedQueue.add(function(){
+					aUtils.applyBuff(buffVO, 8825, iAmount);
+				});
+			}else{
+				aQuests.ResourceEconomy(iName, iAmount, args[0]);
+			}
+		},
+		soldgoods: function(NTQ, args){
+			if(!aSettings.Quests.Config.SellinTO)
+				return aUI.alert(game.quests.getNewTriggerText(NTQ), NTQ.item_string);
+			const TName = args[1] + "#" + NTQ.triggerIdx;
+			if(aQuests.TOTrades[TName]) return;
+			const amount = NTQ.amount - args[0];
+			if(!aUtils.EnoughResource(NTQ.item_string, amount, true)){
+				const buffVO = aUtils.getBuff(NTQ.item_string, 'AddResource');
+				if(buffVO && buffVO.amount > amount && aSettings.Quests.Config.GatherfromStar)
+					auto.timedQueue.add(function(){
+						aUtils.applyBuff(buffVO, 8825, amount);
+					});
+				return;
+			}
+			aQuests.TOTrades[TName] = { Send: [NTQ.item_string, amount], Live: false}
+		},
+		specialisttaskfinished: function(NTQ, args){
+			var option = [];
+			var specTypes = [];
+			const options = {
+				"Deposit": ["Stone", "BronzeOre", 'Marble', 'IronOre', 'GoldOre', 'Coal', 'Granite','AlloyOre', 'Salpeter'],
+				"Treasure": ["Short", "Medium", "Long", "EvenLonger", "Prolonged"],
+				"AdventureZone": ["Short", "Medium", "Long", "VeryLong"]
+			}
+			const alter = {
+				"Longest": "Prolonged",
+				"AlloyOre": "TitaniumOre"
+			}
+			const amount = NTQ.amount - args[0];
+			$.each(Object.keys(options), function(i, key){
+				if(NTQ.item_string.indexOf(key) < 0) return;
+				var item = NTQ.item_string.split(key)[1];
+				item = alter[item] ? alter[item] : item;
+				option = [key=="Deposit"?2:1, i, options[key].indexOf(item)];
+				if(key == 'Deposit')
+					specTypes = aSettings.Deposits.data[item].geos;
+				else if(key == 'Treasure' || key == 'AdventureZone')
+					specTypes = aSettings.Quests.Config.Explorers[key][item];
+			});
+			if(!option) return aUI.alert(game.quests.getNewTriggerText(NTQ));
+			const specs = game.getSpecialists().filter(function(e){ return e && e.GetBaseType() == option[0];}).sort(specNameSorter);
+			var searchs = amount - specs.filter(function(spec){ return spec.IsInUse() && spec.GetTask().GetSubType() === option[2]; }).length;
+			if(searchs <= 0) return;
+			if(!specTypes.length)
+				return aUI.alert('Please select some {0} to start {1}'.format(option[0] === 1?"Explorers":"Geologists", loca.GetText('LAB',NTQ.item_string)), 'ERROR');
+			
+			specs.forEach(function(spec){
+				if(spec.IsInUse() || searchs <= 0 || specTypes.indexOf(spec.GetType()) == -1) return;
+				const id = spec.GetUniqueID();
+				auto.timedQueue.add(function(){
+					try{ aUtils.sendSpecPacket(id, option[1], option[2]); }catch(e){}
+				});
+				searchs--;
+			});
+		}
+	},
+	InQuestTriggers: function(Quest, actions, item, amount){
+		return Quest.mQuestDefinition.endConditions_vector.toArray().filter(function(q){
+			if(item)
+				return actions == q.action_string && q.item_string == item && q.amount >= amount;
+			else
+				return actions.indexOf(q.action_string) != -1;
+		}).length;
+	},
+	ThePathFinder: function(){
+		const Tasks = game.gi.getCurrentTaskManager().getChildTasks(game.gi.getCurrentTaskManager().getCategoryByName('TaskBuilding'));
+		$.each(Tasks, function(i, Task){
+			if(Task.getFinished()) return;
+			$.each(Task.getTriggers(), function(t, Trigger){
+				if(Trigger.getFinished()) return;
+				debug(Trigger.getDefinition());
+			});
+		});
 	}
 }
 //-------------- Auto Book Binder --------------
@@ -3132,7 +3329,8 @@ const aCollect = {
 	lBuildings: {
 		'FlyingHouse': 'FlyingHouse', 
 		'GiftChristmasTree': 'GiftChristmasTree',
-		'GiftGhostShip': 'GhostLantern'
+		'GiftGhostShip': 'GhostLantern',
+		'BalloonMarket_mini': 'BalloonMarket_mini'
 	},
 	exec: function(){
 		if((game.gi.isOnHomzone() && aSettings.Collect.Pickups) ||
@@ -3209,7 +3407,8 @@ const aCollect = {
 			try{
 				const buildingVO = game.zone.mStreetDataMap.getBuildingByName(name);
 				if(!buildingVO) return;
-				const questVO = game.quests.GetQuestPool().GetQuestFromName('BuiBonus_{0}_Timer_Loop'.format(val));
+				const questVO = game.quests.getQuest('BuiBonus_{0}_Timer_Loop'.format(val)) ||
+				game.quests.getQuest('BuiBonus_{0}_Timer'.format(val));
 				if(!questVO){
 					auto.timedQueue.add(function(){
 						try{
@@ -3288,7 +3487,7 @@ const aMail = {
 		AdvLoot: [7, 19, 24, 30, 33, 46],
 		AdvMessage: [8, 29, 63],
 	},
-	nextRun: new Date(),
+	nextRun: new Date().getTime(),
 	aWaitingResponse: null,
 	AcceptInvite_Try_Index: 0,
 	AcceptInvite_Try_Mails: [],
@@ -3300,6 +3499,15 @@ const aMail = {
 			
 			var save = function(){
 				try{
+					if(mode == 'Friends'){
+						aSettings.Mail.AcceptGuildTrades = $('#aMailAcceptGuildTrades').is(':checked');
+					}else if (mode == 'Resources'){
+						aSettings.Mail.AllowAllResources = $('#aMailAllowAllResources').is(':checked');
+						const max = $('#aMailResourcesMax').val();
+						if(isNaN(max))
+							return alert('Max Value should be numerical');
+						aSettings.Mail.AllResourcesMax = parseInt(max);
+					}
 					auto.SaveSettings();
 					autoWindow.shide();
 				} catch(e) {}
@@ -3322,15 +3530,13 @@ const aMail = {
 			var ResourceSelect = function(){
 				var resourceSelect = aUtils.createSelect('aMailResourceSelect')
 					.append($('<option>', { value:"0" }).text("---"));
-					autoData.resources.forEach(function(item) {
+					aData.Resources().forEach(function(item) {
 						resourceSelect.append($('<option>', { value: item }).text(loca.GetText("RES", item))).prop("outerHTML");
 					});
-				return resourceSelect.html(resourceSelect.find('option').sort(function (a, b) {
-					return $(a).text() < $(b).text() ? -1 : 1;
-				}));
+				return resourceSelect.html(resourceSelect);
 			};
 			const Options = function(mode){
-				if(mode === 1)
+				if(mode == 'Friends')
 					return [
 						createTableRow([[10, "Friends"], [2, '']], true),
 						createTableRow([
@@ -3350,25 +3556,27 @@ const aMail = {
 						], true),
 						$('<div>', { id: 'aMailAllowedFriends'}).append(friendsData)
 					]
-				else
+				else if(mode == 'Resources')
 					return [
 							createTableRow([[10, "Resources"], [2, '']], true),
 							createTableRow([
-								[10, "&#10551; Accept all other resources without limit"],
-								[2, createSwitch("aMailAcceptOrPend", aSettings.Mail.AcceptOrPend) ],
+								[6, "&#10551; Allow all resources with limit"],
+								[3, $('<input>', { 'value': aSettings.Mail.AllResourcesMax, 'type': 'number', 'class': 'form-control', 'placeholder': 'Max Limit', 'id': 'aMailResourcesMax'})],
+								[1, ''],
+								[2, createSwitch("aMailAllowAllResources", aSettings.Mail.AllowAllResources) ],
 							], 0),
 							createTableRow([
-								[12, "&#10551; If Off it will pend all trades with resources without limit"],
+								[12, "&#10551; Customized limit filters are prioritised & always On"],
 							], 0),
 							createTableRow([
 								[1, loca.GetText("LAB", "TradeTabItems")],
 								[4, ResourceSelect()],
-								[1, 'Max'],
-								[2,  '<input type="text" style="color:black;width:auto" id="aMailResourceMax"/>'],
 								[1, ''],
+								[3,  '<input type="number" class="form-control" placeholder="Max Limit" id="aMailResourceMax"/>'],
 								[3, aUtils.createButton("aMailAddResource", 'Add Resource')],
 							], 0),
 							$('<br>'),
+							$('<span>').text('Customize Resources Max Limit'),
 							createTableRow([
 								[6, loca.GetText("LAB", "TradeTabItems")],
 								[6 ,  'Max'],
@@ -3460,27 +3668,92 @@ const aMail = {
 			autoWindow.sshow();
 		}catch(er){ debug(er); }
 	},
+	SavedTradesModal: function(){
+		try{
+			const file = air.File.applicationDirectory.resolvePath("auto/saved_trades.json").nativePath;
+			const data = aUtils.readFile(file) || []; 
+			if(!data.length)
+				return aUI.alert('Empty Trade Log', 'ERROR');
+			$("div[role='dialog']:not(#aSavedTradesModal):visible").modal("hide");
+			$('#aSavedTradesModal').remove();
+			createModalWindow('aSavedTradesModal', utils.getImageTag('IconMailTypeTrade') + ' Trades Log');
+			var table = $.map(data, function(trade){
+				return createTableRow([
+					[2, aUtils.formatDate(trade.Date)],
+					[2, trade.Sender],
+					[2, getImage(assets.GetResourceIcon(trade.Send.Name).bitmapData, "23px")  + " " + loca.GetText('RES', trade.Send.Name)],
+					[1, trade.Send.Qty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")],
+					[2, getImage(assets.GetResourceIcon(trade.Receive.Name).bitmapData, "23px")  + " " + loca.GetText('RES', trade.Receive.Name)],
+					[1, trade.Receive.Qty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")],
+					[2, $('<label>').css('color', trade.Status ? '#99ff99':'red').text(trade.Status ? "Accepted": "Decliened")]
+				], false)
+			});
+			$('#aSavedTradesModalData').append(
+				$('<div>', { 'class': 'container-fluid', 'style' : 'height:auto;' }).append([
+					createTableRow([
+						[2, "Date"],
+						[2, "Friend"],
+						[2, "Sent"],
+						[1, "Amount"],
+						[2, "Received"],
+						[1, "Amount"],
+						[2, "Status"]
+					], true)
+				].concat(table))
+			)
+			$('#aSavedTradesModal:not(:visible)').modal({ backdrop: "static" });
+		}catch(e){ debug(e) }
+	},
 	resetNextRun: function(after){
-		this.nextRun = new Date() + (after ? after : (aSettings.Mail.TimerMinutes * 60000));
+		this.nextRun = new Date().getTime() + (after ? after : (aSettings.Mail.TimerMinutes * 60000));
 	},
 	run: function(){
-		this.toggleMailWindow(true);
-		this.toggleMailWindow(true);
-		this.toggleMailWindow(false);
-		this.Set_aWaitingResponse();
-		if (!this.GetHeaders())
+		try
 		{
-			debug('reset from run()');
-			this.resetNextRun();
-		}
-
+			if (!game.gi.isOnHomzone()) return aMail.resetNextRun();
+			auto.timedQueue.add(function(){ globalFlash.gui.mMailWindow.Show() });
+			auto.timedQueue.add(function(){ globalFlash.gui.mMailWindow.Hide() });
+			auto.timedQueue.add(function(){
+				const Operation = game.def('ServerState::cConnectionManager').GetInstance().mMailService.operations['GetHeaders'];
+				if(!Operation) return;
+				const Result = Operation.lastResult;
+				if(!Result || !Result.data || !Result.data.data || !Result.data.data.headers_collection) 
+					return debug('Empty Mail Response'), aMail.resetNextRun(20000);
+				aMail.HeadersHandler(Result.data.data.headers_collection.toArray());
+			});
+		} catch (e) {}
 	},
-	toggleMailWindow: function(show) {
-		try {
-			if (show)
-				globalFlash.gui.mMailWindow.Show();
-			else
-				globalFlash.gui.mMailWindow.Hide();
+	HeadersHandler: function(Mails)
+	{
+		try
+		{
+			var LootMails = [];
+			var AdvInvites = [];
+			$.each(Mails, function(i, objMail) {
+				if (!objMail) return;
+				// this groups can be to star
+				if ((aSettings.Mail.AcceptLoots && aMail.Types.Loot.indexOf(objMail.type) >= 0) ||
+					(aSettings.Mail.AcceptGeologistMsg && objMail.type == 32) ||
+					(aSettings.Mail.AcceptAdventureLoot && aMail.Types.AdvLoot.indexOf(objMail.type) >= 0) ||
+					(aSettings.Mail.AcceptAdventureMessage && aMail.Types.AdvMessage.indexOf(objMail.type) >= 0) ||
+					(aSettings.Mail.AcceptGifts && objMail.type == 9)
+					)
+				{
+					//if(game.def('com.bluebyte.tso.util::MailUtils').CanCollectMail(objMail))
+					LootMails.push(objMail.id);
+				} else if (aSettings.Mail.AcceptInvites && objMail.type == 23){
+					AdvInvites.push(objMail.id);
+				} else if (aSettings.Mail.CompleteTrades && aMail.Types.cTrades.indexOf(objMail.type) != -1){
+					aCycle.wQueue.push(function() { aMail.AcceptUserTrade(objMail.type , objMail.id); });
+				} else if (objMail.type === 1) {
+					aCycle.wQueue.push(function() { aMail.GetMailBody(objMail.id, "accept"); });
+				}					
+			});
+			if (LootMails.length > 0)
+				aCycle.wQueue.push(function(){ aMail.AcceptLootMsgs(LootMails, aSettings.Mail.ToStar); });
+			if (AdvInvites.length > 0)
+				aCycle.wQueue.push(function(){ aMail.AcceptInvites(AdvInvites) });
+			aMail.resetNextRun();
 		} catch (e) {}
 	},
 	Set_aWaitingResponse: function() {
@@ -3512,49 +3785,6 @@ const aMail = {
 			return true;
 		} catch (e) { return false; }
 	},
-	GetHeadersHandler: function(event, data)
-	{
-		try
-		{
-			aMail.Clear_aWaitingResponse();
-			if (!game.gi.isOnHomzone()) return aMail.resetNextRun();
-			var LootMails = [];
-			var AdvInvites = [];
-			debug(data);
-			if(!data || !data.data || !data.data.isInbox || !data.data.headers_collection)
-				return aMail.resetNextRun(20000);
-		
-			debug("Stage 1 init");
-			var collection = data.data.headers_collection;
-			debug("Stage1 : received " + collection.length + " headers");
-			
-			$.each(collection, function(i, objMail) {
-				if (!objMail) return;
-				//debug("Mail Type : " + objMail.type + " SenderId : " + objMail.senderId)
-				// this groups can be to star
-				if ((aSettings.Mail.AcceptLoots && aMail.Types.Loot.indexOf(objMail.type) >= 0) ||
-					(aSettings.Mail.AcceptGeologistMsg && objMail.type == 32) ||
-					(aSettings.Mail.AcceptAdventureLoot && aMail.Types.AdvLoot.indexOf(objMail.type) >= 0) ||
-					(aSettings.Mail.AcceptAdventureMessage && aMail.Types.AdvMessage.indexOf(objMail.type) >= 0) ||
-					(aSettings.Mail.AcceptGifts && objMail.type == 9)
-					)
-				{
-					LootMails.push(objMail.id);
-				}
-				else if (aSettings.Mail.AcceptInvites && objMail.type == 23)
-					AdvInvites.push(objMail.id);
-				else if (aSettings.Mail.CompleteTrades && aMail.Types.cTrades.indexOf(objMail.id) != -1)
-					aCycle.waitingQueue.push(function() { aMail.AcceptUserTrade(objMail.type , objMail.id);});
-				else if (objMail.type === 1)
-					aCycle.waitingQueue.push(function() { aMail.GetMailBody(objMail.id, "accept"); });					
-			});
-			if (LootMails.length > 0)
-				aCycle.waitingQueue.push(function(){ aMail.AcceptLootMsgs(LootMails, aSettings.Mail.ToStar); });
-			if (AdvInvites.length > 0)
-				aCycle.waitingQueue.push(function(){ aMail.AcceptInvites(AdvInvites) }, 5000);
-			aMail.resetNextRun();
-		} catch (e) {}
-	},
 	AcceptLootMsgs: function(LootMails, toStar){
 		if (!game.gi.isOnHomzone()) return;
 		try
@@ -3578,7 +3808,7 @@ const aMail = {
 		}
 		try
 		{
-			this.Set_aWaitingResponse();
+			//this.Set_aWaitingResponse();
 			var v = game.def("Communication.VO::dIntegerVO", 1);
 			v.value = parseInt(id);
 			aUtils.sendServerMessage(1177, game.mCurrentViewedZoneID, v , responder[type]);		
@@ -3586,7 +3816,7 @@ const aMail = {
 		} catch (e) { debug(e) }	
 	},
 	GetBodyHandler: function(event, data){
-		aMail.Clear_aWaitingResponse();
+		//aMail.Clear_aWaitingResponse();
 		if (!game.gi.isOnHomzone()) return false;
 		var isGuildMember = function(id){
 			var result = false;
@@ -3600,8 +3830,8 @@ const aMail = {
 		{
 			if (!data && !data.data)
 				return false;
-			if(!game.def('com.bluebyte.tso.util::MailUtils').CanCollectMail(data.data))
-				return debug("Can't collect this mail");
+			//if(!game.def('com.bluebyte.tso.util::MailUtils').CanCollectMail(data.data))
+			//	return debug("Can't collect this mail");
 			var items = aMail.GetBodyItems(data.data.body);
 			var user = aSettings.Mail.EnabledUsers[data.data.senderId.toString()];
 			var gMember = isGuildMember(data.data.senderId);
@@ -3610,25 +3840,35 @@ const aMail = {
 			if (user && user.favorite) {
 				premission = true;
 			} else if (user || (gMember && aSettings.Mail.AcceptGuildTrades)) {
-				var resource = aSettings.Mail.EnabledResources[items.Send.Name];
-				if (isResource && resource && items.Send.Qty <= resource)
-					premission = true;
+				if(isResource){
+					if(aSettings.Mail.AllowAllResources && items.Send.Qty <= aSettings.Mail.AllResourcesMax)
+						premission = true;
+					var resource = aSettings.Mail.EnabledResources[items.Send.Name];
+					if(resource)
+						premission = items.Send.Qty <= resource ? true : false;
+				}
 			}
-			if(!premission) return debug('Pending {0} from {1}'.format(data.data.body, globalFlash.gui.mFriendsList.GetFriendById(data.data.senderId)));
+			if(!premission) return debug('Pending {0} from {1}'.format(data.data.body, data.data.senderName));
 			var canTrade = false;
 			if (isResource && aUtils.getItemAmount(items.Send.Name) >= items.Send.Qty)
 				canTrade = true;
 			if (!isResource && aUtils.getBuff(items.Send.Name, items.Send.Type).amount >= items.Send.Qty)
 				canTrade = true;
-				/*try
-			{
-				if (aSettings.Mail.SaveFriendsTrades && (data.data.type == 1 || data.data.type == 4 || data.data.type == 5 ))
-					aMail.SaveTradeToLog(data.data.senderName , items.Send.Name , items.Send.Qty , items.Receive.Name, items.Receive.Qty, canTrade);
-			} catch(elog){ debug(elog) }*/
+
+			
 			if(canTrade)
 				aMail.AcceptUserTrade(data.data.type, data.data.id);
 			else if (aSettings.Mail.DeclineTrades && isResource)
 				aMail.RefuseUserTrade(data.data.id);
+			else 
+				return;
+
+			if (aSettings.Mail.SaveFriendsTrades){
+				items['Date'] = new date().getTime();
+				items['Sender'] = data.data.senderName;
+				items['Status'] = canTrade;
+				aMail.SaveTradeToLog(items);
+			}
 		}catch(e){ debug(e) }
 	},
 	AcceptInvites: function(AceeptLootMailsID){
@@ -3686,13 +3926,13 @@ const aMail = {
 				if (data.length == 2)
 				{
 					result.Name = data[0];
-					result.Qty = data[1];
+					result.Qty = parseInt(data[1]);
 				}
 				else if (data.length == 3)
 				{
 					result.Type = data[0];
 					result.Name = data[1];
-					result.Qty = data[2];
+					result.Qty = parseInt(data[2]);
 				}
 				return result;
 			} catch (es) { }
@@ -3703,34 +3943,6 @@ const aMail = {
 		result['Send'] = getResources(body[1]);
 		return result;
 	},
-	CheckEveryBodyResources: function(type, amount)
-	{	
-		try
-		{
-			debug("Check Resources EveryBody : " + amount + " " + type);
-			var r = aSettings.Mail.EverybodyResources[type];
-			if (r !== undefined && r != null)
-			{
-				debug("Check Resources EveryBody : " + amount + " " + type + " max is : " + r.resource_max);
-				return (amount <= r.resource_max);
-			}
-		} catch(e) {}
-		return false;
-	},
-	CheckResources: function(type, amount)
-	{	
-		try
-		{
-			var r = aSettings.Mail.EnabledResources[type];
-			debug("Check Resources : " + amount + " " + type);
-			if (r !== undefined && r != null)
-			{
-				debug("Check Resources : " + amount + " " + type + " max is : " + r.resource_max);
-				return (amount <= r.resource_max);
-			}
-		} catch (e){}
-		return false;
-	},
 	AcceptUserTrade: function(type, mailId)
 	{
 		if (!game.gi.isOnHomzone()) return;
@@ -3738,11 +3950,10 @@ const aMail = {
 		{
 			var v = game.def("Communication.VO::dIntegerVO", !0);
 				v.value = mailId;
-			aUtils.sendServerMessage(type == 1 ? 1050 : 1054, game.gi.mCurrentPlayer.GetPlayerId(), v, null);
-			aUI.alert('Accepting: ' + mailId, "MAIL_TRADE");
+			aUtils.sendServerMessage(type === 1 ? 1050 : 1054, game.gi.mCurrentPlayer.GetPlayerId(), v, null);
+			aUI.alert(type === 1 ? 'Trade Accepted' : 'Trade Resources Collected', "MAIL_TRADE");
 			return true;
-		} catch (e) { }
-		return false;
+		} catch (e) { return false; }
 	},
 	RefuseUserTrade: function(mailId)
 	{
@@ -3755,38 +3966,18 @@ const aMail = {
 			aUI.alert('Declining: ' + mailId, "MAIL_TRADE");
 		} catch (e) {}
 	},
-	SaveTradeToLog: function(friend , out_res_name , out_res_qty , in_res_name, in_res_qty, canTrade)
+	SaveTradeToLog: function(trade)
 	{
 		try
 		{
-			if (_exudDashboardSettings.SaveDbgOnCloseDIR !== undefined && _exudDashboardSettings.SaveDbgOnCloseDIR != null && _exudDashboardSettings.SaveDbgOnCloseDIR != "")
-			{
-				var dt = _exudDashboard_DateToString(new Date(), true);
-				var r = dt + "\t" + (friend+"                    ").slice(0,20);
-				
-				if (in_res_name != "")
-					r+= " " + (getText('InRes', '_usAcceptTradesLang') + ": " + (in_res_qty + "            ").slice(0,8) + (aUtils.findTextOf(in_res_name) + "                              ").slice(0,30));
-				
-				if (out_res_name != "")
-					r += " " + getText('OutRes', '_usAcceptTradesLang') + ": " + (out_res_qty + "            ").slice(0,8) + (aUtils.findTextOf(out_res_name) + "                              ").slice(0,30);
-				
-				if (!canTrade)
-					r += " " + getText('Declined', '_usAcceptTradesLang')
-				
-				r+= "\r\n"
-				var fname = "tfriends.log";
-				var file = new air.File(air.File.documentsDirectory.resolvePath(_exudDashboardSettings.SaveDbgOnCloseDIR + "\\" + fname).nativePath);
-				fs = new air.FileStream;
-				fs.open(file, "append");
-				fs.writeUTFBytes(r);
-				fs.close();
-
-			}
-		}
-		catch (e)
-		{
-			debug("Error saving trade log: " + e);
-		}
+			const file = air.File.applicationDirectory.resolvePath("auto/saved_trades.json").nativePath;
+			var data = aUtils.readFile(file) || [];
+			data.push(trade);
+			fileStream = new air.FileStream();
+			fileStream.open(new air.File(file), air.FileMode.WRITE);
+			fileStream.writeUTFBytes(JSON.stringify(data));
+			fileStream.close();
+		} catch (e) { debug("Error saving trade log: " + e); }
 	},
 	SendInvite: function(ZoneID , PlayeID, PlayerName, response_callback){
 		try
@@ -3810,19 +4001,6 @@ const aMail = {
 			return true;
 		} catch (e) { }
 		return false;
-	},
-	test: function(){
-		try
-		{
-			var responder = game.createResponder(function(e,d){
-				debug(e)
-				debug(d)
-			}, function(){})
-			var v = game.def("Communication.VO::dIntegerVO", !0);
-				v.value = 5000;
-			aUtils.sendServerMessage(1175, game.gi.mCurrentViewedZoneID, v, responder);
-			return true;
-		} catch (e) {}
 	},
 	test2: function(id){
 		try
@@ -3894,9 +4072,7 @@ const aTrade = {
 			var select_resourcesRec = $('<select>', { id: 'aTradeReceiveSelect' });
 			select_resourcesRec.append($('<option>', { value:"---" }).text("---")).prop("outerHTML");
 
-			autoData.resources.sort(function(a,b){
-				return loca.GetText("RES", a).localeCompare(loca.GetText("RES", b))
-			}).forEach(function(item) {
+			aData.Resources().forEach(function(item) {
 				select_resourcesSend.append($('<option>', { value: item }).text(loca.GetText("RES", item))).prop("outerHTML");
 				select_resourcesRec.append($('<option>', { value: item }).text(loca.GetText("RES", item))).prop("outerHTML");
 			});
@@ -4115,55 +4291,33 @@ const aTrade = {
 		} catch(e) {}
 		return false;
 	},
-	NextCoinSlot: function(){
-		var _local_2 = game.zone.GetResources(game.player);
-		var _local_3 = game.player.mTradeData.getNextFreeSlotForType(2);
-		if (_local_3 < global.activateSlotsWithCoins_vector.length){
-			this.mSlotCost = global.activateSlotsWithCoins_vector[_local_3];
-			this.mSlotPos = _local_3;
-			if (!_local_2.HasPlayerResource(defines.COIN_RESOURCE_NAME_string, this.mSlotCost)){
-				CustomAlert.show("ItemPurchaseMissingResource", "ItemPurchaseMissingResource", Alert.OK);
-			}
-			else {
-				CustomAlert.show("ConfirmPlaceNewOfferWithCoins", "ConfirmPlaceNewOfferWithCoins", (Alert.OK | Alert.CANCEL), null, this.placeNewOfferWithCoinsHandler);
-			};
-		}
-		else {
-			cLog.info("No further tradeslot avialable for Coins.");
-			return;
-		};
-	},
-	SendTOTrade: function(sRes, sAmount, rRes, rAmount){
+	SendTOTrade: function(data, key){
 		try
 		{
+			if(!aUtils.EnoughResource(data.Send[0], data.Send[1])) return;
 			var ResDef = game.def("Communication.VO::dResourceVO");
 			var TOff = game.def("Communication.VO::dTradeOfferVO", !0);
-			TOff.offerRes =  new ResDef().init(sRes, sAmount);
+			TOff.offerRes =  new ResDef().init(data.Send[0], data.Send[1]);
 			TOff.offerBuff = null;
-			TOff.costsRes = new ResDef().init(rRes, rAmount);
+			TOff.costsRes = new ResDef().init(data.Receive[0], data.Receive[1]);
 			TOff.costsBuff = null;
 			TOff.lots = 1;
-			TOff.slotType = game.gi.mHomePlayer.mTradeData.getNextFreeSlotForType(0) ? 2 : 0;
-			TOff.slotPos = game.gi.mHomePlayer.mTradeData.getNextFreeSlotForType(TOff.slotType);
-			aUtils.sendServerMessage(1049, game.gi.mCurrentViewedZoneID, TOff);
+			TOff.slotType = data.slotType;
+			TOff.slotPos = data.slotPos;
+			aUtils.sendServerMessage(1049, game.gi.mCurrentViewedZoneID, TOff, game.createResponder(function(e,d){ 
+				aQuests.TOTrades[key].Live = true;
+			}))
 			aUI.alert("Trade sent to Trade Office", "MAIL_TRADE");
 		} catch(e) {}
 	},
 	test: function(){
-		var trades = [
-			['BronzeSword', 100],
-			['Corn', 1000]
-		];
-		var res = game.createResponder(function(e,d){
-			try{
-				var slots = d.data.data.length
-				$.each(trades, function(i, trade){
-					debug(trade[0] + " " + trade[1] + " " + (slots === 0 ? "Free":"Coins"))
-					slots++;
-				});
-			}catch(e){ debug(e) }
-		})
-		aUtils.sendServerMessage(1062, game.gi.mCurrentViewedZoneID, null, res);
+		var t = {
+			"Send" : ["Stone", 100],
+			"Receive": ["Fish", 1],
+			"slotType": 0,
+			"slotPos": 0
+		}
+		aTrade.SendTOTrade(t);
 	}
 }
 //-------------- Auto Star to Store --------------
@@ -4175,7 +4329,7 @@ const aStar2Store = {
 			var save = function(){
 				try{
 					aSettings.Star2Store.boxTypes = [];
-					autoData.Star2Store.forEach(function(x){
+					aData.Resources(true).forEach(function(x){
 						if(autoWindow.withsBody("#aStar2Store_sw_" + x).prop("checked"))
 							aSettings.Star2Store.boxTypes.push(x);
 					});
@@ -4185,11 +4339,7 @@ const aStar2Store = {
 			}
 			var tableData = function(){
 				try {
-					return autoData.Star2Store.sort(function(a, b){
-							a = aUtils.findTextOf(a);
-							b = aUtils.findTextOf(b);
-							return a.localeCompare(b);
-						}).map(function(x){
+					return aData.Resources(true).map(function(x){
 							var isSelected = (aSettings.Star2Store.boxTypes.indexOf(x) >= 0);
 							var buff = aUtils.getBuff(x, 'AddResource');
 							return createTableRow(
@@ -4385,7 +4535,7 @@ const aEvent = {
 		const cEvent = game.gi.mEventManager.GetActiveEventNames().filter(function(e){ return e.indexOf('_Shop') > -1; })[0];
 		if(!cEvent) return aUI.alert("Something is wrong, can't find event", 'ERROR');
 		var eEndTime = game.gi.mEventManager.GetEventStopDate(cEvent);
-			eEndTime = eEndTime - (new Date());
+			eEndTime = eEndTime - (new Date().getTime());
 		if(cEvent.indexOf('Valentine') > -1){
 			var eWorkTime = game.def("ServerState::gEconomics").GetResourcesCreationDefinitionForBuilding('FlowerFarm').workTime;
 				eWorkTime = (eWorkTime + 12) * 1000;
@@ -4415,7 +4565,7 @@ const aEvent = {
 }
 
 const auto = {
-	version: '1.1.2',
+	version: '1.1.3',
 	iProgress: 0,
 	iTimer: null,
     isOn: {
@@ -4423,7 +4573,7 @@ const auto = {
         Explorers: false,
 		Deposits: false,
 		CollectPickups: false,
-        ShortQuests: false,
+        Quests: false,
 		BookBinder: false,
 		Mail: false,
 		Star2Store: false,
@@ -4433,10 +4583,12 @@ const auto = {
     timerID: null,
 	lastExec: 0,
 	watchID: null,
+	TickMonitor: null,
 	cLog: null,
 	load:function(){
 		auto.iProgress = 0;
-		aUI.makeMenu();
+		aUI.makeMenu(true);
+		aSettings = aUtils.cExtend(aSettings, readSettings(null, 'auto'));
 		auto.iTimer = setInterval(function(){
 			auto.iProgress += 1;
 			aUtils.updateStatus("Initiating {0}%".format(auto.iProgress));
@@ -4527,13 +4679,13 @@ const auto = {
 			game.gi.channels.SPECIALIST.addPropertyObserver(
 				"generalbattlefought", game.getTracker('battleFinished', aUtils.battleFinished)
 			);
-			aSettings = aUtils.cExtend(aSettings, readSettings(null, 'auto'));
+			
+			//soldSuccessful
 			this.isOn.Explorers = aSettings.Explorers.autoStart;
 			this.isOn.Deposits = aSettings.Deposits.autoStart;
 			this.isOn.BookBinder = aSettings.Buildings.BookBinder.autoStart;
-			this.isOn.ShortQuests = aSettings.Quests.Short.autoStart;
+			this.isOn.Quests = aSettings.Quests.Config.AutoStart;
 			this.isOn.CollectPickups = aSettings.Collect.Pickups;
-			this.isOn.WeeklyQuest = aSettings.Quests.Weekly.autoStart;
 			this.isOn.Mail = aSettings.Mail.AutoStart;
 			this.isOn.Star2Store = aSettings.Star2Store.autoStart;
 			this.isOn.StarBoxs = aSettings.StarBoxs.autoStart;
@@ -4543,19 +4695,34 @@ const auto = {
 			clearInterval(aSettings.Auto.LastWatchID);
 			this.start();
 			this.watchID = setInterval(function(){
-				if (new Date() - auto.lastExec > 180000) {//3 minutes
+				if (new Date() - auto.lastExec > 180000 && auto.lastExec) {//3 minutes
 					aUI.alert("Restarting Copiolt!", 'ERROR');
 					auto.stop();
 					auto.start();
 				}
 			}, 1000);
+			this.TickMonitor = setInterval(function(){
+				if(game.gi.mGameTickCommand_vector.length > 1){
+					$.each(game.gi.mGameTickCommand_vector, function(i, tick){
+						if(tick.mode == 120) return;
+						else if(tick.mode == 1062){
+							$.each(tick.data, function(i, trade){
+								$.each(aQuests.TOTrades, function(key, val){
+									if(trade.offer == val.Offer)
+										aQuests.TOTrades[key].Live = trade.id;
+								})
+							});
+						}
+					});
+				}
+			}, 2000);
 			aSettings.Auto.LastWatchID = this.watchID;
 			auto.SaveSettings();
-		}catch(er){}
+		}catch(er){ debug(er) }
 	},
     start: function(time){
 		aUI.alert("All Set and ready to go!", 'MEMORY');
-		auto.lastExec = new Date();
+		auto.lastExec = new Date().getTime();
         auto.timerID = setTimeout(aCycle.run, 1000);
     },
     stop: function(){ 
@@ -4591,34 +4758,66 @@ const aSettings = {
 	Deposits: {
 		autoStart: false,
 		data: { 
-			Stone: { max: 8, geos: [35], options: [true, null, null, null, true] }, //, 62, 38, 49
-			BronzeOre: { max: 6, geos: [62, 38, 49], mine: 36, options: [true, true, true, 3, true] },
-			Marble: { max: 10, geos: [35], options: [true, null, null, null, true] }, //, 62, 59, 38, 49
-			IronOre: { max: 19, geos: [40, 62, 59, 38, 49], mine: 50, options: [true, true, true, 3, true] },
-			GoldOre: { max: 9, geos: [42], mine: 46, options: [true, true, true, 3, true] }, //, 45, 62, 59, 38, 49
-			Coal: { max: 6, geos: [45, 62, 59, 38, 49], mine: 37, options: [true, true, true, 3, true] },
-			Granite: { max: 6, geos: [35], options: [true, null, null, null, true] }, //, 45, 62, 59, 38, 49
-			TitaniumOre: { max: 4, geos: [45, 40, 62, 59, 38, 49], mine: 69, options: [true, true, true, 3, true] },
-			Salpeter: { max: 4, geos: [45, 40, 62, 59, 38, 49], mine: 63, options: [true, true, true, 3, true] }
+			Stone: { max: 8, geos: [], options: [true, null, null, null, true] },
+			BronzeOre: { max: 6, geos: [], mine: 36, options: [true, true, true, 3, true] },
+			Marble: { max: 10, geos: [], options: [true, null, null, null, true] },
+			IronOre: { max: 19, geos: [], mine: 50, options: [true, true, true, 3, true] },
+			GoldOre: { max: 9, geos: [], mine: 46, options: [true, true, true, 3, true] },
+			Coal: { max: 6, geos: [], mine: 37, options: [true, true, true, 3, true] },
+			Granite: { max: 6, geos: [], options: [true, null, null, null, true] },
+			TitaniumOre: { max: 4, geos: [], mine: 69, options: [true, true, true, 3, true] },
+			Salpeter: { max: 4, geos: [], mine: 63, options: [true, true, true, 3, true] }
 		}
 	},
 	Quests: {
-		Short: {
-			autoStart: false,
-			Enabled: {
-				SharpClaw: true, 
-				StrangeIdols: true,
-				Annoholics: true,
-				SilkCat: true
-			},
-			Config: {
-				ShortSearch: [],
-				GeoStone: [],
-				GeoBronzeOre: []
-			}
+		Letters: {
+			SharpClaw: true, 
+			StrangeIdols: true,
+			Annoholics: true,
+			SilkCat: true,
+			Miranda: true,
+			BartTheBarter: true,
+			Vigilante: true,
+			SettlersBandits: true,
+			LostCompass: true,
+			AThreat: true
 		},
-		Weekly: {
-			autoStart: false
+		Mini: {
+			TheLittlePanda: true,
+			MysteriousCoin: true,
+			WeddingInvitation: true,
+			ANewStone: true,
+			SaveTheDeers: true,
+			WolfPuppy: true
+		},
+		Other: {
+			Daily: false,
+			DailyGuild: false,
+			Weekly: false,
+		},
+		Config: {
+			AutoStart: false,
+			PayResources: true,
+			ProduceBuffs: true,
+			ApplyBuffs: true,
+			SellinTO: true,
+			TrainUnits: true,
+			GatherfromStar: true,
+			Explorers:{
+				Treasure: {
+					Short: [],
+					Medium: [],
+					Long: [],
+					EvenLonger: [],
+					Prolonged: []
+				},
+				AdventureZone: {
+					Short: [],
+					Medium: [],
+					Long: [],
+					VeryLong: []
+				}
+			}
 		}
 	},
 	Buildings: {
@@ -4633,7 +4832,6 @@ const aSettings = {
 		AutoStart: false,
 		EnabledUsers: {},
 		EnabledResources: {},
-		EverybodyResources : {},
 		TimerMinutes : 3,
 		AcceptLoots : true,
 		AcceptGifts: true,
@@ -4646,6 +4844,8 @@ const aSettings = {
 		AcceptInvites : false,
 		ToStar : false,
 		AcceptGuildTrades: false,
+		AllowAllResources: false,
+		AllResourcesMax: 0
 	},
 	Star2Store: {
 		autoStart: false,

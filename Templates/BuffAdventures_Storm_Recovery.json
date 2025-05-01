@@ -1,0 +1,150 @@
+{
+  "name": "BuffAdventures_Storm_Recovery",
+  "steps": [
+    {
+      "name": "StartAdventure"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Seeds"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "EmptyEffectBuff_BuffAd_Fertilizer"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_SmallDynamite"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_MediumDynamite"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_BigDynamite"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Seeds"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "EmptyEffectBuff_BuffAd_Fertilizer"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_SmallDynamite"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_MediumDynamite"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_BigDynamite"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Poison"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Shovel1"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_StinkyPotion"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Decomposer"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_SchoolKit"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_NobleResidenceKit"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_TavernKit1"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_ResidenceKit"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Poison"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Shovel1"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_StinkyPotion"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Decomposer"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_SchoolKit"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_NobleResidenceKit"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_TavernKit1"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_ResidenceKit"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "EmptyEffectBuff_BuffAd_StickyFluid"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "EmptyEffectBuff_BuffAd_StickyFluid"
+    }
+  ]
+}

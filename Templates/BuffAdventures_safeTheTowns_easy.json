@@ -1,0 +1,70 @@
+{
+  "name": "BuffAdventures_safeTheTowns_easy",
+  "steps": [
+    {
+      "name": "StartAdventure"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Repairkit"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Repairkit"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Bread"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Beer"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Bread"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Beer"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Sausage"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Sausage"
+    }
+  ]
+}

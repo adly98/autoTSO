@@ -1,0 +1,146 @@
+{
+  "name": "BuffAdventures_Riches_of_the_Mountain",
+  "steps": [
+    {
+      "name": "StartAdventure"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_PureOre"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Dynamite"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Shovel"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_TavernKit"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_StorageKit"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_MasonKit"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_PureOre"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Dynamite"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Shovel"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_TavernKit"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_StorageKit"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_MasonKit"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_MountainDynamite"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_ShaftConstruction"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "EmptyEffectBuff_BuffAd_FoodProvision"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_MountainDynamite"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_ShaftConstruction"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "EmptyEffectBuff_BuffAd_FoodProvision"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Glue"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_WaterSplash"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Explosive"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BattleBuffHurt_BuffAd_Specialist"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Glue"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_WaterSplash"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_WaterSplash"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Explosive"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BattleBuffHurt_BuffAd_Specialist"
+    }
+  ]
+}

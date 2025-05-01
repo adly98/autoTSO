@@ -1,0 +1,53 @@
+{
+  "name": "BuffAdventures_twins_easy",
+  "steps": [
+    {
+      "name": "StartAdventure"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Broadsheet"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Bridge"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Bridge"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Broadsheet"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Rescueparty"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Rescueparty"
+    }
+  ]
+}

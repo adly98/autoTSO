@@ -1,0 +1,79 @@
+{
+  "name": "BuffAdventures_heartOfTheWood_medium",
+  "steps": [
+    {
+      "name": "StartAdventure"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_wildlife"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_wildlife"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_hearttree"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_hearttree"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_woodhealing"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_woodhealing"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_BuffAd_Fertilizer"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_BuffAd_Fertilizer"
+    }
+  ]
+}

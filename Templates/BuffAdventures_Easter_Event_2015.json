@@ -6,7 +6,8 @@
       },
       {
         "name": "ProduceItem",
-        "data": "BattleBuffHurt_BuffAd_Fitch_Gin"
+        "data": "BattleBuffHurt_BuffAd_Fitch_Gin",
+        "skip": true
       },
       {
         "name": "VisitAdventure"
@@ -40,7 +41,8 @@
       },
       {
         "name": "ProduceItem",
-        "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
+        "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken",
+        "skip": true
       },
       {
         "name": "ProduceItem",

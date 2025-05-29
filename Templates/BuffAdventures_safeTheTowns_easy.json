@@ -32,7 +32,8 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Bread"
+      "data": "ChangeSkin_BuffAd_Bread",
+      "skip": true
     },
     {
       "name": "ProduceItem",

@@ -15,19 +15,23 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Seeds"
+      "data": "ChangeSkin_BuffAd_Seeds",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "EmptyEffectBuff_BuffAd_Fertilizer"
+      "data": "EmptyEffectBuff_BuffAd_Fertilizer",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_SmallDynamite"
+      "data": "BattleBuffHurt_BuffAd_SmallDynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_MediumDynamite"
+      "data": "BattleBuffHurt_BuffAd_MediumDynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
@@ -64,31 +68,38 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Poison"
+      "data": "BattleBuffHurt_BuffAd_Poison",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Shovel1"
+      "data": "BattleBuffHurt_BuffAd_Shovel1",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_StinkyPotion"
+      "data": "BattleBuffHurt_BuffAd_StinkyPotion",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Decomposer"
+      "data": "BattleBuffHurt_BuffAd_Decomposer",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_SchoolKit"
+      "data": "ChangeSkin_BuffAd_SchoolKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_NobleResidenceKit"
+      "data": "ChangeSkin_BuffAd_NobleResidenceKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_TavernKit1"
+      "data": "ChangeSkin_BuffAd_TavernKit1",
+      "skip": true
     },
     {
       "name": "ProduceItem",

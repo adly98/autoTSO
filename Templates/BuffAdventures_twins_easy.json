@@ -6,7 +6,8 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Broadsheet"
+      "data": "ChangeSkin_BuffAd_Broadsheet",
+      "skip": true
     },
     {
       "name": "VisitAdventure"

@@ -15,23 +15,28 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_PureOre"
+      "data": "ChangeSkin_BuffAd_PureOre",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Dynamite"
+      "data": "BattleBuffHurt_BuffAd_Dynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Shovel"
+      "data": "BattleBuffHurt_BuffAd_Shovel",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_TavernKit"
+      "data": "ChangeSkin_BuffAd_TavernKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_StorageKit"
+      "data": "ChangeSkin_BuffAd_StorageKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
@@ -72,11 +77,13 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_MountainDynamite"
+      "data": "BattleBuffHurt_BuffAd_MountainDynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_ShaftConstruction"
+      "data": "ChangeSkin_BuffAd_ShaftConstruction",
+      "skip": true
     },
     {
       "name": "ProduceItem",
@@ -105,15 +112,18 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Glue"
+      "data": "BattleBuffHurt_BuffAd_Glue",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_WaterSplash"
+      "data": "BattleBuffHurt_BuffAd_WaterSplash",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Explosive"
+      "data": "BattleBuffHurt_BuffAd_Explosive",
+      "skip": true
     },
     {
       "name": "ProduceItem",

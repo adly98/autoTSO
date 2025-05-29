@@ -1,63 +1,77 @@
 {
-    "name": "BuffAdventures_Easter_Event_2015",
-    "steps": [
-      {
-        "name": "StartAdventure"
-      },
-      {
-        "name": "ProduceItem",
-        "data": "BattleBuffHurt_BuffAd_Fitch_Gin",
-        "skip": true
-      },
-      {
-        "name": "VisitAdventure"
-      },
-      {
-        "name": "CollectPickups"
-      },
-      {
-        "name": "ReturnHome"
-      },
-      {
-        "name": "ProduceItem",
-        "data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
-      },
-      {
-        "name": "VisitAdventure"
-      },
-      {
-        "name": "ApplyBuff",
-        "data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
-      },
-      {
-        "name": "ApplyBuff",
-        "data": "BattleBuffHurt_BuffAd_Fitch_Gin"
-      },
-      {
-        "name": "CollectPickups"
-      },
-      {
-        "name": "ReturnHome"
-      },
-      {
-        "name": "ProduceItem",
-        "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken",
-        "skip": true
-      },
-      {
-        "name": "ProduceItem",
-        "data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
-      },
-      {
-        "name": "VisitAdventure"
-      },
-      {
-        "name": "ApplyBuff",
-        "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
-      },
-      {
-        "name": "ApplyBuff",
-        "data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
-      }
-    ]
-  }
+  "name": "BuffAdventures_Easter_Event_2015",
+  "buffs": {
+    "BB_Fitch_Gin": {
+      "grids": [6216, 5536, 6023, 4797, 3294, 2202, 1388],
+      "skip": true
+    },
+    "ChangeSkin_Easter_BuffAd_Polecat_Spray": {
+      "grids": [5475, 5813, 5748, 5951, 6023]
+    },
+    "Easter_Event_2015_Buff_Adventure_Scared_Chicken": {
+      "grids": [5475, 5813, 5748, 5951, 6023],
+      "skip": true
+    },
+    "EmptyEffectBuff_Easter_BuffAd_ChickWellness": {
+      "grids": [5475, 5813, 5748, 5951, 6023]
+    }
+  },
+  "steps": [
+    {
+      "name": "StartAdventure"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "BB_Fitch_Gin"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "BB_Fitch_Gin"
+    },
+    {
+      "name": "CollectPickups"
+    },
+    {
+      "name": "ReturnHome"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
+    },
+    {
+      "name": "VisitAdventure"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
+    },
+    {
+      "name": "ApplyBuff",
+      "data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
+    }
+  ]
+}

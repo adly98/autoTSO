@@ -1,10 +1,79 @@
 {
   "name": "BuffAdventures_Riches_of_the_Mountain",
+  "buffs": {
+    "CS_PureOre": {
+      "grids": [6367],
+      "skip": true
+    },
+    "BB_Dynamite": {
+      "grids": [4046, 3913, 3641, 3368]
+    },
+    "BB_Shovel": {
+      "grids": [3708, 3366],
+      "skip": true
+    },
+    "CS_TavernKit": {
+      "grids": [3913],
+      "skip": true
+    },
+    "CS_StorageKit": {
+      "grids": [3641],
+      "skip": true
+    },
+    "CS_MasonKit": {
+      "grids": [3708, 4046, 3368],
+      "skip": true
+    },
+    "BB_MountainDynamite": {
+      "grids": [3839],
+      "amount": 5,
+      "skip": true
+    },
+    "CS_ShaftConstruction": {
+      "grids": [3703],
+      "skip": true
+    },
+    "EE_FoodProvision": {
+      "grids": [4046, 3708]
+    },
+    "BB_Glue": {
+      "grids": [2631],
+      "skip": true
+    },
+    "BB_WaterSplash": {
+      "grids": [2631],
+      "amount": 10,
+      "skip": true
+    },
+    "BB_Explosive": {
+      "grids": [2631],
+      "skip": true
+    },
+    "BB_Specialist": {
+      "grids": [2631]
+    }
+  },
   "steps": [
     {
       "name": "StartAdventure"
     },
     {
+      "name": "ProduceItem",
+      "data": "BB_Shovel"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "CS_TavernKit"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "CS_StorageKit"
+    },
+    {
+      "name": "ProduceItem",
+      "data": "CS_MasonKit"
+    },
+    {
       "name": "VisitAdventure"
     },
     {
@@ -15,59 +84,38 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_PureOre",
-      "skip": true
+      "data": "CS_PureOre"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Dynamite",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Shovel",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_TavernKit",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_StorageKit",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_MasonKit"
+      "data": "BB_Dynamite"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_PureOre"
+      "data": "CS_PureOre"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Dynamite"
+      "data": "BB_Dynamite"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Shovel"
+      "data": "BB_Shovel"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_TavernKit"
+      "data": "CS_TavernKit"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_StorageKit"
+      "data": "CS_StorageKit"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_MasonKit"
+      "data": "CS_MasonKit"
     },
     {
       "name": "CollectPickups"
@@ -77,32 +125,30 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_MountainDynamite",
-      "skip": true
+      "data": "BB_MountainDynamite"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_ShaftConstruction",
-      "skip": true
+      "data": "CS_ShaftConstruction"
     },
     {
       "name": "ProduceItem",
-      "data": "EmptyEffectBuff_BuffAd_FoodProvision"
+      "data": "EE_FoodProvision"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_MountainDynamite"
+      "data": "BB_MountainDynamite"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_ShaftConstruction"
+      "data": "CS_ShaftConstruction"
     },
     {
       "name": "ApplyBuff",
-      "data": "EmptyEffectBuff_BuffAd_FoodProvision"
+      "data": "EE_FoodProvision"
     },
     {
       "name": "CollectPickups"
@@ -112,45 +158,42 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Glue",
-      "skip": true
+      "data": "BB_Glue"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_WaterSplash",
-      "skip": true
+      "data": "BB_WaterSplash"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Explosive",
-      "skip": true
+      "data": "BB_Explosive"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Specialist"
+      "data": "BB_Specialist"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Glue"
+      "data": "BB_Glue"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_WaterSplash"
+      "data": "BB_WaterSplash"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_WaterSplash"
+      "data": "BB_WaterSplash"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Explosive"
+      "data": "BB_Explosive"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Specialist"
+      "data": "BB_Specialist"
     }
   ]
 }

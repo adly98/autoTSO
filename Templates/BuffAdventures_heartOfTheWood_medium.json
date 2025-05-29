@@ -1,5 +1,20 @@
 {
   "name": "BuffAdventures_heartOfTheWood_medium",
+  "buffs": {
+    "CS_wildlife": {
+      "grids": [4457, 3511, 3098, 2744, 4308],
+      "skip": true
+    },
+    "CS_hearttree": {
+      "grids": [3365]
+    },
+    "CS_woodhealing": {
+      "grids": [5276, 4592, 4259, 3645, 3506, 2896, 3359, 4105, 4859, 2887]
+    },
+    "CS_Fertilizer": {
+      "grids": [3365]
+    }
+  },
   "steps": [
     {
       "name": "StartAdventure"
@@ -15,14 +30,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_wildlife"
+      "data": "CS_wildlife"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_wildlife"
+      "data": "CS_wildlife"
     },
     {
       "name": "CollectPickups"
@@ -32,14 +47,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_hearttree"
+      "data": "CS_hearttree"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_hearttree"
+      "data": "CS_hearttree"
     },
     {
       "name": "CollectPickups"
@@ -49,14 +64,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_woodhealing"
+      "data": "CS_woodhealing"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_woodhealing"
+      "data": "CS_woodhealing"
     },
     {
       "name": "CollectPickups"
@@ -66,14 +81,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Fertilizer"
+      "data": "CS_Fertilizer"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Fertilizer"
+      "data": "CS_Fertilizer"
     }
   ]
 }

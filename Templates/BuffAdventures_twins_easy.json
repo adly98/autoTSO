@@ -1,12 +1,24 @@
 {
   "name": "BuffAdventures_twins_easy",
+  "buffs": {
+    "CS_Broadsheet": {
+      "grids": [4863, 3981, 4396],
+      "skip": true
+    },
+    "CS_Bridge": {
+      "grids": [3768, 2956, 4318]
+    },
+    "CS_Rescueparty": {
+      "grids": [2215]
+    }
+  },
   "steps": [
     {
       "name": "StartAdventure"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Broadsheet",
+      "data": "CS_Broadsheet",
       "skip": true
     },
     {
@@ -20,18 +32,18 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Bridge"
+      "data": "CS_Bridge"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Bridge"
+      "data": "CS_Bridge"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Broadsheet"
+      "data": "CS_Broadsheet"
     },
     {
       "name": "CollectPickups"
@@ -41,14 +53,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Rescueparty"
+      "data": "CS_Rescueparty"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Rescueparty"
+      "data": "CS_Rescueparty"
     }
   ]
 }

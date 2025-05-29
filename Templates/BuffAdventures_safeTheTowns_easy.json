@@ -1,5 +1,21 @@
 {
   "name": "BuffAdventures_safeTheTowns_easy",
+  "buffs": {
+    "CS_Repairkit": {
+      "grids": [3774],
+      "skip": true
+    },
+    "CS_Bread": {
+      "grids": [3091, 3356, 3491],
+      "skip": true
+    },
+    "CS_Beer": {
+      "grids": [4786, 4655, 4792]
+    },
+    "CS_Sausage": {
+      "grids": [3774]
+    }
+  },
   "steps": [
     {
       "name": "StartAdventure"
@@ -15,14 +31,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Repairkit"
+      "data": "CS_Repairkit"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Repairkit"
+      "data": "CS_Repairkit"
     },
     {
       "name": "CollectPickups"
@@ -32,23 +48,22 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Bread",
-      "skip": true
+      "data": "CS_Bread"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Beer"
+      "data": "CS_Beer"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Bread"
+      "data": "CS_Bread"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Beer"
+      "data": "CS_Beer"
     },
     {
       "name": "CollectPickups"
@@ -58,14 +73,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Sausage"
+      "data": "CS_Sausage"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Sausage"
+      "data": "CS_Sausage"
     }
   ]
 }

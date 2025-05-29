@@ -1,5 +1,67 @@
 {
   "name": "BuffAdventures_Storm_Recovery",
+  "buffs": {
+    "CS_Seeds": {
+      "grids": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
+      "skip": true
+    },
+    "EE_Fertilizer": {
+      "grids": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
+      "skip": true
+    },
+    "BB_SmallDynamite": {
+      "grids": [5680, 4394, 2152, 2070],
+      "amount": 10,
+      "skip": true
+    },
+    "BB_MediumDynamite": {
+      "grids": [5680, 2152, 2014, 5814],
+      "amount": 6,
+      "skip": true
+    },
+    "BB_BigDynamite": {
+      "grids": [2275, 2014, 5814],
+      "amount": 5
+    },
+    "BB_Poison": {
+      "grids": [5884, 3988, 3387, 2150, 1880, 1935],
+      "amount": 20,
+      "skip": true
+    },
+    "BB_Shovel1": {
+      "grids": [1880, 2424, 3387, 3988, 5884, 2342, 1935],
+      "amount": 16,
+      "skip": true
+    },
+    "BB_StinkyPotion": {
+      "grids": [5884, 5614, 3321, 2150, 1935],
+      "amount": 11,
+      "skip": true
+    },
+    "BB_Decomposer": {
+      "grids": [2342, 1880, 2424, 3988],
+      "amount": 11,
+      "skip": true
+    },
+    "CS_SchoolKit": {
+      "grids": [5614],
+      "skip": true
+    },
+    "CS_NobleResidenceKit": {
+      "grids": [5884, 3988],
+      "skip": true
+    },
+    "CS_TavernKit1": {
+      "grids": [3387, 2342],
+      "skip": true
+    },
+    "CS_ResidenceKit": {
+      "grids": [3321, 2424, 2150, 1880]
+    },
+    "EE_StickyFluid": {
+      "grids": [3440]
+    }
+  },
   "steps": [
     {
       "name": "StartAdventure"
@@ -15,50 +77,46 @@
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_Seeds",
-      "skip": true
+      "data": "CS_Seeds"
     },
     {
       "name": "ProduceItem",
-      "data": "EmptyEffectBuff_BuffAd_Fertilizer",
-      "skip": true
+      "data": "EE_Fertilizer"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_SmallDynamite",
-      "skip": true
+      "data": "BB_SmallDynamite"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_MediumDynamite",
-      "skip": true
+      "data": "BB_MediumDynamite"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_BigDynamite"
+      "data": "BB_BigDynamite"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_Seeds"
+      "data": "CS_Seeds"
     },
     {
       "name": "ApplyBuff",
-      "data": "EmptyEffectBuff_BuffAd_Fertilizer"
+      "data": "EE_Fertilizer"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_SmallDynamite"
+      "data": "BB_SmallDynamite"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_MediumDynamite"
+      "data": "BB_MediumDynamite"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_BigDynamite"
+      "data": "BB_BigDynamite"
     },
     {
       "name": "CollectPickups"
@@ -68,77 +126,70 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Poison",
-      "skip": true
+      "data": "BB_Poison"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Shovel1",
-      "skip": true
+      "data": "BB_Shovel1"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_StinkyPotion",
-      "skip": true
+      "data": "BB_StinkyPotion"
     },
     {
       "name": "ProduceItem",
-      "data": "BattleBuffHurt_BuffAd_Decomposer",
-      "skip": true
+      "data": "BB_Decomposer"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_SchoolKit",
-      "skip": true
+      "data": "CS_SchoolKit"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_NobleResidenceKit",
-      "skip": true
+      "data": "CS_NobleResidenceKit"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_TavernKit1",
-      "skip": true
+      "data": "CS_TavernKit1"
     },
     {
       "name": "ProduceItem",
-      "data": "ChangeSkin_BuffAd_ResidenceKit"
+      "data": "CS_ResidenceKit"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Poison"
+      "data": "BB_Poison"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Shovel1"
+      "data": "BB_Shovel1"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_StinkyPotion"
+      "data": "BB_StinkyPotion"
     },
     {
       "name": "ApplyBuff",
-      "data": "BattleBuffHurt_BuffAd_Decomposer"
+      "data": "BB_Decomposer"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_SchoolKit"
+      "data": "CS_SchoolKit"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_NobleResidenceKit"
+      "data": "CS_NobleResidenceKit"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_TavernKit1"
+      "data": "CS_TavernKit1"
     },
     {
       "name": "ApplyBuff",
-      "data": "ChangeSkin_BuffAd_ResidenceKit"
+      "data": "CS_ResidenceKit"
     },
     {
       "name": "CollectPickups"
@@ -148,14 +199,14 @@
     },
     {
       "name": "ProduceItem",
-      "data": "EmptyEffectBuff_BuffAd_StickyFluid"
+      "data": "EE_StickyFluid"
     },
     {
       "name": "VisitAdventure"
     },
     {
       "name": "ApplyBuff",
-      "data": "EmptyEffectBuff_BuffAd_StickyFluid"
+      "data": "EE_StickyFluid"
     }
   ]
 }

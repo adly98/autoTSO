@@ -1,16 +1,9 @@
 {
   "name": "BuffAdventures_twins_easy",
   "buffs": {
-    "CS_Broadsheet": {
-      "grids": [4863, 3981, 4396],
-      "skip": true
-    },
-    "CS_Bridge": {
-      "grids": [3768, 2956, 4318]
-    },
-    "CS_Rescueparty": {
-      "grids": [2215]
-    }
+    "CS_Broadsheet": [3, true],
+    "CS_Bridge": [3],
+    "CS_Rescueparty": [1]
   },
   "steps": [
     {

@@ -1,66 +1,20 @@
 {
   "name": "BuffAdventures_Storm_Recovery",
   "buffs": {
-    "CS_Seeds": {
-      "grids": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
-      "skip": true
-    },
-    "EE_Fertilizer": {
-      "grids": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
-      "skip": true
-    },
-    "BB_SmallDynamite": {
-      "grids": [5680, 4394, 2152, 2070],
-      "amount": 10,
-      "skip": true
-    },
-    "BB_MediumDynamite": {
-      "grids": [5680, 2152, 2014, 5814],
-      "amount": 6,
-      "skip": true
-    },
-    "BB_BigDynamite": {
-      "grids": [2275, 2014, 5814],
-      "amount": 5
-    },
-    "BB_Poison": {
-      "grids": [5884, 3988, 3387, 2150, 1880, 1935],
-      "amount": 20,
-      "skip": true
-    },
-    "BB_Shovel1": {
-      "grids": [1880, 2424, 3387, 3988, 5884, 2342, 1935],
-      "amount": 16,
-      "skip": true
-    },
-    "BB_StinkyPotion": {
-      "grids": [5884, 5614, 3321, 2150, 1935],
-      "amount": 11,
-      "skip": true
-    },
-    "BB_Decomposer": {
-      "grids": [2342, 1880, 2424, 3988],
-      "amount": 11,
-      "skip": true
-    },
-    "CS_SchoolKit": {
-      "grids": [5614],
-      "skip": true
-    },
-    "CS_NobleResidenceKit": {
-      "grids": [5884, 3988],
-      "skip": true
-    },
-    "CS_TavernKit1": {
-      "grids": [3387, 2342],
-      "skip": true
-    },
-    "CS_ResidenceKit": {
-      "grids": [3321, 2424, 2150, 1880]
-    },
-    "EE_StickyFluid": {
-      "grids": [3440]
-    }
+    "CS_Seeds": [9, true],
+    "EE_Fertilizer": [9, true],
+    "BB_SmallDynamite": [10, true],
+    "BB_MediumDynamite": [6, true],
+    "BB_BigDynamite": [5],
+    "BB_Poison": [20, true],
+    "BB_Shovel1": [16, true],
+    "BB_StinkyPotion": [11, true],
+    "BB_Decomposer": [11, true],
+    "CS_SchoolKit": [1, true],
+    "CS_NobleResidenceKit": [2, true],
+    "CS_TavernKit1": [2, true],
+    "CS_ResidenceKit": [4],
+    "EE_StickyFluid": [1]
   },
   "steps": [
     {

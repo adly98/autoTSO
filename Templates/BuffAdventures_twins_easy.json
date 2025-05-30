@@ -11,8 +11,7 @@
     },
     {
       "name": "ProduceItem",
-      "data": "CS_Broadsheet",
-      "skip": true
+      "data": "CS_Broadsheet"
     },
     {
       "name": "VisitAdventure"

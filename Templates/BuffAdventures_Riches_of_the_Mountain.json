@@ -1,57 +1,19 @@
 {
   "name": "BuffAdventures_Riches_of_the_Mountain",
   "buffs": {
-    "CS_PureOre": {
-      "grids": [6367],
-      "skip": true
-    },
-    "BB_Dynamite": {
-      "grids": [4046, 3913, 3641, 3368]
-    },
-    "BB_Shovel": {
-      "grids": [3708, 3366],
-      "skip": true
-    },
-    "CS_TavernKit": {
-      "grids": [3913],
-      "skip": true
-    },
-    "CS_StorageKit": {
-      "grids": [3641],
-      "skip": true
-    },
-    "CS_MasonKit": {
-      "grids": [3708, 4046, 3368],
-      "skip": true
-    },
-    "BB_MountainDynamite": {
-      "grids": [3839],
-      "amount": 5,
-      "skip": true
-    },
-    "CS_ShaftConstruction": {
-      "grids": [3703],
-      "skip": true
-    },
-    "EE_FoodProvision": {
-      "grids": [4046, 3708]
-    },
-    "BB_Glue": {
-      "grids": [2631],
-      "skip": true
-    },
-    "BB_WaterSplash": {
-      "grids": [2631],
-      "amount": 10,
-      "skip": true
-    },
-    "BB_Explosive": {
-      "grids": [2631],
-      "skip": true
-    },
-    "BB_Specialist": {
-      "grids": [2631]
-    }
+    "CS_PureOre": [1, true],
+    "BB_Dynamite": [4],
+    "BB_Shovel": [2, true],
+    "CS_TavernKit": [1, true],
+    "CS_StorageKit": [1, true],
+    "CS_MasonKit": [3, true],
+    "BB_MountainDynamite": [5, true],
+    "CS_ShaftConstruction": [1, true],
+    "EE_FoodProvision": [2],
+    "BB_Glue": [1, true],
+    "BB_WaterSplash": [10, true],
+    "BB_Explosive": [1, true],
+    "BB_Specialist": [1]
   },
   "steps": [
     {

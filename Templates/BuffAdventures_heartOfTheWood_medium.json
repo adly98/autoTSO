@@ -1,19 +1,10 @@
 {
   "name": "BuffAdventures_heartOfTheWood_medium",
   "buffs": {
-    "CS_wildlife": {
-      "grids": [4457, 3511, 3098, 2744, 4308],
-      "skip": true
-    },
-    "CS_hearttree": {
-      "grids": [3365]
-    },
-    "CS_woodhealing": {
-      "grids": [5276, 4592, 4259, 3645, 3506, 2896, 3359, 4105, 4859, 2887]
-    },
-    "CS_Fertilizer": {
-      "grids": [3365]
-    }
+    "CS_wildlife": [5, true],
+    "CS_hearttree": [1],
+    "CS_woodhealing": [10],
+    "CS_Fertilizer": [1]
   },
   "steps": [
     {

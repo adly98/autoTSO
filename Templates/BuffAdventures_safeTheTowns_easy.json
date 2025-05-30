@@ -1,20 +1,10 @@
 {
   "name": "BuffAdventures_safeTheTowns_easy",
   "buffs": {
-    "CS_Repairkit": {
-      "grids": [3774],
-      "skip": true
-    },
-    "CS_Bread": {
-      "grids": [3091, 3356, 3491],
-      "skip": true
-    },
-    "CS_Beer": {
-      "grids": [4786, 4655, 4792]
-    },
-    "CS_Sausage": {
-      "grids": [3774]
-    }
+    "CS_Repairkit": [1, true],
+    "CS_Bread": [3, true],
+    "CS_Beer": [3],
+    "CS_Sausage": [1]
   },
   "steps": [
     {

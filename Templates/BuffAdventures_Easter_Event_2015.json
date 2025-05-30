@@ -1,20 +1,10 @@
 {
   "name": "BuffAdventures_Easter_Event_2015",
   "buffs": {
-    "BB_Fitch_Gin": {
-      "grids": [6216, 5536, 6023, 4797, 3294, 2202, 1388],
-      "skip": true
-    },
-    "ChangeSkin_Easter_BuffAd_Polecat_Spray": {
-      "grids": [5475, 5813, 5748, 5951, 6023]
-    },
-    "Easter_Event_2015_Buff_Adventure_Scared_Chicken": {
-      "grids": [5475, 5813, 5748, 5951, 6023],
-      "skip": true
-    },
-    "EmptyEffectBuff_Easter_BuffAd_ChickWellness": {
-      "grids": [5475, 5813, 5748, 5951, 6023]
-    }
+    "BB_Fitch_Gin": [7, true],
+    "ChangeSkin_Easter_BuffAd_Polecat_Spray": [5],
+    "Easter_Event_2015_Buff_Adventure_Scared_Chicken": [5, true],
+    "EmptyEffectBuff_Easter_BuffAd_ChickWellness": [5]
   },
   "steps": [
     {

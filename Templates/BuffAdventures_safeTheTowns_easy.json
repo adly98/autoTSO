@@ -1,7 +1,7 @@
 {
   "name": "BuffAdventures_safeTheTowns_easy",
   "buffs": {
-    "CS_Repairkit": [1, true],
+    "CS_Repairkit": [1],
     "CS_Bread": [3, true],
     "CS_Beer": [3],
     "CS_Sausage": [1]

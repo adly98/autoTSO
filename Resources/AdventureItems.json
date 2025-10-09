@@ -1,0 +1,76 @@
+{
+    "BuffAdventures_Evil_Queen_Fisherman": {
+        "BattleBuffHurt_BuffAd_FishCurseLifter": [1030]
+    },
+    "BuffAdventures_Evil_Queen_Hansel_Gretel": {
+        "BattleBuffHurt_BuffAd_WhiteStoneDetector": [2847, 4023, 5086, 5213, 4866, 4099, 3274],
+        "BattleBuffHurt_BuffAd_WitchSleeper": [2687]
+    },
+    "BuffAdventures_Evil_Queen_Piper_of_Hamelin": {
+        "BattleBuffHurt_BuffAd_NormalRatCaves": [[601, 1604, 1844, 3200, 4850, 5327, 1560], 10],
+        "BattleBuffHurt_BuffAd_OversizedRatCaves": [[426, 856, 1563, 1517, 2962], 6]
+    },
+    "BuffAdventures_Evil_Queen_Snow_White": {
+        "BattleBuffHurt_BuffAd_Bug_A": [1086, 2746],
+        "BattleBuffHurt_BuffAd_Bug_B": [1969, 2680, 1917, 1033],
+        "BattleBuffHurt_BuffAd_Bug_C": [1922]
+    },
+    "BuffAdventures_Evil_Queen_Red_Riding_Hood": {
+        "BattleBuffHurt_BuffAd_Stones": [2495],
+        "BattleBuffHurt_BuffAd_Grandmothers_Hut": [2497]
+    },
+    "BuffAdventures_safeTheTowns_easy": {
+        "ChangeSkin_BuffAd_Repairkit": [3774],
+        "ChangeSkin_BuffAd_Bread": [3091, 3356, 3491],
+        "ChangeSkin_BuffAd_Beer": [4786, 4655, 4792],
+        "ChangeSkin_BuffAd_Sausage": [3774]
+    },
+    "BuffAdventures_twins_easy": {
+        "ChangeSkin_BuffAd_Broadsheet": [4863, 3981, 4396],
+        "ChangeSkin_BuffAd_Bridge": [3768, 2956, 4318],
+        "ChangeSkin_BuffAd_Rescueparty": [2215]
+    },
+    "BuffAdventures_heartOfTheWood_medium": {
+        "ChangeSkin_BuffAd_wildlife": [4457, 3511, 3098, 2744, 4308],
+        "ChangeSkin_BuffAd_hearttree": [3365],
+        "ChangeSkin_BuffAd_woodhealing": [5276, 4592, 4259, 3645, 3506, 2896, 3359, 4105, 4859, 2887],
+        "ChangeSkin_BuffAd_Fertilizer": [3365]
+    },
+    "BuffAdventures_Riches_of_the_Mountain": {
+        "ChangeSkin_BuffAd_PureOre": [6367],
+        "BattleBuffHurt_BuffAd_Dynamite": [4046, 3913, 3641, 3368],
+        "BattleBuffHurt_BuffAd_Shovel": [3708, 3366],
+        "ChangeSkin_BuffAd_TavernKit": [3913],
+        "ChangeSkin_BuffAd_StorageKit": [3641],
+        "ChangeSkin_BuffAd_MasonKit": [3708, 4046, 3368],
+        "BattleBuffHurt_BuffAd_MountainDynamite": [[3839], 5],
+        "ChangeSkin_BuffAd_ShaftConstruction": [3703],
+        "EmptyEffectBuff_BuffAd_FoodProvision": [4046, 3708],
+        "BattleBuffHurt_BuffAd_Glue": [2631],
+        "BattleBuffHurt_BuffAd_WaterSplash": [[2631], 10],
+        "BattleBuffHurt_BuffAd_Explosive": [2631],
+        "BattleBuffHurt_BuffAd_Specialist": [2631]
+    },
+    "BuffAdventures_Storm_Recovery": {
+        "ChangeSkin_BuffAd_Seeds": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
+        "EmptyEffectBuff_BuffAd_Fertilizer": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
+        "BattleBuffHurt_BuffAd_SmallDynamite": [[5680, 4394, 2152, 2070], 10],
+        "BattleBuffHurt_BuffAd_MediumDynamite": [[5680, 2152, 2014, 5814], 6],
+        "BattleBuffHurt_BuffAd_BigDynamite": [[2275, 2014, 5814], 5],
+        "BattleBuffHurt_BuffAd_Poison": [[5884, 3988, 3387, 2150, 1880, 1935], 20],
+        "BattleBuffHurt_BuffAd_Shovel1": [[1880, 2424, 3387, 3988, 5884, 2342, 1935], 16],
+        "BattleBuffHurt_BuffAd_StinkyPotion": [[5884, 5614, 3321, 2150, 1935], 11],
+        "BattleBuffHurt_BuffAd_Decomposer": [[2342, 1880, 2424, 3988], 11],
+        "ChangeSkin_BuffAd_SchoolKit": [5614],
+        "ChangeSkin_BuffAd_NobleResidenceKit": [5884, 3988],
+        "ChangeSkin_BuffAd_TavernKit1": [3387, 2342],
+        "ChangeSkin_BuffAd_ResidenceKit": [3321, 2424, 2150, 1880],
+        "EmptyEffectBuff_BuffAd_StickyFluid": [3440]
+    },
+    "BuffAdventures_Easter_Event_2015": {
+        "BattleBuffHurt_BuffAd_Fitch_Gin": [6216, 5536, 6023, 4797, 3294, 2202, 1388],
+        "ChangeSkin_Easter_BuffAd_Polecat_Spray": [5475, 5813, 5748, 5951, 6023],
+        "Easter_Event_2015_Buff_Adventure_Scared_Chicken": [5475, 5813, 5748, 5951, 6023],
+        "EmptyEffectBuff_Easter_BuffAd_ChickWellness": [5475, 5813, 5748, 5951, 6023]
+    }
+}

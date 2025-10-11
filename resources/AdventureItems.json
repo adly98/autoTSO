@@ -1,76 +1,76 @@
 {
     "BuffAdventures_Evil_Queen_Fisherman": {
-        "BB_FishCurseLifter": [1030]
+        "BB_FishCurseLifter": { "grids": [1030] }
     },
     "BuffAdventures_Evil_Queen_Hansel_Gretel": {
-        "BB_WhiteStoneDetector": [2847, 4023, 5086, 5213, 4866, 4099, 3274],
-        "BB_WitchSleeper": [2687]
+        "BB_WhiteStoneDetector": { "grids": [2847, 4023, 5086, 5213, 4866, 4099, 3274] },
+        "BB_WitchSleeper": { "grids": [2687] }
     },
     "BuffAdventures_Evil_Queen_Piper_of_Hamelin": {
-        "BB_NormalRatCaves": [[601, 1604, 1844, 3200, 4850, 5327, 1560], 10],
-        "BB_OversizedRatCaves": [[426, 856, 1563, 1517, 2962], 6]
+        "BB_NormalRatCaves": { "grids": [601, 1604, 1844, 3200, 4850, 5327, 1560], "amount": 10 },
+        "BB_OversizedRatCaves": { "grids": [426, 856, 1563, 1517, 2962], "amount": 6 }
     },
     "BuffAdventures_Evil_Queen_Snow_White": {
-        "BB_Bug_A": [1086, 2746],
-        "BB_Bug_B": [1969, 2680, 1917, 1033],
-        "BB_Bug_C": [1922]
+        "BB_Bug_A": { "grids": [1086, 2746] },
+        "BB_Bug_B": { "grids": [1969, 2680, 1917, 1033] },
+        "BB_Bug_C": { "grids": [1922] }
     },
     "BuffAdventures_Evil_Queen_Red_Riding_Hood": {
-        "BB_Stones": [2495],
-        "BB_Grandmothers_Hut": [2497]
+        "BB_Stones": { "grids": [2495] },
+        "BB_Grandmothers_Hut": { "grids": [2497] }
     },
     "BuffAdventures_safeTheTowns_easy": {
-        "CS_Repairkit": [3774],
-        "CS_Bread": [3091, 3356, 3491],
-        "CS_Beer": [4786, 4655, 4792],
-        "CS_Sausage": [3774]
+        "CS_Repairkit": { "grids": [3774] },
+        "CS_Bread": { "grids": [3091, 3356, 3491] },
+        "CS_Beer": { "grids": [4786, 4655, 4792] },
+        "CS_Sausage": { "grids": [3774] }
     },
     "BuffAdventures_twins_easy": {
-        "CS_Broadsheet": [4863, 3981, 4396],
-        "CS_Bridge": [3768, 2956, 4318],
-        "CS_Rescueparty": [2215]
+        "CS_Broadsheet": { "grids": [4863, 3981, 4396] },
+        "CS_Bridge": { "grids": [3768, 2956, 4318] },
+        "CS_Rescueparty": { "grids": [2215] }
     },
     "BuffAdventures_heartOfTheWood_medium": {
-        "CS_wildlife": [4457, 3511, 3098, 2744, 4308],
-        "CS_hearttree": [3365],
-        "CS_woodhealing": [5276, 4592, 4259, 3645, 3506, 2896, 3359, 4105, 4859, 2887],
-        "CS_Fertilizer": [3365]
+        "CS_wildlife": { "grids": [4457, 3511, 3098, 2744, 4308] },
+        "CS_hearttree": { "grids": [3365] },
+        "CS_woodhealing": { "grids": [5276, 4592, 4259, 3645, 3506, 2896, 3359, 4105, 4859, 2887] },
+        "CS_Fertilizer": { "grids": [3365] }
     },
     "BuffAdventures_Riches_of_the_Mountain": {
-        "CS_PureOre": [6367],
-        "BB_Dynamite": [4046, 3913, 3641, 3368],
-        "BB_Shovel": [3708, 3366],
-        "CS_TavernKit": [3913],
-        "CS_StorageKit": [3641],
-        "CS_MasonKit": [3708, 4046, 3368],
-        "BB_MountainDynamite": [[3839], 5],
-        "CS_ShaftConstruction": [3703],
-        "EE_FoodProvision": [4046, 3708],
-        "BB_Glue": [2631],
-        "BB_WaterSplash": [[2631], 10],
-        "BB_Explosive": [2631],
-        "BB_Specialist": [2631]
+        "CS_PureOre": { "grids": [6367] },
+        "BB_Dynamite": { "grids": [4046, 3913, 3641, 3368] },
+        "BB_Shovel": { "grids": [3708, 3366] },
+        "CS_TavernKit": { "grids": [3913] },
+        "CS_StorageKit": { "grids": [3641] },
+        "CS_MasonKit": { "grids": [3708, 4046, 3368] },
+        "BB_MountainDynamite": { "grids": [3839], "amount":  5 },
+        "CS_ShaftConstruction": { "grids": [3703] },
+        "EE_FoodProvision": { "grids": [4046, 3708] },
+        "BB_Glue": { "grids": [2631] },
+        "BB_WaterSplash": { "grids": [2631] , "amount": 10 },
+        "BB_Explosive": { "grids": [2631] },
+        "BB_Specialist": { "grids": [2631] }
     },
     "BuffAdventures_Storm_Recovery": {
-        "CS_Seeds": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
-        "EE_Fertilizer": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145],
-        "BB_SmallDynamite": [[5680, 4394, 2152, 2070], 10],
-        "BB_MediumDynamite": [[5680, 2152, 2014, 5814], 6],
-        "BB_BigDynamite": [[2275, 2014, 5814], 5],
-        "BB_Poison": [[5884, 3988, 3387, 2150, 1880, 1935], 20],
-        "BB_Shovel1": [[1880, 2424, 3387, 3988, 5884, 2342, 1935], 16],
-        "BB_StinkyPotion": [[5884, 5614, 3321, 2150, 1935], 11],
-        "BB_Decomposer": [[2342, 1880, 2424, 3988], 11],
-        "CS_SchoolKit": [5614],
-        "CS_NobleResidenceKit": [5884, 3988],
-        "CS_TavernKit1": [3387, 2342],
-        "CS_ResidenceKit": [3321, 2424, 2150, 1880],
-        "EE_StickyFluid": [3440]
+        "CS_Seeds": { "grids": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145] },
+        "EE_Fertilizer": { "grids": [5882, 4259, 2427, 2562, 2358, 2223, 2079, 1942, 2145] },
+        "BB_SmallDynamite": { "grids": [5680, 4394, 2152, 2070] , "amount": 10 },
+        "BB_MediumDynamite": { "grids": [5680, 2152, 2014, 5814] , "amount": 6 },
+        "BB_BigDynamite": { "grids": [2275, 2014, 5814] , "amount": 5 },
+        "BB_Poison": { "grids": [5884, 3988, 3387, 2150, 1880, 1935] , "amount": 20 },
+        "BB_Shovel1": { "grids": [1880, 2424, 3387, 3988, 5884, 2342, 1935] , "amount": 16 },
+        "BB_StinkyPotion": { "grids": [5884, 5614, 3321, 2150, 1935] , "amount": 11 },
+        "BB_Decomposer": { "grids": [2342, 1880, 2424, 3988] , "amount": 11 },
+        "CS_SchoolKit": { "grids": [5614] },
+        "CS_NobleResidenceKit": { "grids": [5884, 3988] },
+        "CS_TavernKit1": { "grids": [3387, 2342] },
+        "CS_ResidenceKit": { "grids": [3321, 2424, 2150, 1880] },
+        "EE_StickyFluid": { "grids": [3440] }
     },
     "BuffAdventures_Easter_Event_2015": {
-        "BB_Fitch_Gin": [6216, 5536, 6023, 4797, 3294, 2202, 1388],
-        "ChangeSkin_Easter_BuffAd_Polecat_Spray": [5475, 5813, 5748, 5951, 6023],
-        "Easter_Event_2015_Buff_Adventure_Scared_Chicken": [5475, 5813, 5748, 5951, 6023],
-        "EmptyEffectBuff_Easter_BuffAd_ChickWellness": [5475, 5813, 5748, 5951, 6023]
+        "BB_Fitch_Gin": { "grids": [6216, 5536, 6023, 4797, 3294, 2202, 1388] },
+        "ChangeSkin_Easter_BuffAd_Polecat_Spray": { "grids": [5475, 5813, 5748, 5951, 6023] },
+        "Easter_Event_2015_Buff_Adventure_Scared_Chicken": { "grids": [5475, 5813, 5748, 5951, 6023] },
+        "EmptyEffectBuff_Easter_BuffAd_ChickWellness": { "grids": [5475, 5813, 5748, 5951, 6023] }
     }
 }

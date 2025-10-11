@@ -1,17 +1,13 @@
 {
   "name": "BuffAdventures_twins_easy",
-  "buffs": {
-    "CS_Broadsheet": [3, true],
-    "CS_Bridge": [3],
-    "CS_Rescueparty": [1]
-  },
   "steps": [
     {
       "name": "StartAdventure"
     },
     {
       "name": "ProduceItem",
-      "data": "CS_Broadsheet"
+      "data": "CS_Broadsheet",
+      "skip": true
     },
     {
       "name": "VisitAdventure"

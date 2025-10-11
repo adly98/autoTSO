@@ -1,39 +1,28 @@
 {
   "name": "BuffAdventures_Riches_of_the_Mountain",
-  "buffs": {
-    "CS_PureOre": [1, true],
-    "BB_Dynamite": [4],
-    "BB_Shovel": [2, true],
-    "CS_TavernKit": [1, true],
-    "CS_StorageKit": [1, true],
-    "CS_MasonKit": [3, true],
-    "BB_MountainDynamite": [5, true],
-    "CS_ShaftConstruction": [1, true],
-    "EE_FoodProvision": [2],
-    "BB_Glue": [1, true],
-    "BB_WaterSplash": [10, true],
-    "BB_Explosive": [1, true],
-    "BB_Specialist": [1]
-  },
   "steps": [
     {
       "name": "StartAdventure"
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Shovel"
+      "data": "BB_Shovel",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_TavernKit"
+      "data": "CS_TavernKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_StorageKit"
+      "data": "CS_StorageKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_MasonKit"
+      "data": "CS_MasonKit",
+      "skip": true
     },
     {
       "name": "VisitAdventure"
@@ -46,7 +35,8 @@
     },
     {
       "name": "ProduceItem",
-      "data": "CS_PureOre"
+      "data": "CS_PureOre",
+      "skip": true
     },
     {
       "name": "ProduceItem",
@@ -87,11 +77,13 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BB_MountainDynamite"
+      "data": "BB_MountainDynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_ShaftConstruction"
+      "data": "CS_ShaftConstruction",
+      "skip": true
     },
     {
       "name": "ProduceItem",
@@ -120,15 +112,18 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Glue"
+      "data": "BB_Glue",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_WaterSplash"
+      "data": "BB_WaterSplash",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Explosive"
+      "data": "BB_Explosive",
+      "skip": true
     },
     {
       "name": "ProduceItem",

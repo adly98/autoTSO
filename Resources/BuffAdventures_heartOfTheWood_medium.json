@@ -1,11 +1,5 @@
 {
   "name": "BuffAdventures_heartOfTheWood_medium",
-  "buffs": {
-    "CS_wildlife": [5],
-    "CS_hearttree": [1],
-    "CS_woodhealing": [10],
-    "CS_Fertilizer": [1]
-  },
   "steps": [
     {
       "name": "StartAdventure"

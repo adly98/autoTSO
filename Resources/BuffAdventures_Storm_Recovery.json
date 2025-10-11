@@ -1,21 +1,5 @@
 {
   "name": "BuffAdventures_Storm_Recovery",
-  "buffs": {
-    "CS_Seeds": [9, true],
-    "EE_Fertilizer": [9, true],
-    "BB_SmallDynamite": [10, true],
-    "BB_MediumDynamite": [6, true],
-    "BB_BigDynamite": [5],
-    "BB_Poison": [20, true],
-    "BB_Shovel1": [16, true],
-    "BB_StinkyPotion": [11, true],
-    "BB_Decomposer": [11, true],
-    "CS_SchoolKit": [1, true],
-    "CS_NobleResidenceKit": [2, true],
-    "CS_TavernKit1": [2, true],
-    "CS_ResidenceKit": [4],
-    "EE_StickyFluid": [1]
-  },
   "steps": [
     {
       "name": "StartAdventure"
@@ -31,19 +15,23 @@
     },
     {
       "name": "ProduceItem",
-      "data": "CS_Seeds"
+      "data": "CS_Seeds",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "EE_Fertilizer"
+      "data": "EE_Fertilizer",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_SmallDynamite"
+      "data": "BB_SmallDynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_MediumDynamite"
+      "data": "BB_MediumDynamite",
+      "skip": true
     },
     {
       "name": "ProduceItem",
@@ -80,31 +68,38 @@
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Poison"
+      "data": "BB_Poison",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Shovel1"
+      "data": "BB_Shovel1",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_StinkyPotion"
+      "data": "BB_StinkyPotion",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Decomposer"
+      "data": "BB_Decomposer",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_SchoolKit"
+      "data": "CS_SchoolKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_NobleResidenceKit"
+      "data": "CS_NobleResidenceKit",
+      "skip": true
     },
     {
       "name": "ProduceItem",
-      "data": "CS_TavernKit1"
+      "data": "CS_TavernKit1",
+      "skip": true
     },
     {
       "name": "ProduceItem",

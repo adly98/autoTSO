@@ -1,18 +1,13 @@
 {
   "name": "BuffAdventures_Easter_Event_2015",
-  "buffs": {
-    "BB_Fitch_Gin": [7, true],
-    "ChangeSkin_Easter_BuffAd_Polecat_Spray": [5],
-    "Easter_Event_2015_Buff_Adventure_Scared_Chicken": [5, true],
-    "EmptyEffectBuff_Easter_BuffAd_ChickWellness": [5]
-  },
   "steps": [
     {
       "name": "StartAdventure"
     },
     {
       "name": "ProduceItem",
-      "data": "BB_Fitch_Gin"
+      "data": "BB_Fitch_Gin",
+      "skip": true
     },
     {
       "name": "VisitAdventure"
@@ -46,7 +41,8 @@
     },
     {
       "name": "ProduceItem",
-      "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
+      "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken",
+      "skip": true
     },
     {
       "name": "ProduceItem",

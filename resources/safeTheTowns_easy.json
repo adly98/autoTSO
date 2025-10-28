@@ -1,71 +1,71 @@
 {
-  "name": "BuffAdventures_safeTheTowns_easy",
-  "steps": [
-    {
-      "name": "StartAdventure"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Repairkit"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Repairkit"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Bread",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Beer"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Bread"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Beer"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Sausage"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Sausage"
-    }
-  ]
+	"name": "BuffAdventures_safeTheTowns_easy",
+	"steps": [
+		{
+			"name": "StartAdventure"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Repairkit"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Repairkit"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Bread",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Beer"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Bread"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Beer"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Sausage"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Sausage"
+		}
+	]
 }

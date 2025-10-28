@@ -1,79 +1,79 @@
 {
-  "name": "BuffAdventures_heartOfTheWood_medium",
-  "steps": [
-    {
-      "name": "StartAdventure"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_wildlife"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_wildlife"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_hearttree"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_hearttree"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_woodhealing"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_woodhealing"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Fertilizer"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Fertilizer"
-    }
-  ]
+	"name": "BuffAdventures_heartOfTheWood_medium",
+	"steps": [
+		{
+			"name": "StartAdventure"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_wildlife"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_wildlife"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_hearttree"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_hearttree"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_woodhealing"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_woodhealing"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Fertilizer"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Fertilizer"
+		}
+	]
 }

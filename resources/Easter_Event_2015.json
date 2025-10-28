@@ -1,63 +1,63 @@
 {
-  "name": "BuffAdventures_Easter_Event_2015",
-  "steps": [
-    {
-      "name": "StartAdventure"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_Fitch_Gin",
-      "skip": true
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_Fitch_Gin"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
-    }
-  ]
+	"name": "BuffAdventures_Easter_Event_2015",
+	"steps": [
+		{
+			"name": "StartAdventure"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_Fitch_Gin",
+			"skip": true
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "ChangeSkin_Easter_BuffAd_Polecat_Spray"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_Fitch_Gin"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "Easter_Event_2015_Buff_Adventure_Scared_Chicken"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "EmptyEffectBuff_Easter_BuffAd_ChickWellness"
+		}
+	]
 }

@@ -1,161 +1,161 @@
 {
-  "name": "BuffAdventures_Storm_Recovery",
-  "steps": [
-    {
-      "name": "StartAdventure"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Seeds",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "EE_Fertilizer",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_SmallDynamite",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_MediumDynamite",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_BigDynamite"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Seeds"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "EE_Fertilizer"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_SmallDynamite"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_MediumDynamite"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_BigDynamite"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_Poison",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_Shovel1",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_StinkyPotion",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "BB_Decomposer",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_SchoolKit",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_NobleResidenceKit",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_TavernKit1",
-      "skip": true
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_ResidenceKit"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_Poison"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_Shovel1"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_StinkyPotion"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "BB_Decomposer"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_SchoolKit"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_NobleResidenceKit"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_TavernKit1"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_ResidenceKit"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "EE_StickyFluid"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "EE_StickyFluid"
-    }
-  ]
+	"name": "BuffAdventures_Storm_Recovery",
+	"steps": [
+		{
+			"name": "StartAdventure"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Seeds",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "EE_Fertilizer",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_SmallDynamite",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_MediumDynamite",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_BigDynamite"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Seeds"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "EE_Fertilizer"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_SmallDynamite"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_MediumDynamite"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_BigDynamite"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_Poison",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_Shovel1",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_StinkyPotion",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "BB_Decomposer",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_SchoolKit",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_NobleResidenceKit",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_TavernKit1",
+			"skip": true
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_ResidenceKit"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_Poison"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_Shovel1"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_StinkyPotion"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "BB_Decomposer"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_SchoolKit"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_NobleResidenceKit"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_TavernKit1"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_ResidenceKit"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "EE_StickyFluid"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "EE_StickyFluid"
+		}
+	]
 }

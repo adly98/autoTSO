@@ -1,54 +1,54 @@
 {
-  "name": "BuffAdventures_twins_easy",
-  "steps": [
-    {
-      "name": "StartAdventure"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Broadsheet",
-      "skip": true
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Bridge"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Bridge"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Broadsheet"
-    },
-    {
-      "name": "CollectPickups"
-    },
-    {
-      "name": "ReturnHome"
-    },
-    {
-      "name": "ProduceItem",
-      "data": "CS_Rescueparty"
-    },
-    {
-      "name": "VisitAdventure"
-    },
-    {
-      "name": "ApplyBuff",
-      "data": "CS_Rescueparty"
-    }
-  ]
+	"name": "BuffAdventures_twins_easy",
+	"steps": [
+		{
+			"name": "StartAdventure"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Broadsheet",
+			"skip": true
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Bridge"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Bridge"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Broadsheet"
+		},
+		{
+			"name": "CollectPickups"
+		},
+		{
+			"name": "ReturnHome"
+		},
+		{
+			"name": "ProduceItem",
+			"data": "CS_Rescueparty"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "ApplyBuff",
+			"data": "CS_Rescueparty"
+		}
+	]
 }

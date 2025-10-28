@@ -1,0 +1,14 @@
+{
+	"name": "Birthday2013Adventure1",
+	"steps": [
+		{
+			"name": "StartAdventure"
+		},
+		{
+			"name": "VisitAdventure"
+		},
+		{
+			"name": "CollectPickups"
+		}
+	]
+}

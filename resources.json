@@ -1,10 +1,9 @@
 {
-    "BuffAdventures_Easter_Event_2015": 1,
-    "BuffAdventures_safeTheTowns_easy": 1,
-    "BuffAdventures_twins_easy": 1,
-    "BuffAdventures_heartOfTheWood_medium": 1,
-    "BuffAdventures_Riches_of_the_Mountain": 1,
-    "BuffAdventures_Storm_Recovery": 1,
-    "Scenarios": 1,
+    "Easter_Event_2015": 1,
+    "safeTheTowns_easy": 1,
+    "twins_easy": 1,
+    "heartOfTheWood_medium": 1,
+    "Riches_of_the_Mountain": 1,
+    "Storm_Recovery": 1,
     "AdventureItems": 1
 }

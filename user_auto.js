@@ -1091,8 +1091,8 @@ const aUI = {
                     },
                     { label: "The Excelsior", onSelect: aUI.modals.Excelsior },
                     {
-                        label: "The Pathfinder", enabled: aPathfinder ? true : false, onSelect: function (e) {
-                            if (!aPathfinder) {
+                        label: "The Pathfinder", enabled: window.hasOwnProperty('aPathfinder'), onSelect: function (e) {
+                            if (!window.hasOwnProperty('aPathfinder')) {
                                 return aUI.Alert('You must download and install the Pathfinder script first!!', 'ERROR');
                             }
                         }
@@ -5687,7 +5687,7 @@ const aAdventure = {
 }
 
 const auto = {
-    version: '2.0.0',
+    version: '2.0.1',
     update: {
         url: function () {
             return atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2FkbHk5OC9hdXRvVFNPL21haW4v');

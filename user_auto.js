@@ -28,16 +28,62 @@ const aSession = {
     },
     adventure: {
         name: null,
-        generals: [],
-        enemies: [],
-        army: {},
         lostArmy: {},
-        rEnemies: 0,
         index: 0,
         action: '',
         repeatCount: 0,
         lastTime: null,
         steps: [],
+        getGenerals: function (current) {
+            const step = aSession.adventure.steps[current ? aSession.adventure.index : 0];
+            if (!current && step.name != 'InHomeLoadGenerals') return [];
+            return Object.keys(step.data);
+        },
+        getEnemies: function (current) {
+            const enemies = { all: [], remaining: [] };
+            if (aSession.adventure.name.indexOf('BuffAdventures') == 0) return enemies;
+            $.each(aSession.adventure.steps, function (i, step) {
+                if (current && i != aSession.adventure.index) return;
+                if (step.name != 'AdventureTemplate') return;
+                $.each(step.data, function (id, item) {
+                    if (!item.target || enemies.all.indexOf(item.target) > -1) return;
+
+                    enemies.all.push(item.target);
+
+                    const building = game.zone.GetBuildingFromGridPosition(item.target);
+                    if (building && building.getPlayerID() == -1)
+                        enemies.remaining.push(item.target);
+                });
+            });
+            enemies.all = enemies.all.length;
+            enemies.remaining = enemies.remaining.length;
+            return enemies;
+        },
+        getArmy: function (current) {
+            const army = {};
+            const step = aSession.adventure.steps[current ? aSession.adventure.index : 0];
+            if (!current && step.name != 'InHomeLoadGenerals') return army;
+            $.each(step.data, function (id, item) {
+                $.each(item.army, function (unit, amount) {
+                    army[unit] = (army[unit] || 0) + amount;
+                });
+            });
+            return army;
+        },
+        getLostUnits: function () {
+            const result = {
+                total: 0,
+                army: {}
+            };
+            aAdventure.army.updateArmy();
+            $.each(aSession.adventure.getArmy(), function (unit, amount) {
+                const lost = amount - armyInfo.total[unit];
+                if (lost <= 0) return;
+                result.army[unit] = lost;
+                result.total += lost;
+            });
+            return result;
+        },
         currentStep: function () {
             try {
                 return aSession.adventure.steps[aSession.adventure.index];
@@ -51,11 +97,6 @@ const aSession = {
         reset: function () {
             var repeat = aSession.adventure.repeatCount > 0 ? true : false;
             aSession.adventure.name = repeat ? aSession.adventure.name : null;
-            aSession.adventure.generals = repeat ? aSession.adventure.generals : [];
-            aSession.adventure.enemies = repeat ? aSession.adventure.enemies : [];
-            aSession.adventure.army = repeat ? aSession.adventure.army : {};
-            aSession.adventure.lostArmy = {};
-            aSession.adventure.rEnemies = 0;
             aSession.adventure.index = 0;
             aSession.adventure.action = '';
             aSession.adventure.repeatCount = repeat ? aSession.adventure.repeatCount : 0;
@@ -187,7 +228,7 @@ const aQueue = {
                 aUI.updateStatus('Completing "{0}" quest!!'.format(loca.GetText('QUL', quest.getQuestName_string())), 'Quests');
                 game.quests.RewardOkButtonPressedFromGui(quest);
             }
-            if (game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID()
+            if (aAdventure.info.isOnAdventure()
                 && aSession.adventure.name
                 && aSession.adventure.currentStep().name == "CollectPickups") {
                 aSession.adventure.nextStep();
@@ -367,16 +408,16 @@ const aQueue = {
             game.gi.mClientMessages.SendMessagetoServer(1031, game.gi.mCurrentViewedZoneID, args.army);
             aUI.updateStatus(args.message);
         },
-        sendGeneralsToAdventure: function (id) {
+        sendGeneralsToAdventure: function (args) {
             armyServices.specialist.sendToZone(
-                armyGetSpecialistFromID(id),
+                armyGetSpecialistFromID(args.id),
                 aAdventure.info.getActiveAdvetureID()
             );
             aUI.updateStatus(
                 'Sending generals to "{0}" ({1}/{2})'.format(
                     loca.GetText('ADN', aSession.adventure.name),
-                    aSession.adventure.generals.indexOf(id) + 1,
-                    aSession.adventure.generals.length
+                    args.num,
+                    args.total
                 ),
                 'Adventure');
         },
@@ -802,8 +843,10 @@ const aUtils = {
                         aSession.adventure.repeatCount--;
                         aSession.adventure.reset();
                         aUI.modals.adventure.AM_LoadInfo()
-                        aSession.isOn.Adventure = true;
-                        aUI.menu.init();
+                        setTimeOut(function () {
+                            aSession.isOn.Adventure = true;
+                            aUI.menu.init();
+                        }, 10000);
                     }
                 } else {
                     if (aSession.zoneAction == 'ApplyBuffOnFriend') {
@@ -813,7 +856,7 @@ const aUtils = {
                 }
 
                 var step = aSession.adventure.currentStep();
-                if (step && ((step.name == 'VisitAdventure' && game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID()) ||
+                if (step && ((step.name == 'VisitAdventure' && aAdventure.info.isOnAdventure()) ||
                     (step.name == 'ReturnHome' && game.gi.isOnHomzone()))) {
                     aUI.Alert("{0} Island Loaded!".format(step.name == 'VisitAdventure' ? 'Adventure' : 'Home'), 'QUEST');
                     aSession.adventure.action = '';
@@ -834,11 +877,15 @@ const aUtils = {
         },
         battleFinished: function (e) {
             try {
-                if (game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID()) {
-                    aAdventure.army.calculateLostUnits();
-                    aUI.modals.adventure.AM_UpdateInfo(e.data.getCasualties());
-                    aUI.updateStatus("Target Enemy Camps Eliminated ({0}/{1})!!".format(aSession.adventure.enemies.length - aAdventure.info.getRemainingEnemies(), aSession.adventure.enemies.length));
-                }
+                if (!aAdventure.info.isOnAdventure()) return;
+                aUI.modals.adventure.AM_UpdateInfo(e.data.getCasualties());
+                const enemies = aSession.adventure.getEnemies();
+                aUI.Alert("Target Enemy Camps Eliminated ({0}/{1})!!".format(
+                    enemies.all - enemies.remaining,
+                    enemies.all),
+                    "ARMY"
+                );
+
             } catch (er) { debug(er) }
         },
         chatObserver: function (e) {
@@ -923,7 +970,9 @@ const aUtils = {
     },
     friends: {
         getFriends: function () {
-            return globalFlash.gui.mFriendsList.GetFilteredFriends("", true).sort(function (a, b) {
+            return globalFlash.gui.mFriendsList.GetFilteredFriends("", true).filter(function (f) {
+                return f.username.indexOf('Deleted') == -1;
+            }).sort(function (a, b) {
                 return a.username.toLowerCase().localeCompare(b.username.toLowerCase());
             });
         },
@@ -938,7 +987,7 @@ const aUtils = {
         },
         getRandom: function (res_name) {
             var friendList = globalFlash.gui.mFriendsList.GetFilteredFriends("", true).filter(function (f) {
-                return !f.onlineStatus
+                return !f.onlineStatus && f.username.indexOf('Deleted') == -1;
             }).sort(function (a, b) {
                 return b.playerLevel - a.playerLevel;
             });
@@ -1091,8 +1140,8 @@ const aUI = {
                     },
                     { label: "The Excelsior", onSelect: aUI.modals.Excelsior },
                     {
-                        label: "The Pathfinder", enabled: window.hasOwnProperty('aPathfinder'), onSelect: function (e) {
-                            if (!window.hasOwnProperty('aPathfinder')) {
+                        label: "The Pathfinder", enabled: aPathfinder ? true : false, onSelect: function (e) {
+                            if (!aPathfinder) {
                                 return aUI.Alert('You must download and install the Pathfinder script first!!', 'ERROR');
                             }
                         }
@@ -1135,7 +1184,7 @@ const aUI = {
                                 }
                             },
                             { type: 'separator' },
-                            { label: 'Reload Saved Adventures!', onSelect: aUI.menu.init },
+                            { label: 'Reload Saved Adventures!', onSelect: function () { aUI.menu.init() } },
                             { type: 'separator' },
                         ].concat(aUI.menu.savedItems())
                     },
@@ -1263,23 +1312,9 @@ const aUI = {
                 }
 
                 $.extend(aSession.adventure, adventure);
-                $.each(aSession.adventure.steps, function (i, step) {
-                    if (step.name == "AdventureTemplate") {
-                        $.each(aSession.adventure.steps[i].data, function (key, value) {
-                            if (aSession.adventure.enemies.indexOf(value.target) == -1 && value.target)
-                                aSession.adventure.enemies.push(value.target);
-                        });
-                    } else if (step.name == 'InHomeLoadGenerals') {
-                        aSession.adventure.generals = Object.keys(aSession.adventure.steps[i].data);
-                        $.each(aSession.adventure.steps[i].data, function (key, value) {
-                            $.each(value.army, function (unit, count) {
-                                aSession.adventure.army[unit] = (aSession.adventure.army[unit] || 0) + count;
-                            });
-                        });
-                    }
-                });
+                delete aSession.adventure.hash;
+                aSession.adventure.id = event.target.name;
                 aUI.Alert(loca.GetText('ADN', adventure.name) + " is selected", adventure.name);
-
                 aSession.isOn.Adventure = true;
                 aUI.modals.adventure.AM_LoadInfo();
                 aUI.menu.SelectedAdventure = event.target.name;
@@ -2051,12 +2086,11 @@ const aUI = {
                 // Adventure Select
                 var adventureSelect = function () {
                     const select = aUtils.create.Select('aTemplate_AdventureSelect');
-                    const ventures = ['Venture', 'The Mountain Clan', 'The Evil Queen'];
                     $.each(aAdventure.data.getAdventures(), function (category, adventures) {
                         if (['Scenario', 'Coop'].indexOf(category) != -1) return;
                         var optGroup = $('<optgroup>', { label: category });
                         $.each(adventures, function (i, adv) {
-                            const disabled = ventures.indexOf(category) != -1 && !aAdventure.data.getItems(adv) ? true : false;
+                            const disabled = aAdventure.data.getAdventureType(addv) == "Venture" && !aAdventure.data.getItems(adv) ? true : false;
                             optGroup.append($('<option>', { value: adv }).prop('disabled', disabled).text(loca.GetText('ADN', adv)));
                         });
                         select.append(optGroup);
@@ -2106,13 +2140,14 @@ const aUI = {
                     });
                 });
                 aWindow.withsBody('#aTemplate_AdventureSelect').change(function () {
-                    debug($(this).val());
+                    const value = $(this).val();
+                    debug(value);
                     $("#adventureIcon").html(getImage(assets.GetBuffIcon($('#aTemplate_AdventureSelect').val()).bitmapData));
                     $('#LHTemp, #LHGenerals, #LHUnits').empty();
                     aWindow.steps = [];
                     aWindow.steps.push({ name: 'VisitAdventure' });
                     aWindow.steps.push({ name: 'UseSpeedBuff' });
-                    $.each(aAdventure.data.getItems($(this).val()), function (k, v) {
+                    $.each(aAdventure.data.getItems(value), function (k, v) {
                         aWindow.steps.push({ name: 'ProduceItem', data: k });
                         aWindow.steps.push({ name: 'ApplyBuff', data: k });
                     });
@@ -2125,6 +2160,7 @@ const aUI = {
                     if (!aWindow.selectedStep) return $('#aTemplate_SelectedStep').empty();
                     aUI.modals.adventure.TM_SelectedStepInfo(aWindow.steps[idx]);
                 });
+
                 aWindow.sFooter().prepend(
                     $('<div>', { 'class': 'btn-group dropup aTemplate_Commands' }).append([
                         $('<button>').attr({
@@ -2135,9 +2171,9 @@ const aUI = {
                             'data-toggle': "dropdown"
                         }).text('Add Step'),
                         $('<ul>', { 'class': 'dropdown-menu' }).append([
-                            $('<li>').html($('<a>', { 'href': '#', 'name': 'ReturnHome' }).text("Return Home")),
+                            $('<li>').html($('<a>', { 'href': '#', 'name': 'ReturnHome', 'class': 'venture_only' }).text("Return Home")),
                             $('<li>').html($('<a>', { 'href': '#', 'name': 'VisitAdventure' }).text("Load Adventure")),
-                            $('<li>').html($('<a>', { 'href': '#', 'name': 'CollectPickups' }).text("Collect Pickups")),
+                            $('<li>').html($('<a>', { 'href': '#', 'name': 'CollectPickups', 'class': 'venture_only' }).text("Collect Pickups")),
                             $('<li>').html($('<a>', { 'href': '#', 'name': 'AdventureTemplate' }).text("Adventure Template/s")),
                         ])
                     ])
@@ -2156,9 +2192,11 @@ const aUI = {
                             aUI.modals.adventure.TM_UpdateView();
                         });
                     } else {
-                        if (this.name == 'CollectPickups' &&
-                            aAdventure.data.getAdventureType($("#aTemplate_AdventureSelect").val()) != "Venture")
+                        const isNotVenture = aAdventure.data.getAdventureType($("#aTemplate_AdventureSelect").val()) != "Venture";
+                        if (this.name == 'CollectPickups' && isNotVenture)
                             return alert("You can only add this on Ventures\nTool will collect normal adventure collectibles!");
+                        if (this.name == 'ReturnHome' && isNotVenture)
+                            alert("You normally don't need this step in normal adventures\nUse with caution!!")
 
                         aWindow.steps.push({ name: this.name });
                         aUI.modals.adventure.TM_UpdateView();
@@ -2275,18 +2313,18 @@ const aUI = {
                     $("#aAdventureRepeats").html(aSession.adventure.repeatCount);
                     $("#aAdventureFile").html("Saved Locally!!");
                     $("#aAdventureToggle").prop("disabled", buffAmount == 0);
-                    $('#aAdventureTotalGenerals').text(aSession.adventure.generals.length);
-                    $('#aAdventureTotalEnemies').text(aSession.adventure.enemies.length);
+                    $('#aAdventureTotalGenerals').text(aSession.adventure.getGenerals().length);
+                    $('#aAdventureTotalEnemies').text(aSession.adventure.getEnemies().all);
                     aUI.modals.adventure.AM_UpdateInfo();
                     aUI.modals.adventure.AM_UpdateSteps();
                 } catch (e) { }
             },
             AM_UpdateInfo: function () {
                 try {
-                    $('#aAdventureRemainingEnemies').text(aSession.adventure.rEnemies);
+                    $('#aAdventureRemainingEnemies').text(aSession.adventure.getEnemies().remaining);
                     $('#aAdventureLostUnitsDiv').empty();
                     var totalLost = 0;
-                    $.each(aSession.adventure.lostArmy, function (uName, lost) {
+                    $.each(aSession.adventure.getLostUnits().army, function (uName, lost) {
                         totalLost += lost;
                         $('#aAdventureLostUnitsDiv').append(aUtils.create.Row([
                             [1, "&#10551;"],
@@ -2529,39 +2567,40 @@ const aUI = {
                 aWindow.sshow();
             } catch (e) { debug(e) }
         },
-        buildingSettings: function (name) {
+        buildingSettings: function (buildingName) {
             try {
                 if (!game.gi.isOnHomzone())
                     return aUI.Alert(getText('not_home'), 'ERROR');
-                const sObj = aSettings.defaults.Buildings.TProduction[name];
+                aWindow.buildingName = buildingName;
+                const sObj = aSettings.defaults.Buildings.TProduction[buildingName];
                 var save = function () {
                     if (sObj.hasOwnProperty('item'))
-                        aSettings.defaults.Buildings.TProduction[name].item = aWindow.withsBody('#item').val();
+                        aSettings.defaults.Buildings.TProduction[buildingName].item = aWindow.withsBody('#producableItems').val();
                     if (sObj.hasOwnProperty('amount'))
-                        aSettings.defaults.Buildings.TProduction[name].amount = parseInt(aWindow.withsBody('#amount').val());
+                        aSettings.defaults.Buildings.TProduction[buildingName].amount = parseInt(aWindow.withsBody('#amount').val());
                     if (sObj.hasOwnProperty('stack'))
-                        aSettings.defaults.Buildings.TProduction[name].stack = parseInt(aWindow.withsBody('#stack').val());
+                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#stack').val());
                     if (sObj.hasOwnProperty('buff'))
-                        aSettings.defaults.Buildings.TProduction[name].buff = aWindow.withsBody('#buff').val();
+                        aSettings.defaults.Buildings.TProduction[buildingName].buff = aWindow.withsBody('#buff').val();
                     aSettings.save();
                     aWindow.shide();
 
                 };
                 var settings = function () {
                     var html = [];
-                    $.each(aSettings.defaults.Buildings.TProduction[name], function (k, v) {
+                    $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k, v) {
                         var table = null;
                         if (k == 'item') {
                             table = createTableRow([
                                 [3, 'Item: '],
                                 [1, $('<span>', { 'id': 'itemImg' })],
-                                [8, aUtils.create.Select('item').append(aBuildings.getProducableItems(name))]
+                                [8, aUtils.create.Select('producableItems').append(aBuildings.getProducableItems(buildingName))]
                             ]);
                         } else if (k == 'buff') {
                             table = createTableRow([
                                 [3, 'Buff: '],
                                 [1, $('<span>', { 'id': 'buffImg' })],
-                                [8, aUtils.create.Select('buff').append(aBuffs.getBuffsForBuilding(name, false, true))]
+                                [8, aUtils.create.Select('buff').append(aBuffs.getBuffsForBuilding(buildingName, false, true))]
                             ]);
                         } else if (k == 'amount') {
                             table = createTableRow([
@@ -2585,9 +2624,9 @@ const aUI = {
                 aWindow.settings(save);
                 aWindow.sDialog().css("height", "70%");
                 aWindow.sTitle().html("{0} {1} ({2})".format(
-                    getImage(assets.GetBuildingIcon(name).bitmapData),
-                    loca.GetText('BUI', name),
-                    game.zone.mStreetDataMap.getBuildingsByName_vector(name).length
+                    getImage(assets.GetBuildingIcon(buildingName).bitmapData),
+                    loca.GetText('BUI', buildingName),
+                    game.zone.mStreetDataMap.getBuildingsByName_vector(buildingName).length
                 ));
                 aWindow.sData().append(
                     aUtils.create.container().append([
@@ -2606,13 +2645,19 @@ const aUI = {
                         ], 'remTable')
                     ]))
                 );
-                aWindow.withsBody('#item').change(function (e) {
+                aWindow.withsBody('#producableItems').change(function (e) {
                     aWindow.withsBody('#itemImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                     if (!$(this).val())
                         return aWindow.withsBody(".remTable").hide();
                     aWindow.withsBody(".remTable").show();
                     aWindow.withsBody("#itemCosts").empty();
-                    aBuffs.getDefinition($(this).val()).GetCosts_vector().forEach(function (cost) {
+                    var costs = [];
+                    if (aWindow.buildingName == 'Bookbinder') {
+                        costs = aBuildings.production.getBook($(this).val()).costs;
+                    } else {
+                        costs = aBuffs.getDefinition($(this).val()).GetCosts_vector();
+                    };
+                    costs.forEach(function (cost) {
                         aWindow.withsBody("#itemCosts").append(
                             getImage(assets.GetResourceIcon(cost.name_string).bitmapData, "23px") + cost.amount
                         )
@@ -3856,7 +3901,7 @@ const aSpecialists = {
                         return;
                     }
                     aQueue.add('sendExplorer', [expl.GetUniqueID().toKeyString(), finalTask, index + 1 - sub, explorers.length - sub]);
-                } catch (er) { debug(er) }
+                } catch (er) { }
             });
             //aUI.updateStatus("Sending: {0} Explorers".format(explorers.length), 'Explorers');
         } catch (e) { debug(e); debug('There has been an error while sending explorers'); }
@@ -3941,7 +3986,7 @@ const aBuildings = {
                     });
                 });
             }
-            if (game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID()) {
+            if (aAdventure.info.isOnAdventure()) {
                 game.getBuildings().forEach(function (building) {
                     if (building && building.GetBuildingName_string().indexOf('DummyBuilding') == 0)
                         itemsMap[building.GetBuildingName_string()] = true;
@@ -3952,7 +3997,7 @@ const aBuildings = {
         manage: function () {
             // aQueue.add('status', ['Checking Collectibles!']);
             if ((game.gi.isOnHomzone() && aSettings.defaults.Collect.Pickups) ||
-                (game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID() && aSession.adventure.name) ||
+                (aAdventure.info.isOnAdventure() && aSession.adventure.name) ||
                 game.zone.mAdventureName != "Home")
                 aBuildings.collectibles.check();
             if (game.gi.isOnHomzone() && aSettings.defaults.Collect.LootBoxes)
@@ -3962,7 +4007,11 @@ const aBuildings = {
     deposits: {
         removeDepleted: function () {
             const depleted = game.getBuildings().filter(function (b) {
-                try { return b.GetBuildingName_string().indexOf("Depleted") > -1 } catch (e) { return false; }
+                try {
+                    if (b.GetBuildingName_string().indexOf("Depleted") == -1) return false;
+                    const name = b.GetBuildingName_string().split('Deposit')[1];
+                    return Object.keys(aSettings.defaults.Deposits.data).indexOf(name) > -1;
+                } catch (e) { return false; }
             });
             depleted.forEach(function (building, index) {
                 const num = "({0}/{1})".format(index + 1, depleted.length);
@@ -3971,7 +4020,6 @@ const aBuildings = {
         },
         manage: function () {
             if (!game.gi.isOnHomzone() || !aSession.isOn.Deposits) return;
-            // aQueue.add('status', ['Checking Deposits!']);
             try {
                 aBuildings.deposits.removeDepleted();
 
@@ -4814,13 +4862,192 @@ const aQuests = {
 }
 // Battle/Adventures related functions
 const aAdventure = {
+    battle: {
+        getState: function (attackersOnly) {
+            const myArmy = JSON.parse(JSON.stringify(armyInfo.total));
+            var canSubmitAttack = true, attackSubmitChecker = [];
+            const state = {
+                army: { canSubmit: true, required: {}, matched: true },
+                busy: { travelling: [], moving: [], attacking: [], total: 0, travellingTime: 0 },
+                grid: { onGrid: true, onWay: [], totalOn: 0, canMove: 0 },
+                total: 0
+            };
+            $.each(battlePacket, function (id, item) {
+                try {
+                    if (attackersOnly && !item.target) return;
+                    state.total++;
+                    // ================ handle buffs ===============
+                    if (item.type == 'buff') {
+                        if (!aBuffs.getBuffAmount(item.name)) {
+                            aUI.Alert('You don\'t have "{0}"!'.format(loca.GetText("RES", item.name)), 'ERROR');
+                            canSubmitAttack = false;
+                        }
+                        return;
+                    }
+                    if (!item.spec) {
+                        state.busy.total++;
+                        state.busy.travelling.push(id);
+                        return;
+                    }
+                    // ================ handle busy ================
+                    if (item.spec.GetTask()) {
+                        state.busy.total++;
+                        const task = item.spec.GetTask();
+                        const type = task.GetOriginalType();
+                        if (type == 4 || type == 12) {
+                            state.busy.moving.push(id);
+                            try {
+                                if (task.GetNewGarrisonGridIdx() == item.grid) {
+                                    state.grid.onWay.push(id);
+                                    state.grid.totalOn++;
+                                }
+                            } catch (err) { }
+                        }
+                        else if (type == 7) {
+                            state.busy.travelling.push(id);
+                            const travellingTime = task.GetRemainingTime();
+                            state.busy.travellingTime = travellingTime > state.busy.travellingTime ? travellingTime : state.busy.travellingTime;
+                        }
+                        else if (type == 5) {
+                            state.busy.attacking.push(id);
+                        }
+                    }
+                    // ================ handle army ================
+                    const armyMatched = armyGetChecksum(armyInfo[id]) == armyGetChecksum(item);
+                    battlePacket[id].armyMatched = armyMatched;
+                    $.each(item.army, function (name, amount) {
+                        if (armyMatched || myArmy[name] >= amount) {
+                            myArmy[name] -= amount;
+                        } else {
+                            state.army.required[name] = (state.army.required[name] || 0) + (amount - (myArmy[name] || 0));
+                            if (myArmy[name]) { myArmy[name] = 0; }
+                            state.army.canSubmit = false;
+                        }
+                    });
+                    if (!armyMatched) {
+                        state.army.matched = false;
+                        if (item.spec.GetTask() || !item.spec.GetGarrison())
+                            state.army.canSubmit = false;
+                    }
+                    // =============== handle move ================
+                    if (item.onSameGrid) state.grid.totalOn++;
+                    if (item.canSubmitMove) state.grid.canMove++;
+                    if (!item.onSameGrid) state.grid.onGrid = false;
+                    // =============== handle attack ================
+                    if (item.target > 0) {
+                        if (!item.canSubmitAttack)
+                            canSubmitAttack = false;
+                        attackSubmitChecker.push(item.canSubmitAttack);
+                    }
+                } catch (err) { }
+            });
+            state.canSubmitAttack = (canSubmitAttack && attackSubmitChecker.indexOf(false) == -1 && attackSubmitChecker.length > 0);
+            return state;
+        },
+        attemptMove: function (attackerState, allState) {
+            try {
+                var num = 1;
+                const landingFields = aAdventure.info.getLandingFields();
+                $.each(battlePacket, function (id, general) {
+                    if (!general.spec || general.spec.GetTask() || general.onSameGrid) return;
+                    const order = "({0}/{1})".format(num++, allState.total);
+                    if (general.canSubmitMove) {
+                        if (general.grid > 0)
+                            return aQueue.add('moveGeneral', { id: id, order: order });
+                        else
+                            return aQueue.add('retranchGeneral', { id: id, order: order });
+                    }
+                    if (landingFields.indexOf(general.grid) > -1 && general.spec.GetGarrisonGridIdx() > 0)
+                        return aQueue.add('retranchGeneral', { id: id, order: order });
+                });
+                var message = null;
+                if (attackerState.busy.total) {
+                    message = "Waiting for Generals ({0}/{1}){2}!!".format(
+                        allState.total - allState.busy.total,
+                        allState.total,
+                        allState.busy.travellingTime ? ", Continue in: " + aUtils.format.Time(allState.busy.travellingTime) : ""
+                    );
+                }
+                return aAdventure.auto.result(message, false);
+            } catch (er) { debug(er) }
+        },
+        attemptLoad: function (state, attackersOnly) {
+            try {
+                if (state.busy.total > 0)
+                    return aAdventure.auto.result(
+                        "Waiting for Generals ({0}/{1}){2}!!".format(
+                            state.total - state.busy.total,
+                            state.total,
+                            state.busy.travellingTime ? ", Continue in: " + aUtils.format.Time(state.busy.travellingTime) : ""
+                        ), false, 1);
+
+                if (state.army.canSubmit) {
+                    aUI.playSound('UnitProduced');
+                    var num = 1;
+                    $.each(battlePacket, function (id, general) {
+                        if (attackersOnly && !general.target) return;
+                        if (general.armyMatched) return;
+                        var dRaiseArmyVO = new dRaiseArmyVODef();
+                        dRaiseArmyVO.armyHolderSpecialistVO = general.spec.CreateSpecialistVOFromSpecialist();
+                        $.each(general.army, function (res) {
+                            var dResourceVO = new dResourceVODef();
+                            dResourceVO.name_string = res;
+                            dResourceVO.amount = general.army[res];
+                            dRaiseArmyVO.unitSquads.addItem(dResourceVO);
+                        });
+                        aQueue.add('loadGeneralUnits', { army: dRaiseArmyVO, message: "Loading template units ({0}/{1})!!".format(num++, state.total) });
+                    });
+                    return aAdventure.auto.result();
+                }
+                if (Object.keys(state.army.required).length) {
+                    var result = 'You need: ';
+                    $.each(state.army.required, function (unit, amount) {
+                        result += "{0} {1},".format(amount, loca.GetText('RES', unit));
+                    });
+                    return aAdventure.auto.result(result.substring(0, result.length - 1));
+                }
+                shortcutsFreeAllUnits();
+                return aAdventure.auto.result("Unloading all Units");
+            } catch (er) { debug(er) }
+        },
+        attemptAttack: function (state, killAll) {
+
+            if (!state.total) {
+                aUI.Alert('No attacks available!!', 'ARMY');
+                return aAdventure.auto.result(null, true, 2);
+            }
+
+            if (state.busy.total > 0)
+                return aAdventure.auto.result(
+                    "Waiting for Generals ({0}/{1})!!".format(
+                        state.total - state.busy.total,
+                        state.total
+                    ), false, 1);
+
+            if (state.canSubmitAttack) {
+                var num = 1;
+                $.each(battlePacket, function (id, attacker) {
+                    if (!attacker.target > 0) { return; }
+                    if (attacker.type == 'buff') {
+                        return aQueue.add('applyBuff', { what: "ON_ADVENTURE_BUFF", type: attacker.name, target: attacker.targetName });
+                    }
+                    const order = "({0}/{1})".format(num++, state.total);
+                    aQueue.add('attackEnemy', { id: id, order: order }, attacker.time);
+                });
+                aSession.adventure.action = killAll ? 'attacking' : '';
+                return aAdventure.auto.result(null, !killAll);
+            }
+
+            return aAdventure.auto.result(null, true);
+        }
+    },
     info: {
-        getActiveAdvetureID: function (name) {
+        getActiveAdvetureID: function (adventure) {
             try {
                 var id = 0;
-                name = name ? name : aSession.adventure.name;
+                adventure = adventure || aSession.adventure.name;
                 AdventureManager.getAdventures().forEach(function (adv) {
-                    if (adv.adventureName == name && AdventureManager.isMyAdventure(adv)) {
+                    if (adv.adventureName == adventure && AdventureManager.isMyAdventure(adv)) {
                         id = adv.zoneID;
                     }
                 });
@@ -4896,22 +5123,37 @@ const aAdventure = {
         },
         newGetBattleState: function (data) {
             aAdventure.army.updateArmy();
+            const state = {
+                attackers: {
+                    army: { canSubmit: true, required: {}, matched: [] },
+                    busy: { travelling: [], moving: [], attacking: [], total: 0 },
+                    total: []
+                },
+                all: {
+                    army: { canSubmit: true, required: {}, matched: [] },
+                    busy: { travelling: [], moving: [], attacking: [], total: 0 },
+                    total: []
+                }
+            }
             const army = {
                 canSubmit: true,
                 requiredArmy: {},
                 allMatched: [],
                 attackersMatched: [],
             };
+            const busy = {
+                attackers: 0,
+                all: 0,
+                moving: [],
+                travelling: [],
+                attacking: []
+            }
             var canSubmitAttack = true,
                 canSubmitMove = false,
                 attackSubmitChecker = [],
                 attacksAvailable = false,
                 attackersOnGrid = [],
                 onSameGrid = 0,
-                armyPacketMatch = [],
-                moving = [],
-                travelling = [],
-                attacking = [],
                 onWayToGrid = [],
                 totalGenerals = 0,
                 totalAttackers = 0,
@@ -4923,6 +5165,7 @@ const aAdventure = {
 
             //var checkedPacket = armyLoadDataCheck(battlePacket);
             $.each(battlePacket, function (id, item) {
+                const isAttacker = item.target > 0;
                 if (item.type == 'buff') {
                     if (!item.canSubmitAttack) {
                         aUI.Alert(item.target > 0 ? 'Can\'t find target on map, resuming!' :
@@ -4940,26 +5183,26 @@ const aAdventure = {
                 }
 
                 if (item.spec.GetTask()) {
+                    state.all.busy.total++;
+                    if (isAttacker) state.attackers.busy.total++;
                     const type = item.spec.GetTask().GetOriginalType();
                     if ([4, 12].indexOf(type) != -1) {
-                        moving.push(id);
+                        state.all.busy.moving.push(id);
+                        if (isAttacker) state.attackers.busy.moving.push(id);
                         if (item.spec.GetTask().GetNewGarrisonGridIdx() == item.grid)
                             onWayToGrid++;
                     }
-                    if ([7].indexOf(type) != -1)
-                        travelling.push(id);
-                    if ([5].indexOf(type) != -1)
-                        attacking.push(id);
+                    else if ([7].indexOf(type) != -1) {
+                        state.all.busy.travelling.push(id);
+                        if (isAttacker) state.attackers.busy.travelling.push(id);
+                    }
+                    else if ([5].indexOf(type) != -1) {
+                        state.all.busy.attacking.push(id);
+                        if (isAttacker) state.attackers.busy.attacking.push(id);
+                    }
                 }
-                // if(!item.onSameGrid){
 
-                // }
-                // if(item.spec.GetTask()){
-                //     if(item.spec.GetNewGarrisonGridIdx() == item.grid)
-                //         onWayToGrid.push(item.grid);
-
-                // }
-                totalGenerals++;
+                state.all.total++;
                 item.onSameGrid && onSameGrid++;
                 !item.canSubmitMove && cantMove++;
                 if (item.canSubmitMove) { canSubmitMove = true; }
@@ -4980,9 +5223,9 @@ const aAdventure = {
                     army.canSubmit = false;
                 }
                 army.allMatched.push(armyMatched);
-                item.target > 0 && army.attackersMatched.push(armyMatched);
+                isAttacker && army.attackersMatched.push(armyMatched);
                 // ===================== handling if enemies =====================
-                if (item.target > 0) {
+                if (isAttacker) {
                     totalAttackers++;
                     if (!item.canSubmitAttack)
                         canSubmitAttack = false;
@@ -5016,7 +5259,8 @@ const aAdventure = {
                 allOnGrid: totalGenerals == onSameGrid,
                 cantMoveAtAll: cantMove - onSameGrid - onWayToGrid,
                 canSubmitMove: canSubmitMove,
-                army: army
+                army: army,
+                busy: busy
             }
         },
         getBattleState: function (data) {
@@ -5064,10 +5308,15 @@ const aAdventure = {
             });
             return result;
         },
-        getRemainingEnemies: function (enemies) {
-            return (enemies || aSession.adventure.enemies).filter(function (e) {
-                return game.zone.GetBuildingFromGridPosition(e) && game.zone.GetBuildingFromGridPosition(e).getPlayerID() == -1;
-            }).length;
+        getLandingFields: function () {
+            return $.map(game.zone.mStreetDataMap.mLandingFields_vector, function (lf) { return lf.GetGrid() });
+        },
+        isOnAdventure: function () {
+            return game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID();
+        },
+        getFinishedQuests: function (count) {
+            const quests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function (e) { return e && e.isFinished(); });
+            return count ? quests.length : quests;
         }
     },
     data: {
@@ -5127,13 +5376,15 @@ const aAdventure = {
                 });
             } catch (er) { }
         },
-        loadGenerals: function (text) {
+        loadGenerals: function (attackersOnly, text) {
             try {
                 var num = 1;
                 const loadableGenerals = Object.keys(battlePacket).filter(function (general) {
+                    if (attackersOnly && !general.target) return false;
                     return Object.keys(battlePacket[general].army).length;
                 });
                 $.each(battlePacket, function (id, general) {
+                    if (loadableGenerals.indexOf(id) == -1) return;
                     var dRaiseArmyVO = new dRaiseArmyVODef();
                     var spec = armyGetSpecialistFromID(id);
                     if (spec == null) return;
@@ -5271,7 +5522,7 @@ const aAdventure = {
                 return aAdventure.auto.result("{0} Unloading all Units".format(file || ""));
             }
             aUI.playSound('UnitProduced');
-            aAdventure.action.loadGenerals("{0} Loading template units".format(file || ""));
+            aAdventure.action.loadGenerals(false, "{0} Loading template units".format(file || ""));
             if (state)
                 aSession.adventure.action = "attack";
             return aAdventure.auto.result();
@@ -5307,22 +5558,42 @@ const aAdventure = {
             return aAdventure.auto.result(null, true);
         },
         perform: function () {
-            if (game.gi.mCurrentViewedZoneID != aAdventure.info.getActiveAdvetureID())
-                return aAdventure.auto.result("You must be on adventure island!");
 
             const step = aSession.adventure.currentStep();
+            const onAdventure = step.name == 'AdventureTemplate';
             const filePath = step.file.split('\\');
             const file = "[{0}]".format(filePath[filePath.length - 1]);
-            const state = aAdventure.info.newGetBattleState(step.data);
 
+            if ((onAdventure && !aAdventure.info.isOnAdventure()) ||
+                (!onAdventure && !game.gi.isOnHomzone()))
+                return aAdventure.auto.result("You must be on {0} island!".format(onAdventure ? "adventure" : "home"));
+
+            const state = aAdventure.info.newGetBattleState(step.data);
+            debug(state);
             // if (!aSession.adventure.action) aSession.adventure.action = "move";
 
-            if ((step.name == 'AdventureTemplate' && !state.army.attackersMatched) ||
-                (step.name == 'InHomeLoadGenerals' && !state.army.allMatched)) {
+            if (onAdventure) {
+
+            }
+            const areGeneralsBusy = onAdventure ? state.busy.attackers : state.busy.all;
+            if (areGeneralsBusy) {
+                if (state.busy.travelling.length)
+                    return aAdventure.auto.result("Waiting for generals to arrive!", false, 2);
+                if (state.busy.moving.length)
+                    return aAdventure.auto.result("Waiting for generals to move to position!", false, 2);
+                if (state.busy.attacking.length)
+                    return aAdventure.auto.result("Waiting for generals to finish attacking!", false, 2);
+            }
+
+            const areArmyMatched = onAdventure ? state.army.attackersMatched : state.army.allMatched;
+            if (!areArmyMatched) {
                 if (state.army.canSubmit) {
                     // load & return;
                     aUI.playSound('UnitProduced');
-                    aAdventure.action.loadGenerals("{0} Loading template units".format(file));
+                    aAdventure.action.loadGenerals(
+                        onAdventure,
+                        "{0} Loading template units".format(file)
+                    );
                     return aAdventure.auto.result();
                 } else if (Object.keys(state.army.requiredArmy).length == 0) {
                     // free all Units & return
@@ -5336,32 +5607,26 @@ const aAdventure = {
                     });
                     return aAdventure.auto.result(result.substring(0, result.length - 1));
                 }
-            } else if (step.name == 'InHomeLoadGenerals') {
+            } else if (!onAdventure) {
                 return aAdventure.auto.result(null, true, 2);
             }
 
-            if (!state.attackersOnGrid) {
-
-            }
             if (state.canSubmitAttack) {
                 //Attack
             }
 
         },
         trainLostUnits: function () {
-            const lostArmy = aSession.adventure.lostArmy;
-            if (!Object.keys(lostArmy).length) return;
+            const lostArmy = aSession.adventure.getLostUnits();
+            if (!lostArmy.total) return;
 
-            var totalloss = 0;
-            $.each(lostArmy, function (k, v) { totalloss += v; });
-
-            if (game.getResources().GetFree() < totalloss) {
+            if (game.getResources().GetFree() < lostArmy.total) {
                 const population = aBuffs.getBuffAmount(['AddResource', 'Population']);
                 if (population)
                     aQueue.addToWaiting('applyBuff', { what: 'RESOURCE', type: ['AddResource', 'Population'], amount: population });
             }
             aQueue.addToWaiting('status', ['Training Lost Units!', 'Adventure'], 5000);
-            $.each(lostArmy, function (unitName, unitsNeeded) {
+            $.each(lostArmy.army, function (unitName, unitsNeeded) {
                 aQueue.addToWaiting('startProduction', [unitName, unitsNeeded, false]);
             });
         }
@@ -5377,19 +5642,19 @@ const aAdventure = {
                 aUI.Alert('Auto Adventure Completed!', 'ARMY');
                 aUI.modals.adventure.AM_LoadInfo();
             } else if (aSession.adventure.index < aSession.adventure.steps.length) {
-                if (game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID())
+                if (aAdventure.info.isOnAdventure() && aAdventure.info.getFinishedQuests(true))
                     aQueue.add("finishAdventureQuests");
                 var result = aAdventure.auto.execStep.current();
-                if (!result) {
-                    aSession.isOn.Adventure = false;
-                } else {
+                if (result) {
                     if (result.next) { aSession.adventure.nextStep(); }
                     if (result.message) { aQueue.add('status', [result.message, 'Adventure']); }
                     if (result.interval) { aQueue.interval = result.interval; }
                     aSettings.save();
                 }
             } else {
-                aQueue.add("finishAdventureQuests", null, 10000);
+                aAdventure.army.updateArmy();
+                if (!Object.keys(armyInfo.free).length)
+                    aQueue.add("finishAdventureQuests", null, 10000);
             }
         },
         execStep: {
@@ -5445,32 +5710,31 @@ const aAdventure = {
             },
             InHomeLoadGenerals: function () {
                 try {
-                    const step = aSession.adventure.currentStep();
                     if (!game.gi.isOnHomzone())
                         return aAdventure.auto.result("You must be on home island!");
 
-                    if (aAdventure.info.areGeneralsBusy(step.data))
-                        return aAdventure.auto.result(
-                            "Waiting for Generals{0}".format(aAdventure.info.getGeneralsArrivalTime(step.data)
-                            ), false, 1);
-
+                    aAdventure.army.updateArmy();
+                    const step = aSession.adventure.currentStep();
                     battlePacket = battleLoadDataCheck(step.data);
-                    return aAdventure.action.load();
-                } catch (er) { }
+                    const state = aAdventure.battle.getState();
+                    if (state.army.matched)
+                        return aAdventure.auto.result("All Units are loaded!!", true, 2);
+                    return aAdventure.battle.attemptLoad(state, false);
+                } catch (er) { debug(er) }
             },
             SendGeneralsToAdventure: function () {
                 try {
                     if (!game.gi.isOnHomzone())
                         return aAdventure.auto.result("You must be on home island!");
-
-                    if (aAdventure.info.areGeneralsBusy(aSession.adventure.generals))
+                    const generals = aSession.adventure.getGenerals();
+                    if (aAdventure.info.areGeneralsBusy(generals))
                         return aAdventure.auto.result(null);
 
-                    if (!aSession.adventure.generals.length)
+                    if (!generals.length)
                         return aAdventure.auto.result("Can't send generals");
 
-                    aSession.adventure.generals.forEach(function (id) {
-                        aQueue.add('sendGeneralsToAdventure', id);
+                    generals.forEach(function (id, index) {
+                        aQueue.add('sendGeneralsToAdventure', { id: id, num: index + 1, total: generals.length });
                     });
                     return aAdventure.auto.result(null, true);
 
@@ -5478,7 +5742,7 @@ const aAdventure = {
             },
             UseSpeedBuff: function () {
                 try {
-                    if (game.gi.mCurrentViewedZoneID != aAdventure.info.getActiveAdvetureID())
+                    if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result(null);
 
                     const speedBuff = aSession.adventure.currentStep().data || aSettings.defaults.Adventures.speedBuff;
@@ -5505,14 +5769,14 @@ const aAdventure = {
                             aQueue.add('travelToZone', 'Adventure');
                             aSession.adventure.action = 'Waiting';
                             return aAdventure.auto.result();
-                        } else if (game.gi.mCurrentViewedZoneID == aAdventure.info.getActiveAdvetureID()) {
+                        } else if (aAdventure.info.isOnAdventure()) {
                             return aAdventure.auto.result(null, true, 2);
                         }
                     }
                 } catch (er) { debug(er) }
             },
             CollectPickups: function () {
-                if (game.gi.mCurrentViewedZoneID != aAdventure.info.getActiveAdvetureID())
+                if (!aAdventure.info.isOnAdventure())
                     return aAdventure.auto.result("You must be on adventure island!");
                 return aAdventure.auto.result("Waiting for pickups!");
             },
@@ -5548,7 +5812,7 @@ const aAdventure = {
                 try {
                     const step = aSession.adventure.currentStep();
                     const buff = aBuffs.fullName(step.data);
-                    if (game.gi.mCurrentViewedZoneID != aAdventure.info.getActiveAdvetureID())
+                    if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result("You must be on adventure island!");
 
                     const canApply = aAdventure.info.canApplyBuff(buff);
@@ -5573,7 +5837,64 @@ const aAdventure = {
             },
             AdventureTemplate: function () {
                 try {
-                    if (game.gi.mCurrentViewedZoneID != aAdventure.info.getActiveAdvetureID())
+                    if (!aAdventure.info.isOnAdventure())
+                        return aAdventure.auto.result("You must be on adventure island!");
+
+                    aAdventure.army.updateArmy();
+                    const step = aSession.adventure.currentStep();
+                    battlePacket = battleLoadDataCheck(step.data);
+                    const attackerState = aAdventure.battle.getState(true);
+                    const allState = aAdventure.battle.getState();
+
+
+                    if (!aSession.adventure.action)
+                        aSession.adventure.action = "move";
+
+                    if (aSession.adventure.action == 'attacking') {
+                        const enemies = aSession.adventure.getEnemies(true);
+                        if (enemies.remaining) {
+                            return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, enemies.remaining, enemies.all), false, 1);
+                        } else {
+                            aSession.adventure.action = '';
+                            return aAdventure.auto.result("{0} All enemies killed, resuming!".format(fileName), true);
+                        }
+
+                    }
+
+                    if (aSession.adventure.action == "move") {
+                        if (!attackerState.grid.onGrid &&
+                            attackerState.grid.totalOn < attackerState.total)
+                            return aAdventure.battle.attemptMove(attackerState, allState);
+                        if (attackerState.grid.onGrid && attackerState.busy.travelling.length)
+                            return aAdventure.auto.result();
+                        aSession.adventure.action = 'load';
+                    }
+
+                    if (aSession.adventure.action == "load") {
+                        if (!attackerState.army.matched)
+                            return aAdventure.battle.attemptLoad(attackerState, true);
+                        aSession.adventure.action = "attack";
+                    }
+
+                    if (aSession.adventure.action == "attack") {
+                        if (!attackerState.grid.onGrid) {
+                            aSession.adventure.action = 'move';
+                            return aAdventure.auto.result();
+                        }
+                        if (!attackerState.army.matched) {
+                            aSession.adventure.action = 'load';
+                            return aAdventure.auto.result();
+                        }
+
+                        return aAdventure.battle.attemptAttack(attackerState, step.killAll);
+                    }
+
+                } catch (err) { debug(err); }
+                return aAdventure.auto.result();
+            },
+            AdventureTemplate2: function () {
+                try {
+                    if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result("You must be on adventure island!");
                     const step = aSession.adventure.currentStep();
 
@@ -5584,12 +5905,8 @@ const aAdventure = {
                         aSession.adventure.action = "move";
 
                     if (aSession.adventure.action == 'attacking') {
-                        const enemies = [];
-                        $.each(step.data, function (id, attack) {
-                            if (attack.target > 0) enemies.push(attack.target);
-                        });
-                        const remaining = aAdventure.info.getRemainingEnemies(enemies);
-                        if (remaining > 0)
+                        const remainingEnemies = aSession.adventure.getEnemies().remaining;
+                        if (remainingEnemies > 0)
                             return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, remaining, enemies.length), false, 1);
                         else
                             return aAdventure.auto.result("{0} All enemies killed, resuming!".format(fileName), true);
@@ -5616,10 +5933,10 @@ const aAdventure = {
             },
             LoadGeneralsToEnd: function () {
                 try {
-                    if (game.gi.mCurrentViewedZoneID != aAdventure.info.getActiveAdvetureID())
+                    if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result("You must be on adventure island to load all units");
 
-                    if (aAdventure.info.getRemainingEnemies() > 0)
+                    if (aSession.adventure.getEnemies().remaining > 0)
                         return aAdventure.auto.result("Waiting to kill enemies!!");
 
                     aAdventure.army.updateArmy();
@@ -5647,47 +5964,35 @@ const aAdventure = {
             return data.filter(function (unit) { return unit.GetType() == uName; })[0];
         },
         updateArmy: function () {
-            try {
-                armyInfo = {
-                    free: {},
-                    assigned: {},
-                    total: {}
-                };
-                game.zone.GetArmy(game.player.GetPlayerId()).GetSquadsCollection_vector().sort(game.def("MilitarySystem::cSquad").SortByCombatPriority).forEach(function (item) {
-                    if (item.GetUnitBase().GetUnitCategory() != 0) { return; }
-                    armyInfo.free[item.GetType()] = item.GetAmount();
-                    armyInfo.total[item.GetType()] = (armyInfo.total[item.GetType()] || 0) + item.GetAmount();
-                });
-                game.getSpecialists().forEach(function (general) {
+            armyInfo = {
+                free: {},
+                assigned: {},
+                total: {}
+            };
+            game.zone.GetArmy(game.player.GetPlayerId()).GetSquadsCollection_vector().sort(game.def("MilitarySystem::cSquad").SortByCombatPriority).forEach(function (item) {
+                if (item.GetUnitBase().GetUnitCategory() != 0) { return; }
+                armyInfo.free[item.GetType()] = item.GetAmount();
+                armyInfo.total[item.GetType()] = (armyInfo.total[item.GetType()] || 0) + item.GetAmount();
+            });
+            game.getSpecialists().forEach(function (general) {
+                try {
                     const id = general.GetUniqueID().toKeyString();
                     armyInfo[id] = { army: {} };
                     general.GetArmy().GetSquads_vector().forEach(function (squad) {
+                        if (!squad) return;
                         armyInfo[id].army[squad.GetType()] = squad.amount;
                         armyInfo.assigned[squad.GetType()] = (armyInfo.assigned[squad.GetType()] || 0) + squad.amount;
                         armyInfo.total[squad.GetType()] = (armyInfo.total[squad.GetType()] || 0) + squad.amount;
                     });
-                });
-            } catch (e) { debug(e) }
-        },
-        calculateLostUnits: function () {
-            try {
-                aAdventure.data.rEnemies = aAdventure.info.getRemainingEnemies();
-                aAdventure.army.updateArmy();
-                aAdventure.army.getUnit().forEach(function (uName) {
-                    uName = uName.GetType();
-                    const initial = aSession.adventure.army[uName];
-                    if (!initial) return;
-                    const lost = initial - armyInfo.total[uName];
-                    if (lost <= 0) return;
-                    aSession.adventure.lostArmy[uName] = lost;
-                });
-            } catch (e) { debug(e) }
+                } catch (e) { debug(e) }
+            });
         }
     },
 }
 
 const auto = {
-    version: '2.0.1',
+    version: '2.0.2',
+    developer: true,
     update: {
         url: function () {
             return atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2FkbHk5OC9hdXRvVFNPL21haW4v');
@@ -5799,6 +6104,9 @@ const auto = {
             game.gi.channels.SPECIALIST.addPropertyObserver(
                 "generalbattlefought", game.getTracker('battleFinished', aUtils.trackers.battleFinished)
             );
+            //game.gi.channels.ZONE.addPropertyObserver(
+            //    "CHAT_MESSAGE", game.getTracker('chatObserver', aUtils.trackers.chatObserver)
+            //)
             aSession.isOn.Explorers = aSettings.defaults.Explorers.autoStart;
             aSession.isOn.Deposits = aSettings.defaults.Deposits.autoStart;
             aSession.isOn.Buildings = aSettings.defaults.Buildings.autoStart;
@@ -5814,6 +6122,23 @@ const auto = {
             aUtils.game.applyTweaks();
             aUI.menu.init();
             aQueue.run();
+            //aQueue.watcher();
+            // aSession.tickMonitor = setInterval(function () {
+            //     if (game.gi.mGameTickCommand_vector.length > 1) {
+            //         $.each(game.gi.mGameTickCommand_vector, function (i, tick) {
+            //             if (!tick) return;
+            //             if (tick.mode == 120) return;
+            //             else if (tick.mode == 1062) {
+            //                 $.each(tick.data, function (i, trade) {
+            //                     $.each(aTrade.office.trades, function (key, val) {
+            //                         if (trade.offer == val.Offer)
+            //                             aTrade.office.trades[key].Live = trade.id;
+            //                     })
+            //                 });
+            //             }
+            //         });
+            //     }
+            // }, 2000);
             aSettings.save();
         } catch (er) { debug(er) }
     }

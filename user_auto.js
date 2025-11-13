@@ -1135,7 +1135,7 @@ const aUtils = {
 
             } catch (er) { debug(er) }
         },
-        chatObserver: function (e) {
+        chatObserver: function () {
             //debug(e);
         }
     },
@@ -1278,7 +1278,7 @@ const aUtils = {
                         const offer = "{0},{1}|{2},{3}|1".format(trade.Send[0], trade.Send[1], data.Receive[0], data.Receive[1]);
                         aTrade.office.trades[key]["Offer"] = offer;
                         if (aTrade.office.isTradeLive(data, offer, key)) return;
-                        aTrade.send(data, function (e, d) {
+                        aTrade.send(data, function () {
                             try {
                                 var k = key;
                                 aTrade.office.trades[k].Live = true;
@@ -1387,7 +1387,7 @@ const aUI = {
                     },
                     { label: "The Excelsior", onSelect: aUI.modals.Excelsior },
                     {
-                        label: "The Pathfinder", enabled: window.hasOwnProperty('aPathfinder'), onSelect: function (e) {
+                        label: "The Pathfinder", enabled: window.hasOwnProperty('aPathfinder'), onSelect: function () {
                             if (!window.hasOwnProperty('aPathfinder')) {
                                 return aUI.Alert('You must download and install the Pathfinder script first!!', 'ERROR');
                             }
@@ -1962,11 +1962,11 @@ const aUI = {
                 aWindow.withBody('.buildingSettings').click(function () {
                     aUI.modals.buildingSettings($(this).attr('id').replace('aBuildings_', ''));
                 });
-                aWindow.withBody('#aAdventure_EditTemplate').click(function (e) {
+                aWindow.withBody('#aAdventure_EditTemplate').click(function () {
                     if (!$("#aAdventure_SavedPool").val()) return;
                     aUI.modals.adventure.templateMaker($("#aAdventure_SavedPool").val());
                 });
-                aWindow.withBody('#aAdventure_RemoveTemplate').click(function (e) {
+                aWindow.withBody('#aAdventure_RemoveTemplate').click(function () {
                     if (!confirm('Are you sure ?!')) return;
                     const index = parseInt($("#aAdventure_SavedPool").val());
                     aUtils.file.Delete(aUtils.file.getPath(0, aSettings.defaults.Adventures.templates[index].id));
@@ -1974,7 +1974,7 @@ const aUI = {
                     aUI.modals.settings.loadSavedAdventures();
                     aSettings.save();
                 });
-                aWindow.withBody('#aExplorers_SelectTemplate').click(function (e) {
+                aWindow.withBody('#aExplorers_SelectTemplate').click(function () {
                     aUtils.file.Select(function (event) {
                         $("#aExplorers_Template").html(event.currentTarget.nativePath);
                         aSettings.defaults.Explorers.template = event.currentTarget.nativePath;
@@ -2156,7 +2156,7 @@ const aUI = {
 
                 });
                 aWindow.withsBody('#aTemplate_Steps').append(out);
-                aWindow.withsBody('.close').click(function (e) {
+                aWindow.withsBody('.close').click(function () {
                     if (aWindow.selectedStep === $(this).val()) {
                         aWindow.selectedStep = null;
                         $('#aTemplate_SelectedStep').empty();
@@ -2390,7 +2390,7 @@ const aUI = {
                     ], 'main'),
                 ]));
                 aWindow.withsBody('.main').css({ "background": "inherit", "margin-top": "5px" });
-                aWindow.withsBody('#LHTempSelect').click(function (e) {
+                aWindow.withsBody('#LHTempSelect').click(function () {
                     aUtils.file.Select(function (event) {
                         aUI.modals.adventure.TM_LoadHomeTemplate(event.currentTarget.nativePath);
                     });
@@ -2403,7 +2403,7 @@ const aUI = {
                     aWindow.steps = [];
                     aWindow.steps.push({ name: 'VisitAdventure' });
                     aWindow.steps.push({ name: 'UseSpeedBuff' });
-                    $.each(aAdventure.data.getItems(value), function (k, v) {
+                    $.each(aAdventure.data.getItems(value), function (k) {
                         aWindow.steps.push({ name: 'ProduceItem', data: k });
                         aWindow.steps.push({ name: 'ApplyBuff', data: k });
                     });
@@ -2535,7 +2535,7 @@ const aUI = {
                     );
                     aWindow.withBody('#aAdventure_BlackVortex').change(function (e) { aSettings.defaults.Adventures.blackVortex = $(e.target).is(':checked'); });
                     aWindow.withBody('#aAdventure_RetrainUnits').change(function (e) { aSettings.defaults.Adventures.reTrain = $(e.target).is(':checked'); });
-                    $('#aAdventureModal').on('click', '#aAdventureToggle', function (e) {
+                    $('#aAdventureModal').on('click', '#aAdventureToggle', function () {
                         switch ($(this).data('cmd')) {
                             case 'start':
                                 aSession.isOn.Adventure = true;
@@ -2697,7 +2697,7 @@ const aUI = {
                 var saveTemp = function () {
                     //options [findDepo, buildMine, upgradeMine, MineLevel, buffMine]
                     depoTypes.forEach(function (type) { aSettings.defaults.Deposits.data[type].geos = []; });
-                    $('.depoOption').each(function (i, checkBox) {
+                    $('.depoOption').each(function () {
                         var op = $(this).attr("id").split("_");
                         if ($(this).is(":disabled")) return;
                         if (op[0] === "depo") {
@@ -2771,7 +2771,7 @@ const aUI = {
                 aWindow.sData().append(aUtils.create.container().append(table));
                 aWindow.sData().find(".tblHeader img").css({ "display": "block", "margin": "0 auto" });
                 aWindow.sData().find('a').tooltip();
-                aWindow.withsBody('#aDeposits_Recommend').click(function (e) {
+                aWindow.withsBody('#aDeposits_Recommend').click(function () {
                     const data = {
                         Stone: [35, 62, 38, 49],
                         BronzeOre: [62, 38, 49],
@@ -2789,8 +2789,8 @@ const aUI = {
                         });
                     });
                 });
-                aWindow.withsBody('#aDeposits_Reset').click(function (e) {
-                    $('.depoOption').each(function (i, checkBox) {
+                aWindow.withsBody('#aDeposits_Reset').click(function () {
+                    $('.depoOption').each(function () {
                         var op = $(this).attr("id").split("_");
                         if (op[0] === "geo") {
                             $(this).prop("checked", false);
@@ -2844,7 +2844,7 @@ const aUI = {
                 };
                 var settings = function () {
                     var html = [];
-                    $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k, v) {
+                    $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
                         if (k === 'item') {
                             table = createTableRow([
@@ -2901,7 +2901,7 @@ const aUI = {
                         ], 'remTable')
                     ]))
                 );
-                aWindow.withsBody('#producableItems').change(function (e) {
+                aWindow.withsBody('#producableItems').change(function () {
                     aWindow.withsBody('#itemImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                     if (!$(this).val())
                         return aWindow.withsBody(".remTable").hide();
@@ -2922,11 +2922,11 @@ const aUI = {
                         )
                     });
                 }).val(sObj.item).change();
-                aWindow.withsBody('#buff').change(function (e) {
+                aWindow.withsBody('#buff').change(function () {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
                 aWindow.withsBody('#stack').val(sObj.stack).change();
-                aWindow.withsBody('#amount').on('input', function (e) {
+                aWindow.withsBody('#amount').on('input', function () {
                     $(this).val($(this).val().replace(/[^0-9.]/g, ''));
                     if ($(this).val() > LIMITS.TRADE_MAX_INPUT) $(this).val(LIMITS.TRADE_MAX_INPUT);
                 }).val(sObj.amount).change();
@@ -3376,7 +3376,7 @@ const aUI = {
                         loadTransactions();
                     });
 
-                    aWindow.withBody('.aTradeDelItem').on('click', function (e) {
+                    aWindow.withBody('.aTradeDelItem').on('click', function () {
                         try {
                             aSettings.defaults.Trade.Trades.splice(parseInt($(this).val()), 1)
                             aSettings.save();
@@ -3386,7 +3386,7 @@ const aUI = {
                     aWindow.withBody('#aTradeAmountSendSelect, #aTradeAmountReceiveSelect').on('input', function () {
                         $(this).val($(this).val().replace(/[^0-9.]/g, '').replace(/^([^.]*\.)|\./g, '$1'));
                     });
-                    aWindow.withBody('#aTradeTransactions .row div').on('click', function (e) {
+                    aWindow.withBody('#aTradeTransactions .row div').on('click', function () {
                         if (!this.nextSibling) return;
                         var trade = aSettings.defaults.Trade.Trades[$(this).parent().find('.close').val()];
                         $('#aTradeFriendSelect').val(trade.FriendID);
@@ -3664,7 +3664,7 @@ const aEvents = {
         const event = game.gi.mEventManager.GetActiveEventNames().filter(function (e) { return e.indexOf(type) !== -1 });
         if (!event.length) return null;
         var active = null;
-        $.each(this.treasureItems, function (k, v) {
+        $.each(this.treasureItems, function (k) {
             if (event[0].indexOf(k) !== -1)
                 active = k;
         });
@@ -3925,7 +3925,7 @@ const aBuffs = {
     },
     lootables: function () {
         var types = [];
-        $.each(game.def('global').map_BuffName_BuffDefinition, function (key, value) {
+        $.each(game.def('global').map_BuffName_BuffDefinition, function (key) {
             if (key.indexOf('Loottable_') === 0) types.push(key);
         });
         return types;
@@ -5447,7 +5447,7 @@ const aAdventure = {
             try {
                 var last = 0;
                 var isFree = 0;
-                $.each(generals, function (id, val) {
+                $.each(generals, function (id) {
                     const general = armyGetSpecialistFromID(id);
                     if (!general) return;
                     if (general.GetTask()) {
@@ -5717,13 +5717,6 @@ const aAdventure = {
             return game.def('AdventureSystem::cAdventureDefinition').FindAdventureDefinition(name).GetType_string();
         },
         getItems: function (adventure) {
-            const items = {
-                BuffAdventures_TMC_At_the_foot_of_the_Mountain: {
-                    BattleBuffDestroy_TMC_RepairKit: [5, true],
-                    BattleBuffDestroy_TMC_NordGateKey: ['Apply Only'],
-                    BattleBuffDestroy_TMC_BridgeConstructionKit: [1, 3114]
-                }
-            }
             const name = adventure || aSession.adventure.name;
             return game.auto.resources.AdventureItems[name.replace('BuffAdventures_', '')];
         }
@@ -5740,7 +5733,7 @@ const aAdventure = {
          */
         starGenerals: function () {
             try {
-                $.each(battlePacket, function (id, gen) {
+                $.each(battlePacket, function (id) {
                     var spec = armyGetSpecialistFromID(id);
                     if (!spec.GetGarrisonGridIdx()) return;
                     auto.cycle.Queue.add(function () {

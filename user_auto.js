@@ -4115,7 +4115,10 @@ const aBuildings = {
                 $.each(Object.keys(aSettings.defaults.Deposits.data), function (index, depoName) {
                     const depoData = aSettings.defaults.Deposits.data[depoName];
                     const onMapDepos = game.zone.mStreetDataMap.getDeposits_vectorByType(depoName);
-                    const onTaskGeos = geologists.filter(function (spec) { return spec.GetTask() && spec.GetTask().GetSubType() === index });
+                    const onTaskGeos = geologists.filter(function (spec) {
+                        var task = spec.GetTask ? spec.GetTask() : null;
+                        return task && task.GetSubType() === index;
+                    });
                     const unfoundDepos = (depoData.options[7] || depoData.max) - onMapDepos.length - onTaskGeos.length;
 
                     //if there is deposits to find

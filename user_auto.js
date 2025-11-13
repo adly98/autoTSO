@@ -2911,7 +2911,10 @@ const aUI = {
                     if (aWindow.buildingName === 'Bookbinder') {
                         costs = aBuildings.production.getBook($(this).val()).costs;
                     } else {
-                        costs = aBuffs.getDefinition($(this).val()).GetCosts_vector();
+                        var buffDef = aBuffs.getDefinition($(this).val());
+                        if (buffDef) {
+                            costs = buffDef.GetCosts_vector();
+                        }
                     };
                     costs.forEach(function (cost) {
                         aWindow.withsBody("#itemCosts").append(
@@ -4287,7 +4290,10 @@ const aBuildings = {
                 $.each(Object.keys(aSettings.defaults.Deposits.data), function (index, depoName) {
                     const depoData = aSettings.defaults.Deposits.data[depoName];
                     const onMapDepos = game.zone.mStreetDataMap.getDeposits_vectorByType(depoName);
-                    const onTaskGeos = geologists.filter(function (spec) { return spec.GetTask() && spec.GetTask().GetSubType() === index });
+                    const onTaskGeos = geologists.filter(function (spec) {
+                        var task = spec.GetTask ? spec.GetTask() : null;
+                        return task && task.GetSubType() === index;
+                    });
                     const unfoundDepos = (depoData.options[7] || depoData.max) - onMapDepos.length - onTaskGeos.length;
 
                     //if there is deposits to find

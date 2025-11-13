@@ -966,17 +966,17 @@ const aUtils = {
                 if (!isValid) {
                     // Check if validation is disabled - only override on failure
                     if (!aSettings.defaults.Security.validateFilePaths) {
-                        console.warn('Path validation disabled - allowing access to: ' + filePath);
+                        debug('Path validation disabled - allowing access to: ' + filePath);
                         return true;
                     }
                     debug('Path validation failed: ' + filePath + ' is outside allowed directories');
-                    console.error('Invalid path access attempt:', filePath);
+                    debug('Invalid path access attempt: ' + filePath);
                     return false;
                 }
                 return true;
             } catch (e) {
                 debug('Path validation error: ' + e);
-                console.error('Path validation error:', e);
+                debug('Path validation error: ' + e);
                 return false;
             }
         },
@@ -1003,7 +1003,7 @@ const aUtils = {
                 return JSON.parse(data);
             } catch (e) {
                 debug('File read error: ' + e);
-                console.error('Read error:', e);
+                debug('Read error: ' + e);
                 return false;
             }
         },
@@ -1028,7 +1028,7 @@ const aUtils = {
                 return true;
             } catch (e) {
                 debug('File write error: ' + e);
-                console.error('Write error:', e);
+                debug('Write error: ' + e);
                 return false;
             }
         },
@@ -1049,7 +1049,7 @@ const aUtils = {
                 return true;
             } catch (e) {
                 debug('File delete error: ' + e);
-                console.error('Delete error:', e);
+                debug('Delete error: ' + e);
                 return false;
             }
         },
@@ -4626,7 +4626,7 @@ const aMail = {
             aTrade.complete(data.id, 1, canTrade);
             aUI.updateStatus('Accepting Trade..', 'Mail');
             if (aSettings.defaults.Mail.SaveFriendsTrades) {
-                items['Date'] = new date().getTime();
+                items['Date'] = new Date().getTime();
                 items['Sender'] = data.senderName;
                 items['Status'] = canTrade;
                 aTrade.save(items);
@@ -4670,7 +4670,7 @@ const aMail = {
             aUI.updateStatus("Accepting \"{0}\" invitaion from {1}".format(loca.GetText('ADN', advName), data.senderName), 'Mail');
             delete aSession.mail.pendingInvites[data.id];
             game.gi.mClientMessages.SendMessagetoServer(93, data.attachments.zoneID, v);
-        } catch (e) { deubg('Error accepting adventure invite'); }
+        } catch (e) { debug('Error accepting adventure invite'); }
     },
     acceptLootMails: function () {
         try {
@@ -4817,7 +4817,7 @@ const aTrade = {
             var v = game.def("Communication.VO::dIntegerVO", !0);
             v.value = parseInt(id);
             game.gi.mClientMessages.SendMessagetoServer(code, game.gi.mCurrentPlayer.GetPlayerId(), v, responder || null);
-            aUI.updateStatus('Trade ' + type === 1 ? (accept ? 'Accepted' : 'Rejected') : 'Resources Collected', "Mail");
+            aUI.updateStatus('Trade ' + (type === 1 ? (accept ? 'Accepted' : 'Rejected') : 'Resources Collected'), "Mail");
             return true;
         } catch (e) { return false; }
     },

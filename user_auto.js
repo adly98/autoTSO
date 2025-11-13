@@ -793,18 +793,13 @@ const aUtils = {
             return file.exists;
         },
         validatePath: function (filePath) {
-            // Check if validation is enabled
-            if (!aSettings.defaults.Security.validateFilePaths) {
-                console.warn('Path validation is disabled - accessing: ' + filePath);
-                return true;
-            }
-
             // Validate that the path is within allowed directories to prevent directory traversal
             try {
                 var file = new air.File(filePath);
                 var allowedDirs = [
                     air.File.applicationDirectory.nativePath,
-                    air.File.applicationStorageDirectory.nativePath
+                    air.File.applicationStorageDirectory.nativePath,
+                    air.File.applicationDirectory.resolvePath('auto').nativePath
                 ];
 
                 var fileNativePath = file.nativePath;
@@ -813,6 +808,11 @@ const aUtils = {
                 });
 
                 if (!isValid) {
+                    // Check if validation is disabled - only override on failure
+                    if (!aSettings.defaults.Security.validateFilePaths) {
+                        console.warn('Path validation disabled - allowing access to: ' + filePath);
+                        return true;
+                    }
                     debug('Path validation failed: ' + filePath + ' is outside allowed directories');
                     console.error('Invalid path access attempt:', filePath);
                     return false;
@@ -3648,7 +3648,8 @@ const aBuffs = {
         ];
         buffs.forEach(function (buff) {
             var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
-            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(buff.getName(), buff.amount, des)));
+            var amount = aBuffs.getBuffAmount(buff.GetType());
+            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
         });
         return options;
     },
@@ -4248,7 +4249,7 @@ const aBuildings = {
         }
     },
     buffBuilding: function (building, buffName) {
-        if (building.productionBuff != null || building.GetResourceCreation().GetProductionState() !== 0 ||
+        if (!building || building.productionBuff != null || building.GetResourceCreation().GetProductionState() !== 0 ||
             building.IsUpgradeInProgress() || building.IsInConstructionMode() || building.IsInDestruction() ||
             !buffName || !aBuffs.getBuffAmount(buffName)) return;
         aQueue.add('applyBuff', { what: 'BUILDING', type: buffName, grid: building.GetGrid(), building: building.GetBuildingName_string() });

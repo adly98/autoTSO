@@ -1,5 +1,13 @@
 var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
 
+// Console polyfill for AIR compatibility (console object doesn't exist in AIR)
+if (typeof console === 'undefined') {
+    var console = {
+        log: function(msg) { debug(msg); },
+        error: function(msg) { debug(msg); },
+        warn: function(msg) { debug(msg); }
+    };
+}
 
 // Session Data
 const aSession = {
@@ -2145,7 +2153,7 @@ const aUI = {
                         if (['Scenario', 'Coop'].indexOf(category) != -1) return;
                         var optGroup = $('<optgroup>', { label: category });
                         $.each(adventures, function (i, adv) {
-                            const disabled = aAdventure.data.getAdventureType(addv) == "Venture" && !aAdventure.data.getItems(adv) ? true : false;
+                            const disabled = aAdventure.data.getAdventureType(adv) == "Venture" && !aAdventure.data.getItems(adv) ? true : false;
                             optGroup.append($('<option>', { value: adv }).prop('disabled', disabled).text(loca.GetText('ADN', adv)));
                         });
                         select.append(optGroup);

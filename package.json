@@ -1,0 +1,24 @@
+{
+  "name": "autotso",
+  "version": "2.0.3",
+  "description": "Automation script for The Settlers Online",
+  "private": true,
+  "scripts": {
+    "lint": "eslint user_auto.js",
+    "test": "echo 'No tests yet - pass' && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rknall/autoTSO.git"
+  },
+  "keywords": [
+    "settlers-online",
+    "automation",
+    "adobe-air"
+  ],
+  "author": "Roland Knall",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "eslint": "^8.50.0"
+  }
+}

@@ -47,6 +47,14 @@ const LIMITS = {
 };
 
 const WORK_TIME_OFFSET_SECONDS = 12;
+// Console polyfill for AIR compatibility (console object doesn't exist in AIR)
+if (typeof console === 'undefined') {
+    var console = {
+        log: function(msg) { debug(msg); },
+        error: function(msg) { debug(msg); },
+        warn: function(msg) { debug(msg); }
+    };
+}
 
 // Session Data
 const aSession = {
@@ -2320,7 +2328,7 @@ const aUI = {
                         if (['Scenario', 'Coop'].indexOf(category) !== -1) return;
                         var optGroup = $('<optgroup>', { label: category });
                         $.each(adventures, function (i, adv) {
-                            const disabled = aAdventure.data.getAdventureType(addv) === "Venture" && !aAdventure.data.getItems(adv) ? true : false;
+                            const disabled = aAdventure.data.getAdventureType(adv) === "Venture" && !aAdventure.data.getItems(adv) ? true : false;
                             optGroup.append($('<option>', { value: adv }).prop('disabled', disabled).text(loca.GetText('ADN', adv)));
                         });
                         select.append(optGroup);
@@ -2452,7 +2460,7 @@ const aUI = {
                     return aUI.Alert('Please select an adventure first', 'ARMY');
                 try {
                     aWindow = new Modal("aAdventureModal", getImage(assets.GetBuffIcon("MapPart").bitmapData) + " Auto Adventure");
-                    var aAdventure_SpeedBuffs = aUtils.create.Select("aAdventure_SpeedBuffs").append(auto.fn.buffs.Speed(1));
+                    var aAdventure_SpeedBuffs = aUtils.create.Select("aAdventure_SpeedBuffs").append(aBuffs.getSpeedBuffs(1));
                     //aWindow.size = '';
                     aWindow.create();
                     aWindow.Body().empty().append(
@@ -2477,7 +2485,7 @@ const aUI = {
                                                 [1, "File: "],
                                                 [3, $('<label>', { 'id': 'aAdventureFile', 'class': 'text-muted small' })],
                                                 [2, "Repeats: " + $('<label>', { 'id': 'aAdventureRepeats' }).prop('outerHTML')],
-                                                [2, "Black Vortex ({0}):".format(auto.fn.buffs.Amount("PropagationBuff_AdventureZoneTravelBoost_BlackTree"))],
+                                                [2, "Black Vortex ({0}):".format(aBuffs.getBuffAmount("PropagationBuff_AdventureZoneTravelBoost_BlackTree"))],
                                                 [1, createSwitch('aAdventure_BlackVortex', aSettings.defaults.Adventures.blackVortex)],
                                                 [2, "Retrain lost units:"],
                                                 [1, createSwitch('aAdventure_RetrainUnits', aSettings.defaults.Adventures.reTrain)],

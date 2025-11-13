@@ -1,0 +1,30 @@
+{
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "globals": {
+    "air": "readonly",
+    "game": "readonly",
+    "debug": "readonly",
+    "loca": "readonly",
+    "assets": "readonly",
+    "reloadScripts": "readonly",
+    "getImage": "readonly",
+    "createSwitch": "readonly",
+    "Modal": "readonly",
+    "AdventureManager": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-undef": "error",
+    "no-unused-vars": "warn",
+    "no-const-assign": "off",
+    "prefer-const": "off",
+    "no-var": "off"
+  }
+}

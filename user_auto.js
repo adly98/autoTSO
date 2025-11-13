@@ -2153,7 +2153,7 @@ const aUI = {
                         if (['Scenario', 'Coop'].indexOf(category) != -1) return;
                         var optGroup = $('<optgroup>', { label: category });
                         $.each(adventures, function (i, adv) {
-                            const disabled = aAdventure.data.getAdventureType(addv) == "Venture" && !aAdventure.data.getItems(adv) ? true : false;
+                            const disabled = aAdventure.data.getAdventureType(adv) == "Venture" && !aAdventure.data.getItems(adv) ? true : false;
                             optGroup.append($('<option>', { value: adv }).prop('disabled', disabled).text(loca.GetText('ADN', adv)));
                         });
                         select.append(optGroup);

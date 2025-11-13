@@ -2736,7 +2736,10 @@ const aUI = {
                     if (aWindow.buildingName == 'Bookbinder') {
                         costs = aBuildings.production.getBook($(this).val()).costs;
                     } else {
-                        costs = aBuffs.getDefinition($(this).val()).GetCosts_vector();
+                        var buffDef = aBuffs.getDefinition($(this).val());
+                        if (buffDef) {
+                            costs = buffDef.GetCosts_vector();
+                        }
                     };
                     costs.forEach(function (cost) {
                         aWindow.withsBody("#itemCosts").append(

@@ -2,7 +2,7 @@
 
 Comprehensive automation script for The Settlers Online game client running on Adobe AIR.
 
-[![CI Status](https://github.com/rknall/autoTSO/workflows/CI/badge.svg)](https://github.com/rknall/autoTSO/actions)
+[![CI Status](https://github.com/adly98/autoTSO/workflows/CI/badge.svg)](https://github.com/adly98/autoTSO/actions)
 
 ## Overview
 

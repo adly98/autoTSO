@@ -2285,7 +2285,7 @@ const aUI = {
                     return aUI.Alert('Please select an adventure first', 'ARMY');
                 try {
                     aWindow = new Modal("aAdventureModal", getImage(assets.GetBuffIcon("MapPart").bitmapData) + " Auto Adventure");
-                    var aAdventure_SpeedBuffs = aUtils.create.Select("aAdventure_SpeedBuffs").append(auto.fn.buffs.Speed(1));
+                    var aAdventure_SpeedBuffs = aUtils.create.Select("aAdventure_SpeedBuffs").append(aBuffs.getSpeedBuffs(1));
                     //aWindow.size = '';
                     aWindow.create();
                     aWindow.Body().empty().append(
@@ -2310,7 +2310,7 @@ const aUI = {
                                                 [1, "File: "],
                                                 [3, $('<label>', { 'id': 'aAdventureFile', 'class': 'text-muted small' })],
                                                 [2, "Repeats: " + $('<label>', { 'id': 'aAdventureRepeats' }).prop('outerHTML')],
-                                                [2, "Black Vortex ({0}):".format(auto.fn.buffs.Amount("PropagationBuff_AdventureZoneTravelBoost_BlackTree"))],
+                                                [2, "Black Vortex ({0}):".format(aBuffs.getBuffAmount("PropagationBuff_AdventureZoneTravelBoost_BlackTree"))],
                                                 [1, createSwitch('aAdventure_BlackVortex', aSettings.defaults.Adventures.blackVortex)],
                                                 [2, "Retrain lost units:"],
                                                 [1, createSwitch('aAdventure_RetrainUnits', aSettings.defaults.Adventures.reTrain)],

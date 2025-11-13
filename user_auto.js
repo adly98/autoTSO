@@ -601,6 +601,9 @@ const aSettings = {
             increaseTimeout: false,
             showGrid: false,
         },
+        Security: {
+            validateFilePaths: false,
+        },
         Explorers: {
             autoStart: false,
             template: "",
@@ -951,7 +954,8 @@ const aUtils = {
                 var file = new air.File(filePath);
                 var allowedDirs = [
                     air.File.applicationDirectory.nativePath,
-                    air.File.applicationStorageDirectory.nativePath
+                    air.File.applicationStorageDirectory.nativePath,
+                    air.File.applicationDirectory.resolvePath('auto').nativePath
                 ];
 
                 var fileNativePath = file.nativePath;
@@ -960,6 +964,11 @@ const aUtils = {
                 });
 
                 if (!isValid) {
+                    // Check if validation is disabled - only override on failure
+                    if (!aSettings.defaults.Security.validateFilePaths) {
+                        console.warn('Path validation disabled - allowing access to: ' + filePath);
+                        return true;
+                    }
                     debug('Path validation failed: ' + filePath + ' is outside allowed directories');
                     console.error('Invalid path access attempt:', filePath);
                     return false;
@@ -1877,6 +1886,13 @@ const aUI = {
                         [3, createSwitch('aScript_AutoUpdate', aSettings.defaults.Auto.AutoUpdate)],
                     ]),
                     $('<br>'),
+                    createTableRow([[9, 'Security'], [3, '&nbsp;']], true),
+                    createTableRow([
+                        [9, "Enable file path validation (recommended)"],
+                        [3, createSwitch('aSecurity_ValidateFilePaths', aSettings.defaults.Security.validateFilePaths)],
+                    ]),
+                    createTableRow([[12, '&#10551; When disabled, file operations may access any path (use with caution)']]),
+                    $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
                     createTableRow([
                         [4, "Restart Client when RAM used:"],
@@ -1973,6 +1989,8 @@ const aUI = {
                     aSettings.defaults.Auto.AutoUpdate = $('#aScript_AutoUpdate').is(':checked');
                     aSettings.defaults.Auto.RestartRAM = parseFloat($('#aScript_RestartRAM').val()) || 0;
                     aSettings.defaults.Auto.increaseTimeout = $('#aScript_IncreaseTimeout').is(':checked');
+                    //Security
+                    aSettings.defaults.Security.validateFilePaths = $('#aSecurity_ValidateFilePaths').is(':checked');
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');
@@ -3805,7 +3823,8 @@ const aBuffs = {
         ];
         buffs.forEach(function (buff) {
             var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
-            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(buff.getName(), buff.amount, des)));
+            var amount = aBuffs.getBuffAmount(buff.GetType());
+            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
         });
         return options;
     },
@@ -4405,7 +4424,7 @@ const aBuildings = {
         }
     },
     buffBuilding: function (building, buffName) {
-        if (building.productionBuff !== null || building.GetResourceCreation().GetProductionState() !== 0 ||
+        if (!building || building.productionBuff != null || building.GetResourceCreation().GetProductionState() !== 0 ||
             building.IsUpgradeInProgress() || building.IsInConstructionMode() || building.IsInDestruction() ||
             !buffName || !aBuffs.getBuffAmount(buffName)) return;
         aQueue.add('applyBuff', { what: 'BUILDING', type: buffName, grid: building.GetGrid(), building: building.GetBuildingName_string() });

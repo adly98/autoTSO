@@ -300,7 +300,7 @@ const aQueue = {
                 status = 'Transfering x{0} {1} from Star to Store!'.format(args.amount, loca.GetText('RES', args.type[1]));
             }
             aUI.updateStatus(status, 'Buffs');
-            aBuffs.applyBuff(args.type, args.grid === 0 ? args.gird : (args.grid || 8825), args.amount || 0, responder);
+            aBuffs.applyBuff(args.type, args.grid === 0 ? args.grid : (args.grid || 8825), args.amount || 0, responder);
         },
         friend: function (args) {
             switch (args[0]) {
@@ -314,8 +314,8 @@ const aQueue = {
                     var targets = aBuffs.getBuffTargets(args[2], args[3]);
                     if ($.isArray(targets)) {
                         $.each(targets, function (i, grid) {
-                            aBuffs.applyBuff(args[2], grid, 0, aUtils.responders.buffOnFriend(target.length == i + 1));
-                            aUI.updateStatus('Applying {0} ({1}/{2})!!'.format(loca.GetText('RES', args[2]), i + 1, target.length), 'Quests');
+                            aBuffs.applyBuff(args[2], grid, 0, aUtils.responders.buffOnFriend(targets.length == i + 1));
+                            aUI.updateStatus('Applying {0} ({1}/{2})!!'.format(loca.GetText('RES', args[2]), i + 1, targets.length), 'Quests');
                         });
                     } else {
                         aBuffs.applyBuff(args[2], targets, args[3], aUtils.responders.buffOnFriend(true));
@@ -781,30 +781,85 @@ const aUtils = {
             var file = new air.File(aUtils.file.getPath(1, file));
             return file.exists;
         },
+        validatePath: function (filePath) {
+            // Validate that the path is within allowed directories to prevent directory traversal
+            try {
+                var file = new air.File(filePath);
+                var allowedDirs = [
+                    air.File.applicationDirectory.nativePath,
+                    air.File.applicationStorageDirectory.nativePath
+                ];
+
+                var fileNativePath = file.nativePath;
+                var isValid = allowedDirs.some(function(allowedDir) {
+                    return fileNativePath.indexOf(allowedDir) === 0;
+                });
+
+                if (!isValid) {
+                    debug('Path validation failed: ' + filePath + ' is outside allowed directories');
+                    console.error('Invalid path access attempt:', filePath);
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                debug('Path validation error: ' + e);
+                console.error('Path validation error:', e);
+                return false;
+            }
+        },
         Read: function (fileName) {
             try {
+                if (!aUtils.file.validatePath(fileName)) {
+                    debug('Read blocked - invalid path: ' + fileName);
+                    return false;
+                }
+
                 var file = new air.File(fileName);
                 if (!file.exists) return false;
                 var fileStream = new air.FileStream();
                 fileStream.open(file, air.FileMode.READ);
                 var data = fileStream.readUTFBytes(file.size);
                 fileStream.close();
-                if (data == "") { return false; }
+                if (data === "") { return false; }
                 return JSON.parse(data);
-            } catch (e) { return false; }
+            } catch (e) {
+                debug('File read error: ' + e);
+                console.error('Read error:', e);
+                return false;
+            }
         },
         Write: function (path, data) {
             try {
+                if (!aUtils.file.validatePath(path)) {
+                    debug('Write blocked - invalid path: ' + path);
+                    return false;
+                }
+
                 var fileStream = new air.FileStream();
                 fileStream.open(new air.File(path), air.FileMode.WRITE);
                 fileStream.writeUTFBytes(data);
                 fileStream.close();
-            } catch (e) { debug(e); }
+                return true;
+            } catch (e) {
+                debug('File write error: ' + e);
+                console.error('Write error:', e);
+                return false;
+            }
         },
         Delete: function (path) {
             try {
-                new air.File(path).deleteFile()
-            } catch (e) { }
+                if (!aUtils.file.validatePath(path)) {
+                    debug('Delete blocked - invalid path: ' + path);
+                    return false;
+                }
+
+                new air.File(path).deleteFile();
+                return true;
+            } catch (e) {
+                debug('File delete error: ' + e);
+                console.error('Delete error:', e);
+                return false;
+            }
         },
         Select: function (callback) {
             try {
@@ -843,7 +898,7 @@ const aUtils = {
                         aSession.adventure.repeatCount--;
                         aSession.adventure.reset();
                         aUI.modals.adventure.AM_LoadInfo()
-                        setTimeOut(function () {
+                        setTimeout(function () {
                             aSession.isOn.Adventure = true;
                             aUI.menu.init();
                         }, 10000);
@@ -5754,7 +5809,7 @@ const aAdventure = {
 
                     aQueue.add('applyBuff', { what: 'ADVENTURE_BUFF', type: speedBuff, grid: 0 });
 
-                } catch (er) { debug(e); }
+                } catch (er) { debug(er); }
                 return aAdventure.auto.result(null, true, 1);
             },
             StarGenerals: function () {
@@ -5905,9 +5960,9 @@ const aAdventure = {
                         aSession.adventure.action = "move";
 
                     if (aSession.adventure.action == 'attacking') {
-                        const remainingEnemies = aSession.adventure.getEnemies().remaining;
-                        if (remainingEnemies > 0)
-                            return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, remaining, enemies.length), false, 1);
+                        const enemies = aSession.adventure.getEnemies();
+                        if (enemies.remaining > 0)
+                            return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, enemies.remaining, enemies.all), false, 1);
                         else
                             return aAdventure.auto.result("{0} All enemies killed, resuming!".format(fileName), true);
                     }
@@ -6009,7 +6064,17 @@ const auto = {
                         if (!event) {
                             aUI.menu.Progress = 70;
                             if (aSettings.defaults.Auto.AutoUpdate) {
-                                auto.update.updateScript();
+                                // Show changelog and request user consent before auto-updating
+                                var userConsent = confirm(
+                                    "New update available (v" + json.version + ")!\n\n" +
+                                    "Changelog:\n" + (json.changelog || "No changelog available") + "\n\n" +
+                                    "Do you want to update now?"
+                                );
+                                if (userConsent) {
+                                    auto.update.updateScript();
+                                } else {
+                                    auto.update.available = true;
+                                }
                             } else {
                                 auto.update.available = true;
                             }
@@ -6023,21 +6088,53 @@ const auto = {
                             aUI.Alert("Latest Version :D", 'TransporterAdmiral');
                     }
                 });
-            } catch (e) { debug(e) }
+            } catch (e) {
+                debug('Update check failed: ' + e);
+                console.error('Update check error:', e);
+            }
         },
         updateScript: function () {
             try {
                 aSettings.save();
                 $.get(auto.update.url() + 'user_auto.js', function (data) {
-                    const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
-                    aUtils.file.Write(path, data);
-                    aUI.menu.Progress = 90;
-                    setTimeout(function () {
-                        aUI.Alert("Updated Successfuly ^_^", 'TransporterAdmiral');
-                        reloadScripts();
-                    }, 5000);
+                    try {
+                        const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
+                        const backupPath = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js.backup").nativePath;
+
+                        // Create backup of current version before updating
+                        try {
+                            const currentFile = new air.File(path);
+                            if (currentFile.exists) {
+                                const fileStream = new air.FileStream();
+                                fileStream.open(currentFile, air.FileMode.READ);
+                                const currentData = fileStream.readUTFBytes(currentFile.size);
+                                fileStream.close();
+                                aUtils.file.Write(backupPath, currentData);
+                                debug('Backup created successfully');
+                            }
+                        } catch (backupError) {
+                            debug('Backup creation failed: ' + backupError);
+                            console.error('Backup error:', backupError);
+                        }
+
+                        // Write new version
+                        aUtils.file.Write(path, data);
+                        aUI.menu.Progress = 90;
+                        setTimeout(function () {
+                            aUI.Alert("Updated Successfuly ^_^", 'TransporterAdmiral');
+                            reloadScripts();
+                        }, 5000);
+                    } catch (writeError) {
+                        debug('Update write failed: ' + writeError);
+                        console.error('Update write error:', writeError);
+                        aUI.Alert("Update failed - check console for details", 'ERROR');
+                    }
                 });
-            } catch (e) { aUI.Alert("New Version couldn't be downloaded @_@", 'ERROR'); }
+            } catch (e) {
+                debug('Update failed: ' + e);
+                console.error('Update error:', e);
+                aUI.Alert("New Version couldn't be downloaded @_@", 'ERROR');
+            }
         },
         compareVersions: function (v1, v2) {
             const v1Parts = v1.split('.').map(Number);

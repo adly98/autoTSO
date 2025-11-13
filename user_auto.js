@@ -475,6 +475,9 @@ const aSettings = {
             increaseTimeout: false,
             showGrid: false,
         },
+        Security: {
+            validateFilePaths: false,
+        },
         Explorers: {
             autoStart: false,
             template: "",
@@ -790,6 +793,12 @@ const aUtils = {
             return file.exists;
         },
         validatePath: function (filePath) {
+            // Check if validation is enabled
+            if (!aSettings.defaults.Security.validateFilePaths) {
+                console.warn('Path validation is disabled - accessing: ' + filePath);
+                return true;
+            }
+
             // Validate that the path is within allowed directories to prevent directory traversal
             try {
                 var file = new air.File(filePath);
@@ -1702,6 +1711,13 @@ const aUI = {
                         [3, createSwitch('aScript_AutoUpdate', aSettings.defaults.Auto.AutoUpdate)],
                     ]),
                     $('<br>'),
+                    createTableRow([[9, 'Security'], [3, '&nbsp;']], true),
+                    createTableRow([
+                        [9, "Enable file path validation (recommended)"],
+                        [3, createSwitch('aSecurity_ValidateFilePaths', aSettings.defaults.Security.validateFilePaths)],
+                    ]),
+                    createTableRow([[12, '&#10551; When disabled, file operations may access any path (use with caution)']]),
+                    $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
                     createTableRow([
                         [4, "Restart Client when RAM used:"],
@@ -1798,6 +1814,8 @@ const aUI = {
                     aSettings.defaults.Auto.AutoUpdate = $('#aScript_AutoUpdate').is(':checked');
                     aSettings.defaults.Auto.RestartRAM = parseFloat($('#aScript_RestartRAM').val()) || 0;
                     aSettings.defaults.Auto.increaseTimeout = $('#aScript_IncreaseTimeout').is(':checked');
+                    //Security
+                    aSettings.defaults.Security.validateFilePaths = $('#aSecurity_ValidateFilePaths').is(':checked');
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');

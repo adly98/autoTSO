@@ -5349,9 +5349,7 @@ const aAdventure = {
                     });
                     if (!armyMatched) {
                         state.army.matched = false;
-                        // Only block submission if general has an active task
-                        // Allow loading even if not in garrison (could be at star already)
-                        if (item.spec.GetTask())
+                        if (item.spec.GetTask() || !item.spec.GetGarrison())
                             state.army.canSubmit = false;
                     }
                     // =============== handle move ================
@@ -5661,9 +5659,7 @@ const aAdventure = {
                         army.canSubmit = false;
                     }
                 });
-                // Only block submission if general has an active task
-                // Allow loading even if not in garrison (could be at star already)
-                if (!armyMatched && item.spec.GetTask()) {
+                if (!armyMatched && (item.spec.GetTask() || !item.spec.GetGarrison())) {
                     army.canSubmit = false;
                 }
                 army.allMatched.push(armyMatched);

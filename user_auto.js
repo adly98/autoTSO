@@ -6223,9 +6223,10 @@ const aAdventure = {
 
                     // Wait for all specialists to arrive and be at star before applying buff
                     // This prevents wasting buff time while specialists are still traveling
+                    // Use game.getSpecialists() directly to include ALL specialists (generals + carriers)
                     var allSpecialists = [];
-                    aSpecialists.getSpecialists(0).forEach(function (spec) {
-                        if (spec && !spec.IsInUse()) {
+                    game.getSpecialists().forEach(function (spec) {
+                        if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
                             allSpecialists.push(spec.GetUniqueID().toKeyString());
                         }
                     });
@@ -6252,9 +6253,11 @@ const aAdventure = {
 
                     // Get ALL specialists on adventure (not just battle packet generals)
                     // This includes troop carriers like Smuggler/Quartermaster
+                    // Use game.getSpecialists() directly instead of aSpecialists.getSpecialists(0)
+                    // because the latter filters to only isGeneral() which excludes carriers
                     var allSpecialists = [];
-                    aSpecialists.getSpecialists(0).forEach(function (spec) {
-                        if (spec && !spec.IsInUse()) {
+                    game.getSpecialists().forEach(function (spec) {
+                        if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
                             allSpecialists.push(spec.GetUniqueID().toKeyString());
                         }
                     });

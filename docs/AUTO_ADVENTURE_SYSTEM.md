@@ -582,32 +582,81 @@ cleanup: function () {
 
 ---
 
-### Issue 3: Troops Not Carried Back After Adventure ⚠️ UNDER INVESTIGATION
+### Issue 3: Troops Not Carried Back After Adventure ✅ FIXED
 
-**Symptom:**
+**Original Symptom:**
 - Adventure completes successfully
-- Generals return to home island
-- Troops are NOT unloaded/carried back with the generals
-- Troops remain on the adventure map instead of returning home
+- Generals return to home island with troops
+- BUT some troops walk home on their own (2 hour travel time)
+- Instead of being carried by troop carriers like Smuggler/Quartermaster (much faster)
+- This significantly slows down automated adventure cycles
 
-**Status:** Under investigation
+**Root Cause:**
 
-**Expected Behavior:**
-- After adventure completes, generals should return home
-- Troops should be unloaded from generals and carried back
-- All units should be available on home island
+The `LoadGeneralsToEnd` step had a critical timing issue in `user_auto.js:6410-6426`:
 
-**Possible Causes:**
-- Missing step to unload troops before returning home
-- ReturnHome step doesn't handle troop transfer
-- Game API not being called to carry troops back
-- Step sequence ends before troop return is complete
+```javascript
+aAdventure.army.updateArmy();  // Line 6418 - populate armyInfo.free
 
-**Code Locations to Investigate:**
-- `user_auto.js:6235-6243` - ReturnHome step
-- Adventure completion logic
-- Troop unloading/transfer mechanisms
-- FinishAdventure action handling
+if (!Object.keys(armyInfo.free).length)  // Line 6420
+    return aAdventure.auto.result("No unassigned units, ready to finish", true);
+
+aAdventure.action.assignAllUnitsToFinish(armyInfo.free);  // Line 6423 - queue loads
+return aAdventure.auto.result();  // Line 6424 - return immediately!
+```
+
+**The Problem:**
+1. Step queues load operations for free troops (line 6423)
+2. Returns immediately with `next: false` (line 6424) to wait
+3. **Next cycle**: Checks `armyInfo.free` again (line 6418-6420)
+4. But queued load operations haven't executed yet!
+5. Two outcomes:
+   - Troops still show as "free" → queues duplicate load operations
+   - Or loads execute but aren't verified → step completes prematurely
+6. Adventure closes before all troops loaded to carriers
+7. Unloaded troops walk home alone (2 hour journey)
+
+**How Adventure Return Actually Works:**
+- Generals do NOT need to be explicitly sent home
+- When adventure map closes (all steps complete), the game automatically returns generals
+- Troops ON generals travel with them (fast, carrier speed)
+- Troops NOT on generals walk home alone (slow, 2 hour default)
+- The `LoadGeneralsToEnd` step MUST ensure ALL troops loaded before allowing map closure
+
+**The Fix:**
+
+**Code Reference:** `user_auto.js:6410-6428`
+
+Changed line 6426 to properly wait and verify:
+
+```javascript
+aAdventure.action.assignAllUnitsToFinish(armyInfo.free);
+// Wait for queued load operations to complete before re-checking
+// Next cycle will verify armyInfo.free is empty after loads execute
+return aAdventure.auto.result("Loading remaining troops to carriers", false, 2);
+```
+
+**Changes:**
+1. Added status message: "Loading remaining troops to carriers"
+2. Explicitly wait with `next: false` (step retries)
+3. Added 2-second interval to allow loads to execute
+4. Next cycle calls `updateArmy()` and verifies `armyInfo.free` is empty
+5. Only advances when ALL troops confirmed loaded
+
+**Pattern Reference:**
+This follows the same pattern as `attemptLoad()` (`user_auto.js:5441-5443`):
+- Queue load actions
+- Return with `next: false` (wait/retry)
+- Re-check on next cycle to verify completion
+
+**Expected Behavior After Fix:**
+1. `LoadGeneralsToEnd` detects free troops
+2. Queues load operations to carriers
+3. Waits with status message "Loading remaining troops to carriers"
+4. Next cycle: Verifies all troops loaded (`armyInfo.free` empty)
+5. Only then completes step → adventure closes
+6. ALL troops carried back with carriers (fast travel)
+7. No troops left to walk home alone
 
 ---
 

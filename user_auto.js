@@ -6421,7 +6421,9 @@ const aAdventure = {
                         return aAdventure.auto.result("No unassigned units, ready to finish", true);
 
                     aAdventure.action.assignAllUnitsToFinish(armyInfo.free);
-                    return aAdventure.auto.result();
+                    // Wait for queued load operations to complete before re-checking
+                    // Next cycle will verify armyInfo.free is empty after loads execute
+                    return aAdventure.auto.result("Loading remaining troops to carriers", false, 2);
                 } catch (err) { console.error(err) }
             }
         },

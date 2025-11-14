@@ -3872,9 +3872,9 @@ const aBuffs = {
     },
     getBuffsForBuilding: function (target, isWorkyard, toOptions) {
         const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
-            if (!buff) return false;
+            if (!buff || typeof buff.GetType !== 'function' || typeof buff.GetBuffDefinition !== 'function') return false;
             const def = buff.GetBuffDefinition();
-            if (def.GetBuffType() !== 0) return false;
+            if (!def || def.GetBuffType() !== 0) return false;
             const targets = def.GetTargetDescription_string().split(',');
             const targetGroup = def.GetTargetGroup_string() || null;
             return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);

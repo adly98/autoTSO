@@ -229,6 +229,7 @@ const aQueue = {
 
     /**
      * Resets the queue to initial state (clears all queued actions)
+     * Note: Does NOT remove observers as they are global and should persist
      * @returns {void}
      */
     reset: function () {
@@ -238,6 +239,16 @@ const aQueue = {
             clearInterval(game.aWatcherID);
             game.aWatcherID = null;
         }
+        // NOTE: We do NOT clear observers here because they are global event handlers
+        // that need to persist across queue resets (e.g., ZONE_REFRESHED for adventure transitions)
+    },
+
+    /**
+     * Cleanup function for application shutdown
+     * Removes all property observers and clears resources
+     * @returns {void}
+     */
+    cleanup: function () {
         // Clean up property observers
         aSession.observers.forEach(function (observer) {
             try {
@@ -247,6 +258,10 @@ const aQueue = {
             }
         });
         aSession.observers = [];
+        if (game.aWatcherID) {
+            clearInterval(game.aWatcherID);
+            game.aWatcherID = null;
+        }
     },
 
     /**

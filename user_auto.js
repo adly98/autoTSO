@@ -2694,14 +2694,17 @@ const aUI = {
                 var expls = [];
                 game.getSpecialists().sort(specNameSorter).forEach(function (spec) {
                     try {
-                        if (!spec || spec.GetBaseType() !== 1 || expls.indexOf(spec.GetType()) !== -1) return;
+                        if (!spec || typeof spec.GetType !== 'function' || typeof spec.GetBaseType !== 'function') return;
+                        if (spec.GetBaseType() !== 1 || expls.indexOf(spec.GetType()) !== -1) return;
                         var text = $('<span>').append([
                             $(getImageTag(spec.getIconID(), '26px', '26px')),
                             loca.GetText("SPE", spec.GetSpecialistDescription().getName_string())
                         ]);
                         table.push(createTableRow([[12 - types.length, text]].concat(types.map(function (r) { return [1, createSwitch("{0}_{1}_{2}".format(sub, r, spec.GetType()))] }))));
                         expls.push(spec.GetType());
-                    } catch (e) { debug(e); }
+                    } catch (e) {
+                        debug('[WARN] Failed to process specialist: ' + e);
+                    }
                 });
                 return table;
             }

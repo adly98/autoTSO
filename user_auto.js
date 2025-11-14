@@ -5826,7 +5826,8 @@ const aAdventure = {
             try {
                 $.each(battlePacket, function (id) {
                     var spec = armyGetSpecialistFromID(id);
-                    if (!spec.GetGarrisonGridIdx()) return;
+                    // Skip if specialist doesn't exist or is already busy
+                    if (!spec || spec.GetTask()) return;
                     auto.cycle.Queue.add(function () {
                         try {
                             game.gi.mCurrentCursor.mCurrentSpecialist = spec;
@@ -6242,27 +6243,14 @@ const aAdventure = {
                     if (!generals.length)
                         return aAdventure.auto.result("No generals found", true);
 
-                    // Wait for all specialists (generals + carriers) to arrive at adventure
-                    if (aAdventure.info.areGeneralsBusy(generals))
-                        return aAdventure.auto.result("Waiting for all troops to arrive", false, 2);
-
-                    // Check if all generals are already at star
-                    var allAtStar = true;
-                    for (var i = 0; i < generals.length; i++) {
-                        var spec = armyGetSpecialistFromID(generals[i]);
-                        if (!spec || !spec.GetGarrisonGridIdx()) {
-                            allAtStar = false;
-                            break;
-                        }
-                    }
-
-                    if (allAtStar)
-                        return aAdventure.auto.result("All troops at star", true, 2);
-
-                    // All specialists have arrived - send them to star
+                    // Always send to star (idempotent - safe to call multiple times)
                     aAdventure.action.starGenerals();
-                    // Wait for next cycle to verify they reached star
-                    return aAdventure.auto.result("Sending all troops to star", false, 2);
+
+                    // Wait until all specialists are idle (finished moving to star)
+                    if (aAdventure.info.areGeneralsBusy(generals))
+                        return aAdventure.auto.result("Waiting for troops to reach star", false, 2);
+
+                    return aAdventure.auto.result("All troops at star", true, 2);
                 } catch (er) {
                     console.error(er);
                     return aAdventure.auto.result(null, true);

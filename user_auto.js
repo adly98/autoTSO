@@ -50,9 +50,9 @@ const WORK_TIME_OFFSET_SECONDS = 12;
 // Console polyfill for AIR compatibility (console object doesn't exist in AIR)
 if (typeof console === 'undefined') {
     var console = {
-        log: function(msg) { debug(msg); },
-        error: function(msg) { debug(msg); },
-        warn: function(msg) { debug(msg); }
+        log: function(msg) { debug('[LOG] ' + msg); },
+        error: function(msg) { debug('[ERROR] ' + msg); },
+        warn: function(msg) { debug('[WARN] ' + msg); }
     };
 }
 
@@ -2736,8 +2736,18 @@ const aUI = {
                         return $(a).text() < $(b).text() ? -1 : 1;
                     }));
                 }
+                var safeGetImageTag = function (name, w, h) {
+                    try {
+                        return getImageTag(name, w, h);
+                    } catch (e) {
+                        return $('<span>', {
+                            'style': 'display: inline-block; width: ' + w + '; height: ' + h + '; background-color: #ccc;',
+                            'title': 'Image not available: ' + name
+                        }).prop('outerHTML');
+                    }
+                }
                 var table = [];
-                table.push(createTableRow([[3, 'Settings']].concat(depoTypes.map(function (r) { return [1, getImageTag(r, '23px', '23px')] })), true));
+                table.push(createTableRow([[3, 'Settings']].concat(depoTypes.map(function (r) { return [1, safeGetImageTag(r, '23px', '23px')] })), true));
                 table.push(createTableRow([[3, "Find Deposit:"]].concat(depoTypes.map(function (r) { return [1, createCheck("depo_{0}_0".format(r))] }))));
                 table.push(createTableRow([[3, "Build Mine:"]].concat(depoTypes.map(function (r) { return [1, createCheck("depo_{0}_1".format(r))] }))));
                 table.push(createTableRow([[3, "Upgrade Mine:"]].concat(depoTypes.map(function (r) { return [1, createCheck("depo_{0}_2".format(r))] }))));

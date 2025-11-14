@@ -6413,8 +6413,11 @@ const aAdventure = {
                         if (enemies.remaining) {
                             return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, enemies.remaining, enemies.all), false, 1);
                         } else {
+                            // Proactively unload all units before starting next wave
+                            // This prevents deadlock where units are stuck on generals not needed for the next wave
+                            shortcutsFreeAllUnits();
                             aSession.adventure.action = '';
-                            return aAdventure.auto.result("{0} All enemies killed, resuming!".format(fileName), true);
+                            return aAdventure.auto.result("{0} All enemies killed, unloading units!".format(fileName), true);
                         }
 
                     }

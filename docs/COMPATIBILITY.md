@@ -53,6 +53,40 @@ This document outlines JavaScript compatibility for The Settlers Online running 
 - Ternary operator `? :`
 - `debug()` function (custom logging)
 
+## Console Polyfill
+
+**Code Reference:** `user_auto.js` lines 55-62
+
+Adobe AIR does not provide a native `console` object. To maintain compatibility with modern debugging practices, a console polyfill is implemented:
+
+```javascript
+if (typeof console === 'undefined') {
+    var console = {
+        log: function(msg) { debug('[LOG] ' + msg); },
+        info: function(msg) { debug('[INFO] ' + msg); },
+        error: function(msg) { debug('[ERROR] ' + msg); },
+        warn: function(msg) { debug('[WARN] ' + msg); }
+    };
+}
+```
+
+**Features:**
+- Provides `console.log()`, `console.info()`, `console.warn()`, `console.error()`
+- All methods redirect to the native AIR `debug()` function
+- Messages are prefixed with severity level (LOG, INFO, WARN, ERROR)
+- Safe to use throughout the codebase
+- Enables code portability between AIR and modern browsers
+
+**Usage:**
+```javascript
+console.log('Operation completed');      // Output: [LOG] Operation completed
+console.info('Starting process');        // Output: [INFO] Starting process
+console.warn('Low memory detected');     // Output: [WARN] Low memory detected
+console.error('Failed to load resource'); // Output: [ERROR] Failed to load resource
+```
+
+**Note:** While the polyfill makes `console` methods available, using `debug()` directly is still preferred for AIR-specific code as it's the native logging mechanism.
+
 ## NOT Supported ❌
 
 ### Variable Declarations
@@ -92,7 +126,6 @@ This document outlines JavaScript compatibility for The Settlers Online running 
 - Computed property names `{ [key]: value }`
 
 ### Other
-- `console` object - **Does NOT exist** - use `debug()` instead
 - `Set`, `Map`, `WeakMap`, `WeakSet`
 - Symbols
 - Modules `import`/`export`
@@ -127,12 +160,17 @@ if (array.includes(item)) {
 
 ### ✅ Logging
 ```javascript
-// Good - works in AIR
+// Best - native AIR logging function
 debug('Log message: ' + variable);
 
-// Bad - crashes without polyfill
-console.log('message');
-console.error('error');
+// Also works - polyfill provided in user_auto.js
+console.log('Log message: ' + variable);
+console.info('Info message');
+console.warn('Warning message');
+console.error('Error message');
+
+// Note: Console polyfill redirects to debug() function
+// See user_auto.js lines 55-62 for implementation
 ```
 
 ### ✅ Variable Declarations
@@ -205,7 +243,7 @@ var result = someOperation(); // No error handling
 
 1. **Always use `var`** instead of `let`
 2. **Use `.indexOf()`** instead of `.includes()` or `.startsWith()`
-3. **Use `debug()`** instead of `console.*`
+3. **Use `debug()` or `console.*`** for logging (console polyfill available)
 4. **Avoid modern array methods** like `.forEach()`, `.map()`, `.filter()`
 5. **Test in actual AIR environment** before deploying
 6. **Use ESLint** with the provided `.eslintrc.json` to catch incompatibilities

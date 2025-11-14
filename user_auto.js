@@ -6242,13 +6242,27 @@ const aAdventure = {
                     if (!generals.length)
                         return aAdventure.auto.result("No generals found", true);
 
-                    // Wait for all specialists (generals + carriers) to arrive
+                    // Wait for all specialists (generals + carriers) to arrive at adventure
                     if (aAdventure.info.areGeneralsBusy(generals))
                         return aAdventure.auto.result("Waiting for all troops to arrive", false, 2);
 
+                    // Check if all generals are already at star
+                    var allAtStar = true;
+                    for (var i = 0; i < generals.length; i++) {
+                        var spec = armyGetSpecialistFromID(generals[i]);
+                        if (!spec || !spec.GetGarrisonGridIdx()) {
+                            allAtStar = false;
+                            break;
+                        }
+                    }
+
+                    if (allAtStar)
+                        return aAdventure.auto.result("All troops at star", true, 2);
+
                     // All specialists have arrived - send them to star
                     aAdventure.action.starGenerals();
-                    return aAdventure.auto.result("Sending all troops to star", true, 2);
+                    // Wait for next cycle to verify they reached star
+                    return aAdventure.auto.result("Sending all troops to star", false, 2);
                 } catch (er) {
                     console.error(er);
                     return aAdventure.auto.result(null, true);

@@ -6333,6 +6333,18 @@ const aAdventure = {
                     if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result("You must be on adventure island!");
 
+                    // Wait for all specialists to arrive and be at star before applying buff
+                    // This prevents wasting buff time while specialists are still traveling
+                    var allSpecialists = [];
+                    game.getSpecialists().forEach(function (spec) {
+                        if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
+                            allSpecialists.push(spec.GetUniqueID().toKeyString());
+                        }
+                    });
+
+                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists))
+                        return aAdventure.auto.result("Waiting for troops at star before applying buff", false, 2);
+
                     const canApply = aAdventure.info.canApplyBuff(buff);
 
                     if (step.applied || canApply === false)

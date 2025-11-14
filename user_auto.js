@@ -242,7 +242,7 @@ const aQueue = {
             try {
                 observer.channel.removePropertyObserver(observer.property, observer.tracker);
             } catch (e) {
-                debug('[WARN] Failed to remove observer: ' + e);
+                console.warn('Failed to remove observer: ' + e);
             }
         });
         aSession.observers = [];
@@ -2703,7 +2703,7 @@ const aUI = {
                         table.push(createTableRow([[12 - types.length, text]].concat(types.map(function (r) { return [1, createSwitch("{0}_{1}_{2}".format(sub, r, spec.GetType()))] }))));
                         expls.push(spec.GetType());
                     } catch (e) {
-                        debug('[WARN] Failed to process specialist: ' + e);
+                        console.warn('Failed to process specialist: ' + e);
                     }
                 });
                 return table;
@@ -3528,7 +3528,7 @@ const aUI = {
                             }
                             return resourceSelect.html(resourceSelect);
                         } catch (e) {
-                            debug('[ERROR] ResourceSelect failed: ' + e);
+                            console.error('ResourceSelect failed: ' + e);
                             return $('<select>', { id: 'aMailResourceSelect' }).append($('<option>', { value: "0" }).text("---"));
                         }
                     };
@@ -3889,7 +3889,7 @@ const aBuffs = {
                 var amount = aBuffs.getBuffAmount(buff.GetType());
                 options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
             } catch (e) {
-                debug('[WARN] Failed to process buff: ' + e);
+                console.warn('Failed to process buff: ' + e);
             }
         });
         return options;
@@ -4047,7 +4047,7 @@ const aResources = {
                         result.push(Resource.name_string);
                     }
                 } catch (e) {
-                    debug('[WARN] Failed to process resource: ' + Resource.name_string + ', error: ' + e);
+                    console.warn('Failed to process resource: ' + Resource.name_string + ', error: ' + e);
                 }
             });
             if (!toOptions) return result;

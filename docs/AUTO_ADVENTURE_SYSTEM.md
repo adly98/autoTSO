@@ -558,20 +558,101 @@ cleanup: function () {
 - Removing observers on every reset breaks event-driven functionality
 - `cleanup()` should only be called on application shutdown (if needed)
 
-### Issue 2: GetGarrison() Check (Reverted)
+### Issue 2: Generals Not Sent to Star on Some Maps ⚠️ UNDER INVESTIGATION
 
-**Commit:** `b4bd2f4` reverted `ec74a49`
+**Symptom:**
+- On some adventure maps, generals arrive at the map but are NOT sent to star
+- The zone transition works correctly (Issue 1 is fixed)
+- Generals remain at their landing position
+- Battle sequence cannot proceed because generals are not at star
 
-**Original Issue:** Generals at adventure can't load troops because `GetGarrison()` returns null
+**Status:** Under investigation
 
-**Code Reference:** `user_auto.js:5352, 5664`
+**Possible Causes:**
+- Landing field detection may be incorrect for certain maps
+- `attemptMove()` conditions may not trigger correctly
+- Grid position checks may fail on specific map layouts
+- `canSubmitMove` calculation may be wrong for some scenarios
 
+**Code Locations to Investigate:**
+- `user_auto.js:5370-5396` - attemptMove() function
+- `5-battle.js:184-205` - battleLoadDataCheck() and onSameGrid calculation
+- Queue action `retranchGeneral` (lines 572-576)
+- Landing field detection logic
+
+---
+
+### Issue 3: Troops Not Carried Back After Adventure ⚠️ UNDER INVESTIGATION
+
+**Symptom:**
+- Adventure completes successfully
+- Generals return to home island
+- Troops are NOT unloaded/carried back with the generals
+- Troops remain on the adventure map instead of returning home
+
+**Status:** Under investigation
+
+**Expected Behavior:**
+- After adventure completes, generals should return home
+- Troops should be unloaded from generals and carried back
+- All units should be available on home island
+
+**Possible Causes:**
+- Missing step to unload troops before returning home
+- ReturnHome step doesn't handle troop transfer
+- Game API not being called to carry troops back
+- Step sequence ends before troop return is complete
+
+**Code Locations to Investigate:**
+- `user_auto.js:6235-6243` - ReturnHome step
+- Adventure completion logic
+- Troop unloading/transfer mechanisms
+- FinishAdventure action handling
+
+---
+
+### Issue 4: GetGarrison() Check ✅ FIXED
+
+**Original Symptom:**
+- Generals at adventure cannot load troops because `GetGarrison()` returns null
+- This blocked troop loading operations when generals were already deployed at star
+- Army state check was too strict
+
+**Root Cause:**
+
+The garrison check was blocking valid troop loading operations. When generals are at the adventure map (not in home garrison), `GetGarrison()` returns null/falsy, which caused the system to block troop loading even when the general was idle and ready.
+
+**Code Locations:**
+- `user_auto.js:5367` - First location (getState function)
+- `user_auto.js:5681` - Second location (newGetBattleState function)
+
+**Original Code:**
 ```javascript
 if (item.spec.GetTask() || !item.spec.GetGarrison())
     state.army.canSubmit = false;
 ```
 
-**Status:** Secondary issue - only relevant if zone transition issue is fixed first
+**The Fix:**
+
+Removed the `!item.spec.GetGarrison()` check. Now only blocks if the general has an active task (is busy):
+
+```javascript
+// Only block submission if general has an active task
+// Allow loading even if not in garrison (could be at star already)
+if (item.spec.GetTask())
+    state.army.canSubmit = false;
+```
+
+**Why This Works:**
+- Generals at adventure maps don't have a home garrison, so `GetGarrison()` is null
+- The important check is `GetTask()` - whether the general is busy
+- Idle generals (no active task) should be allowed to load troops regardless of location
+- This allows proper troop loading after generals arrive at star position
+
+**Related:**
+- This fix was originally in commit `ec74a49` but was reverted in `b4bd2f4`
+- Re-applied after fixing Issue 1 (observer persistence problem)
+- Both checks needed to be updated for consistency
 
 ---
 

@@ -2646,27 +2646,30 @@ const aUI = {
                     if (!aSession.isOn.Adventure)
                         $("#aAdventureToggle").data("cmd", "start").text("Start");
 
-                    $('#aAdventureStepsDiv').empty()
-                        .append(aUtils.create.Row([[6, "Adventure Steps"], [6, "Details"]], "text-center", true))
-                        .append(
-                            aSession.adventure.steps.map(function (step, index) {
-                                var selected = '';
-                                if (index === aSession.adventure.index)
-                                    selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
-                                var text = step.name.replace(/([A-Z])/g, ' $1').trim();
-                                var details = step.data || "";
-                                if (details.indexOf("BuffAd") > -1) {
-                                    details = getImage(assets.GetBuffIcon(details).bitmapData, '22px', '22px') + loca.GetText("RES", details);
-                                }
+                    var $stepsDiv = $('#aAdventureStepsDiv').empty()
+                        .append(aUtils.create.Row([[6, "Adventure Steps"], [6, "Details"]], "text-center", true));
 
-                                return aUtils.create.Row([
-                                    [6, text],
-                                    [6, details, details.indexOf('\\') > -1 ? "text-muted" : ""]
-                                ], "text-center small").attr('style', 'cursor:pointer;{0}'.format(selected)).attr('data-step', index).click(aUI.modals.adventure.AM_SelectedStep)
-                            })
-                        )
+                    // Use traditional for loop instead of .map() for AIR compatibility
+                    for (var i = 0; i < aSession.adventure.steps.length; i++) {
+                        var step = aSession.adventure.steps[i];
+                        var selected = '';
+                        if (i === aSession.adventure.index)
+                            selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
+                        var text = step.name.replace(/([A-Z])/g, ' $1').trim();
+                        var details = step.data || "";
+                        if (details.indexOf("BuffAd") > -1) {
+                            details = getImage(assets.GetBuffIcon(details).bitmapData, '22px', '22px') + loca.GetText("RES", details);
+                        }
 
-                } catch (e) { }
+                        $stepsDiv.append(
+                            aUtils.create.Row([
+                                [6, text],
+                                [6, details, details.indexOf('\\') > -1 ? "text-muted" : ""]
+                            ], "text-center small").attr('style', 'cursor:pointer;{0}'.format(selected)).attr('data-step', i).click(aUI.modals.adventure.AM_SelectedStep)
+                        );
+                    }
+
+                } catch (e) { console.error('AM_UpdateSteps error: ' + e); }
             },
             AM_SelectedStep: function (e) {
                 try {

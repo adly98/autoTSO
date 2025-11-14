@@ -6221,6 +6221,18 @@ const aAdventure = {
                     if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result(null);
 
+                    // Wait for all specialists to arrive and be at star before applying buff
+                    // This prevents wasting buff time while specialists are still traveling
+                    var allSpecialists = [];
+                    aSpecialists.getSpecialists(0).forEach(function (spec) {
+                        if (spec && !spec.IsInUse()) {
+                            allSpecialists.push(spec.GetUniqueID().toKeyString());
+                        }
+                    });
+
+                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists))
+                        return aAdventure.auto.result("Waiting for troops at star before applying speed buff", false, 2);
+
                     const speedBuff = aSession.adventure.currentStep().data || aSettings.defaults.Adventures.speedBuff;
                     if (!speedBuff)
                         return aAdventure.auto.result("Continuing without speed buff", true, 1)

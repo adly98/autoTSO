@@ -6,6 +6,19 @@
 
 ---
 
+## Console Polyfill
+
+**Important:** Adobe AIR runtime does not have a built-in `console` object. This project includes a console polyfill that provides:
+
+- `console.log()` - Outputs `[LOG] message`
+- `console.info()` - Outputs `[INFO] message`
+- `console.error()` - Outputs `[ERROR] message`
+- `console.warn()` - Outputs `[WARN] message`
+
+All console methods internally call the `debug()` function with appropriate prefixes. Use these methods instead of calling `debug()` directly for consistent, categorized logging throughout the application.
+
+---
+
 ## HIGH SEVERITY ISSUES
 
 ### 1. Event Listeners Never Removed (Lines 1060, 1066, 1483, 2442)

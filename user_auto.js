@@ -6233,7 +6233,26 @@ const aAdventure = {
                 return aAdventure.auto.result(null, true, 1);
             },
             StarGenerals: function () {
-                return aAdventure.auto.result(null, true);
+                try {
+                    if (!aAdventure.info.isOnAdventure())
+                        return aAdventure.auto.result("You must be on adventure island!");
+
+                    const generals = aSession.adventure.getGenerals();
+
+                    if (!generals.length)
+                        return aAdventure.auto.result("No generals found", true);
+
+                    // Wait for all specialists (generals + carriers) to arrive
+                    if (aAdventure.info.areGeneralsBusy(generals))
+                        return aAdventure.auto.result("Waiting for all troops to arrive", false, 2);
+
+                    // All specialists have arrived - send them to star
+                    aAdventure.action.starGenerals();
+                    return aAdventure.auto.result("Sending all troops to star", true, 2);
+                } catch (er) {
+                    console.error(er);
+                    return aAdventure.auto.result(null, true);
+                }
             },
             VisitAdventure: function () {
                 try {

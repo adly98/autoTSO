@@ -58,6 +58,7 @@ if (typeof console === 'undefined') {
 
 // Session Data
 const aSession = {
+    observers: [],
     isOn: {
         Adventure: false,
         Explorers: false,
@@ -232,6 +233,19 @@ const aQueue = {
     reset: function () {
         aQueue.index = 0;
         aQueue.queue = [];
+        if (game.aWatcherID) {
+            clearInterval(game.aWatcherID);
+            game.aWatcherID = null;
+        }
+        // Clean up property observers
+        aSession.observers.forEach(function (observer) {
+            try {
+                observer.channel.removePropertyObserver(observer.property, observer.tracker);
+            } catch (e) {
+                debug('[WARN] Failed to remove observer: ' + e);
+            }
+        });
+        aSession.observers = [];
     },
 
     /**
@@ -1057,21 +1071,28 @@ const aUtils = {
             try {
                 var file = new air.File();
                 file.browseForOpen("Select a Template");
-                file.addEventListener(air.Event.SELECT, callback);
+                var selectHandler = function(event) {
+                    file.removeEventListener(air.Event.SELECT, selectHandler);
+                    callback(event);
+                };
+                file.addEventListener(air.Event.SELECT, selectHandler);
             } catch (e) { }
         },
         SaveTemplate: function (template) {
             var lastDir = settings.read("autoAdvlastDir");
             file = new air.File(lastDir ? lastDir : air.File.documentsDirectory.nativePath)
-                .resolvePath("autoAdvTemplate.txt"), file.addEventListener(air.Event.COMPLETE, (function (t) {
-                    if (mainSettings.changeTemplateFolder) {
-                        var a = {};
-                        a["autoAdvlastDir"] = t.target.parent.nativePath,
-                            mainSettings["autoAdvlastDirlastDir"] = t.target.parent.nativePath,
-                            settings.store(a);
-                    };
-
-                })), file.save(JSON.stringify(template, null, " "))
+                .resolvePath("autoAdvTemplate.txt");
+            var completeHandler = function (t) {
+                file.removeEventListener(air.Event.COMPLETE, completeHandler);
+                if (mainSettings.changeTemplateFolder) {
+                    var a = {};
+                    a["autoAdvlastDir"] = t.target.parent.nativePath;
+                    mainSettings["autoAdvlastDirlastDir"] = t.target.parent.nativePath;
+                    settings.store(a);
+                }
+            };
+            file.addEventListener(air.Event.COMPLETE, completeHandler);
+            file.save(JSON.stringify(template, null, " "));
         }
     },
     trackers: {
@@ -1485,7 +1506,11 @@ const aUI = {
                 } else {
                     if (existingGridPosMenu) {
                         window.nativeWindow.menu.removeItem(existingGridPosMenu);
-                        window.nativeWindow.stage.removeEventListener(64, auto.generateGrid);
+                        try {
+                            window.nativeWindow.stage.removeEventListener("click", auto.generateGrid);
+                        } catch (e) {
+                            // Listener may have already been removed or never added
+                        }
                     }
                 }
                 if (!menu.nativeMenu.getItemByName("Automation").submenu)
@@ -2439,14 +2464,16 @@ const aUI = {
                         var txtFilter = new air.FileFilter("Template", "*.*");
                         var root = new air.File();
                         root.browseForOpenMultiple("Open", new window.runtime.Array(txtFilter));
-                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, function (event) {
+                        var selectMultipleHandler = function (event) {
+                            root.removeEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectMultipleHandler);
                             event.files.forEach(function (file) {
                                 const data = aUtils.file.Read(file.nativePath);
                                 if (!data) return alert('Invalid file');
                                 aWindow.steps.push({ name: 'AdventureTemplate', file: file.nativePath, data: data });
                             });
                             aUI.modals.adventure.TM_UpdateView();
-                        });
+                        };
+                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectMultipleHandler);
                     } else {
                         const isNotVenture = aAdventure.data.getAdventureType($("#aTemplate_AdventureSelect").val()) !== "Venture";
                         if (this.name === 'CollectPickups' && isNotVenture)
@@ -3477,12 +3504,20 @@ const aUI = {
                         return friendSelect;
                     };
                     var ResourceSelect = function () {
-                        var resourceSelect = aUtils.create.Select('aMailResourceSelect')
-                            .append($('<option>', { value: "0" }).text("---"));
-                        aResources.getResourcesInfo().forEach(function (item) {
-                            resourceSelect.append($('<option>', { value: item }).text(loca.GetText("RES", item)));
-                        });
-                        return resourceSelect.html(resourceSelect);
+                        try {
+                            var resourceSelect = aUtils.create.Select('aMailResourceSelect')
+                                .append($('<option>', { value: "0" }).text("---"));
+                            var resources = aResources.getResourcesInfo();
+                            if (resources && Array.isArray(resources)) {
+                                resources.forEach(function (item) {
+                                    resourceSelect.append($('<option>', { value: item }).text(loca.GetText("RES", item)));
+                                });
+                            }
+                            return resourceSelect.html(resourceSelect);
+                        } catch (e) {
+                            debug('[ERROR] ResourceSelect failed: ' + e);
+                            return $('<select>', { id: 'aMailResourceSelect' }).append($('<option>', { value: "0" }).text("---"));
+                        }
                     };
                     const Options = function (mode) {
                         if (mode === 'Friends')
@@ -3835,9 +3870,14 @@ const aBuffs = {
             $('<option>', { value: '' }).text('None')
         ];
         buffs.forEach(function (buff) {
-            var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
-            var amount = aBuffs.getBuffAmount(buff.GetType());
-            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
+            try {
+                if (!buff || typeof buff.GetType !== 'function') return;
+                var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
+                var amount = aBuffs.getBuffAmount(buff.GetType());
+                options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
+            } catch (e) {
+                debug('[WARN] Failed to process buff: ' + e);
+            }
         });
         return options;
     },
@@ -3988,10 +4028,14 @@ const aResources = {
                 return loca.GetText("RES", a).localeCompare(loca.GetText("RES", b))
             });
             $.each(resources, function (i, Resource) {
-                const event = game.def('ServerState::gEconomics').mMap_EventResourceDefaultDefinition[Resource.name_string];
-                if (game.def('ServerState::gEconomics').GetResourcesDefaultDefinition(Resource.name_string).tradable && ((event === null) || (game.gi.mEventManager.isEventStarted(event.requiredEventName_string) || AllResources))) {
-                    result.push(Resource.name_string);
-                };
+                try {
+                    const event = game.def('ServerState::gEconomics').mMap_EventResourceDefaultDefinition[Resource.name_string];
+                    if (game.def('ServerState::gEconomics').GetResourcesDefaultDefinition(Resource.name_string).tradable && ((!event) || (game.gi.mEventManager.isEventStarted(event.requiredEventName_string) || AllResources))) {
+                        result.push(Resource.name_string);
+                    }
+                } catch (e) {
+                    debug('[WARN] Failed to process resource: ' + Resource.name_string + ', error: ' + e);
+                }
             });
             if (!toOptions) return result;
             return result.map(function (x) {
@@ -6553,12 +6597,22 @@ const auto = {
     },
     init: function () {
         try {
-            game.gi.channels.ZONE.addPropertyObserver(
-                "ZONE_REFRESHED", game.getTracker('zRefresh', aUtils.trackers.zoneRefreshed)
-            );
-            game.gi.channels.SPECIALIST.addPropertyObserver(
-                "generalbattlefought", game.getTracker('battleFinished', aUtils.trackers.battleFinished)
-            );
+            var zRefreshTracker = game.getTracker('zRefresh', aUtils.trackers.zoneRefreshed);
+            var battleFinishedTracker = game.getTracker('battleFinished', aUtils.trackers.battleFinished);
+
+            game.gi.channels.ZONE.addPropertyObserver("ZONE_REFRESHED", zRefreshTracker);
+            game.gi.channels.SPECIALIST.addPropertyObserver("generalbattlefought", battleFinishedTracker);
+
+            aSession.observers.push({
+                channel: game.gi.channels.ZONE,
+                property: "ZONE_REFRESHED",
+                tracker: zRefreshTracker
+            });
+            aSession.observers.push({
+                channel: game.gi.channels.SPECIALIST,
+                property: "generalbattlefought",
+                tracker: battleFinishedTracker
+            });
             //game.gi.channels.ZONE.addPropertyObserver(
             //    "CHAT_MESSAGE", game.getTracker('chatObserver', aUtils.trackers.chatObserver)
             //)

@@ -72,10 +72,12 @@ if (typeof console === 'undefined') {
 
 **Features:**
 - Provides `console.log()`, `console.info()`, `console.warn()`, `console.error()`
-- All methods redirect to the native AIR `debug()` function
+- All methods redirect to the native AIR `debug()` function with prefixes
 - Messages are prefixed with severity level (LOG, INFO, WARN, ERROR)
+- **Centralized logging control** - allows future enhancements (filtering, levels, etc.)
 - Safe to use throughout the codebase
 - Enables code portability between AIR and modern browsers
+- **REQUIRED for all logging** - direct `debug()` calls bypass this layer
 
 **Usage:**
 ```javascript
@@ -85,7 +87,7 @@ console.warn('Low memory detected');     // Output: [WARN] Low memory detected
 console.error('Failed to load resource'); // Output: [ERROR] Failed to load resource
 ```
 
-**Note:** While the polyfill makes `console` methods available, using `debug()` directly is still preferred for AIR-specific code as it's the native logging mechanism.
+**IMPORTANT:** Always use `console.*` methods instead of calling `debug()` directly. The console wrappers provide centralized logging control and are REQUIRED for all development in this codebase. Direct calls to `debug()` bypass this control layer and should be avoided.
 
 ## NOT Supported ❌
 
@@ -160,14 +162,15 @@ if (array.includes(item)) {
 
 ### ✅ Logging
 ```javascript
-// Best - native AIR logging function
-debug('Log message: ' + variable);
-
-// Also works - polyfill provided in user_auto.js
+// REQUIRED - always use console methods
 console.log('Log message: ' + variable);
 console.info('Info message');
 console.warn('Warning message');
 console.error('Error message');
+
+// BAD - do NOT call debug() directly
+// Direct debug() calls bypass centralized logging control
+debug('Log message: ' + variable);  // ❌ Don't do this
 
 // Note: Console polyfill redirects to debug() function
 // See user_auto.js lines 55-62 for implementation
@@ -243,7 +246,7 @@ var result = someOperation(); // No error handling
 
 1. **Always use `var`** instead of `let`
 2. **Use `.indexOf()`** instead of `.includes()` or `.startsWith()`
-3. **Use `debug()` or `console.*`** for logging (console polyfill available)
+3. **REQUIRED: Use `console.*` methods** for all logging (never call `debug()` directly)
 4. **Avoid modern array methods** like `.forEach()`, `.map()`, `.filter()`
 5. **Test in actual AIR environment** before deploying
 6. **Use ESLint** with the provided `.eslintrc.json` to catch incompatibilities

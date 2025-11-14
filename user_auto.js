@@ -1144,6 +1144,22 @@ const aUtils = {
                     (step.name === 'ReturnHome' && game.gi.isOnHomzone()))) {
                     aUI.Alert("{0} Island Loaded!".format(step.name === 'VisitAdventure' ? 'Adventure' : 'Home'), 'QUEST');
                     aSession.adventure.action = '';
+
+                    // Auto-inject StarGenerals step after VisitAdventure if missing
+                    if (step.name === 'VisitAdventure') {
+                        var nextStepIndex = aSession.adventure.index + 1;
+                        var nextStep = aSession.adventure.steps[nextStepIndex];
+
+                        // If next step is not StarGenerals, inject it
+                        if (!nextStep || nextStep.name !== 'StarGenerals') {
+                            aSession.adventure.steps.splice(nextStepIndex, 0, {
+                                name: 'StarGenerals',
+                                data: null
+                            });
+                            console.info('Auto-injected StarGenerals step after VisitAdventure');
+                        }
+                    }
+
                     aSession.adventure.nextStep();
 
                     if (step.name === 'VisitAdventure') {

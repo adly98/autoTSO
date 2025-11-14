@@ -6238,16 +6238,23 @@ const aAdventure = {
                     if (!aAdventure.info.isOnAdventure())
                         return aAdventure.auto.result("You must be on adventure island!");
 
-                    const generals = aSession.adventure.getGenerals();
+                    // Get ALL specialists on adventure (not just battle packet generals)
+                    // This includes troop carriers like Smuggler/Quartermaster
+                    var allSpecialists = [];
+                    aSpecialists.getSpecialists(0).forEach(function (spec) {
+                        if (spec && !spec.IsInUse()) {
+                            allSpecialists.push(spec.GetUniqueID().toKeyString());
+                        }
+                    });
 
-                    if (!generals.length)
-                        return aAdventure.auto.result("No generals found", true);
+                    if (!allSpecialists.length)
+                        return aAdventure.auto.result("No specialists found", true);
 
                     // Always send to star (idempotent - safe to call multiple times)
                     aAdventure.action.starGenerals();
 
                     // Wait until all specialists are idle (finished moving to star)
-                    if (aAdventure.info.areGeneralsBusy(generals))
+                    if (aAdventure.info.areGeneralsBusy(allSpecialists))
                         return aAdventure.auto.result("Waiting for troops to reach star", false, 2);
 
                     return aAdventure.auto.result("All troops at star", true, 2);

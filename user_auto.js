@@ -2656,8 +2656,20 @@ const aUI = {
                         if (i === aSession.adventure.index)
                             selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
                         var text = step.name.replace(/([A-Z])/g, ' $1').trim();
-                        // Ensure details is always a string (step.data can be string, object, or undefined)
-                        var details = (typeof step.data === 'string') ? step.data : (step.data ? String(step.data) : "");
+
+                        // Format details based on step type
+                        var details = "";
+                        if (typeof step.data === 'string') {
+                            details = step.data;
+                        } else if (step.data && typeof step.data === 'object') {
+                            // For AdventureTemplate steps, show file name or general count
+                            if (step.file) {
+                                details = step.file.split('/').pop().split('\\').pop();
+                            } else if (Object.keys(step.data).length) {
+                                details = Object.keys(step.data).length + " generals";
+                            }
+                        }
+
                         if (details.indexOf("BuffAd") > -1) {
                             details = getImage(assets.GetBuffIcon(details).bitmapData, '22px', '22px') + loca.GetText("RES", details);
                         }

@@ -2656,7 +2656,8 @@ const aUI = {
                         if (i === aSession.adventure.index)
                             selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
                         var text = step.name.replace(/([A-Z])/g, ' $1').trim();
-                        var details = step.data || "";
+                        // Ensure details is always a string (step.data can be string, object, or undefined)
+                        var details = (typeof step.data === 'string') ? step.data : (step.data ? String(step.data) : "");
                         if (details.indexOf("BuffAd") > -1) {
                             details = getImage(assets.GetBuffIcon(details).bitmapData, '22px', '22px') + loca.GetText("RES", details);
                         }

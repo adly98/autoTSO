@@ -1974,6 +1974,10 @@ const aUI = {
                 aWindow.Body().html(tabs.prop("outerHTML") + '<br>' + tabcontent.prop("outerHTML"));
                 aWindow.withBody('div.row').addClass('nohide');
                 aWindow.withBody('.nav-justified > li').css("width", "20%");
+
+                // Unbind all existing click handlers to prevent memory leaks and event stacking
+                aWindow.Body().off('click');
+
                 aWindow.withBody('#aAdventure_TemplateMaker').click(function () { aUI.modals.adventure.templateMaker(); });
                 aWindow.withBody('#aExplorers_Menu').click(aUI.modals.ExplorersSettings);
                 aWindow.withBody('#aDeposits_Menu, #aQuests_GeologistTask').click(aUI.modals.GeoDepositSettings);
@@ -2459,6 +2463,8 @@ const aUI = {
                         ])
                     ])
                 )
+                // Unbind existing click handlers to prevent event stacking
+                aWindow.sFooter().find('.dropdown-menu a').off('click');
                 aWindow.sFooter().find('.dropdown-menu a').click(function () {
                     if (this.name === 'AdventureTemplate') {
                         var txtFilter = new air.FileFilter("Template", "*.*");
@@ -3244,6 +3250,8 @@ const aUI = {
             aWindow.sData().find('select').each(function (i, item) {
                 $(item).find('option:first').text("{0} -> {1}".format(loca.GetText("ACL", "BuffAdventuresGeneral"), loca.GetText("LAB", "ToggleOptionsPanel")));
             });
+            // Unbind existing click handlers to prevent event stacking
+            aWindow.sData().find('.settingsreset').off('click');
             aWindow.sData().find('.settingsreset').click(function () {
                 aWindow.sData().find('select').val(0);
             });
@@ -3254,6 +3262,8 @@ const aUI = {
                 $('<button>').attr({ "class": "btn btn-primary pull-left specSettingsSaveTemplate" }).text(getText('save_template')),
                 $('<button>').attr({ "class": "btn btn-primary pull-left specSettingsLoadTemplate" }).text(getText('load_template')).click(function () { specSettingsTemplates.load(); })
             ]);
+            // Unbind existing click handlers to prevent event stacking
+            aWindow.sFooter().find('.specSettingsSaveTemplate').off('click');
             aWindow.sFooter().find('.specSettingsSaveTemplate').click(function () {
                 var dataToSave = { type: 'specsettings', data: {} };
                 aWindow.sData().find('select').map(function () {

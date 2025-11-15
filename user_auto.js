@@ -29,7 +29,7 @@ const aDebug = {
 
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift('[DEBUG ' + category + ']');
-        console.log.apply(console, args);
+        console.log(args.join(" "))
     },
     error: function(category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
@@ -39,7 +39,7 @@ const aDebug = {
 
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift('[DEBUG ' + category + ']');
-        console.error.apply(console, args);
+        console.error(args.join(" "))
     }
 };
 
@@ -71,14 +71,9 @@ const LIMITS = {
 };
 
 const WORK_TIME_OFFSET_SECONDS = 12;
-// Console polyfill for AIR compatibility (console object doesn't exist in AIR)
+
 if (typeof console === 'undefined') {
-    var console = {
-        log: function(msg) { debug('[LOG] ' + msg); },
-        info: function(msg) { debug('[INFO] ' + msg); },
-        error: function(msg) { debug('[ERROR] ' + msg); },
-        warn: function(msg) { debug('[WARN] ' + msg); }
-    };
+    var console = air.Introspector.Console;
 }
 
 // Session Data
@@ -1087,7 +1082,12 @@ const aUtils = {
             try {
                 var file = new air.File();
                 file.browseForOpen("Select a Template");
-                file.addEventListener(air.Event.SELECT, callback);
+                // Use self-removing handler to prevent memory leak
+                var selectHandler = function(event) {
+                    file.removeEventListener(air.Event.SELECT, selectHandler);
+                    callback(event);
+                };
+                file.addEventListener(air.Event.SELECT, selectHandler);
             } catch (e) { }
         },
         SaveTemplate: function (template) {
@@ -1531,7 +1531,7 @@ const aUI = {
                 } else {
                     if (existingGridPosMenu) {
                         window.nativeWindow.menu.removeItem(existingGridPosMenu);
-                        window.nativeWindow.stage.removeEventListener(64, auto.generateGrid);
+                        window.nativeWindow.stage.removeEventListener("click", auto.generateGrid);
                     }
                 }
                 if (!menu.nativeMenu.getItemByName("Automation").submenu)
@@ -2503,14 +2503,17 @@ const aUI = {
                         var txtFilter = new air.FileFilter("Template", "*.*");
                         var root = new air.File();
                         root.browseForOpenMultiple("Open", new window.runtime.Array(txtFilter));
-                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, function (event) {
+                        // Use self-removing handler to prevent memory leak
+                        var selectHandler = function (event) {
+                            root.removeEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectHandler);
                             event.files.forEach(function (file) {
                                 const data = aUtils.file.Read(file.nativePath);
                                 if (!data) return alert('Invalid file');
                                 aWindow.steps.push({ name: 'AdventureTemplate', file: file.nativePath, data: data });
                             });
                             aUI.modals.adventure.TM_UpdateView();
-                        });
+                        };
+                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectHandler);
                     } else {
                         const isNotVenture = aAdventure.data.getAdventureType($("#aTemplate_AdventureSelect").val()) !== "Venture";
                         if (this.name === 'CollectPickups' && isNotVenture)
@@ -2661,27 +2664,57 @@ const aUI = {
                     if (!aSession.isOn.Adventure)
                         $("#aAdventureToggle").data("cmd", "start").text("Start");
 
-                    $('#aAdventureStepsDiv').empty()
-                        .append(aUtils.create.Row([[6, "Adventure Steps"], [6, "Details"]], "text-center", true))
-                        .append(
-                            aSession.adventure.steps.map(function (step, index) {
-                                var selected = '';
-                                if (index === aSession.adventure.index)
-                                    selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
-                                var text = step.name.replace(/([A-Z])/g, ' $1').trim();
-                                var details = step.data || "";
-                                if (details.indexOf("BuffAd") > -1) {
-                                    details = getImage(assets.GetBuffIcon(details).bitmapData, '22px', '22px') + loca.GetText("RES", details);
+                    var stepsContainer = $('#aAdventureStepsDiv').empty()
+                        .append(aUtils.create.Row([[6, "Adventure Steps"], [6, "Details"]], "text-center", true));
+
+                    // Use traditional for loop instead of .map() for AIR compatibility
+                    for (var index = 0; index < aSession.adventure.steps.length; index++) {
+                        var step = aSession.adventure.steps[index];
+                        var selected = '';
+                        if (index === aSession.adventure.index)
+                            selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
+                        var text = step.name.replace(/([A-Z])/g, ' $1').trim();
+
+                        // Handle step.data which can be string, object, or undefined
+                        var details = "";
+
+                        // For AdventureTemplate, show filename from step.file
+                        if (step.name === 'AdventureTemplate' && step.file) {
+                            details = step.file.split('\\').pop().split('/').pop();
+                        } else if (step.data) {
+                            if (typeof step.data === 'object') {
+                                // For object data (like InHomeLoadGenerals with generals list)
+                                if (step.data.generals) {
+                                    details = step.data.generals.length + ' generals';
+                                } else {
+                                    // Count units in template data
+                                    var unitCount = Object.keys(step.data).length;
+                                    details = unitCount + ' unit' + (unitCount !== 1 ? 's' : '');
                                 }
+                            } else {
+                                // For string data, use as-is
+                                details = String(step.data);
+                            }
+                        }
 
-                                return aUtils.create.Row([
-                                    [6, text],
-                                    [6, details, details.indexOf('\\') > -1 ? "text-muted" : ""]
-                                ], "text-center small").attr('style', 'cursor:pointer;{0}'.format(selected)).attr('data-step', index).click(aUI.modals.adventure.AM_SelectedStep)
-                            })
-                        )
+                        // Convert details to string for indexOf check
+                        var detailsStr = String(details);
+                        if (detailsStr.indexOf("BuffAd") > -1) {
+                            details = getImage(assets.GetBuffIcon(detailsStr).bitmapData, '22px', '22px') + loca.GetText("RES", detailsStr);
+                            detailsStr = String(details);
+                        }
 
-                } catch (e) { }
+                        var rowElement = aUtils.create.Row([
+                            [6, text],
+                            [6, details, detailsStr.indexOf('\\') > -1 ? "text-muted" : ""]
+                        ], "text-center small").attr('style', 'cursor:pointer;{0}'.format(selected)).attr('data-step', index).click(aUI.modals.adventure.AM_SelectedStep);
+
+                        stepsContainer.append(rowElement);
+                    }
+
+                } catch (e) {
+                    console.error('AM_UpdateSteps error:', e);
+                }
             },
             AM_SelectedStep: function (e) {
                 try {

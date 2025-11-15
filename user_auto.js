@@ -21,21 +21,25 @@ var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureMana
 
 // Debug Logging Helper
 const aDebug = {
-    log: function(category, ...args) {
+    log: function(category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
 
         if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
         if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
 
-        console.log(`[DEBUG ${category}]`, ...args);
+        var args = Array.prototype.slice.call(arguments, 1);
+        args.unshift('[DEBUG ' + category + ']');
+        console.log.apply(console, args);
     },
-    error: function(category, ...args) {
+    error: function(category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
 
         if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
         if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
 
-        console.error(`[DEBUG ${category}]`, ...args);
+        var args = Array.prototype.slice.call(arguments, 1);
+        args.unshift('[DEBUG ' + category + ']');
+        console.error.apply(console, args);
     }
 };
 

@@ -1774,7 +1774,7 @@ const aUI = {
                     ]),
                     createTableRow([
                         [2, "&#10551; PH Buff:"],
-                        [4, aUtils.create.Select('aQuests_Config_Buffs_PHBuff').append(aBuffs.getBuffsForBuilding('ProvisionHouse', false, true))]
+                        [4, aUtils.create.Select('aQuests_Config_Buffs_PHBuff')]
                     ]),
                     createTableRow([
                         [5, "&#10551; Sell: Resources on Trade office"],
@@ -1786,7 +1786,7 @@ const aUI = {
                         [5, "&#10551; Produce Resource: Turn On Production"],
                         [1, createSwitch('aQuests_Config_ProduceResource_TurnOn', aSettings.defaults.Quests.Config.ProduceResource.TurnOn)],
                         [2, "&#10551; Workyard Buff:"],
-                        [4, aUtils.create.Select('aQuests_Config_ProduceResource_BuffType').append(aBuffs.getBuffsForBuilding('Workyard', true, true))]
+                        [4, aUtils.create.Select('aQuests_Config_ProduceResource_BuffType')]
                     ]),
                     createTableRow([
                         [5, '&#10551; Notify when intervention needed:'],
@@ -2147,6 +2147,13 @@ const aUI = {
                 }));
                 aUI.modals.settings.loadSavedAdventures();
                 aWindow.show();
+                // Populate buff dropdowns lazily after dialog is shown to avoid race conditions
+                try {
+                    $('#aQuests_Config_Buffs_PHBuff').empty().append(aBuffs.getBuffsForBuilding('ProvisionHouse', false, true));
+                    $('#aQuests_Config_ProduceResource_BuffType').empty().append(aBuffs.getBuffsForBuilding('Workyard', true, true));
+                } catch (e) {
+                    console.error('Error populating buff dropdowns:', e);
+                }
                 $('#aAdventure_SpeedBuffs').val(aSettings.defaults.Adventures.speedBuff);
                 $('#aMail_Monitor').val(aSettings.defaults.Mail.TimerMinutes);
                 $('#aQuests_Config_Buffs_PHBuff').val(aSettings.defaults.Quests.Config.Buffs.PHBuff);
@@ -2939,8 +2946,10 @@ const aUI = {
                 var save = function () {
                     if (sObj.hasOwnProperty('item'))
                         aSettings.defaults.Buildings.TProduction[buildingName].item = aWindow.withsBody('#producableItems').val();
-                    if (sObj.hasOwnProperty('amount'))
-                        aSettings.defaults.Buildings.TProduction[buildingName].amount = parseInt(aWindow.withsBody('#amount').val());
+                    if (sObj.hasOwnProperty('amount')) {
+                        var enabled = aWindow.withsBody('#enableProduction').is(':checked');
+                        aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? 1 : 0;
+                    }
                     if (sObj.hasOwnProperty('stack'))
                         aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#stack').val());
                     if (sObj.hasOwnProperty('buff'))
@@ -2951,6 +2960,20 @@ const aUI = {
                 };
                 var settings = function () {
                     var html = [];
+                    // Add "Enable Production" checkbox if building has amount property
+                    if (sObj.hasOwnProperty('amount')) {
+                        var createSwitch = function (id, checked) {
+                            return $('<label>', { 'class': 'switch' }).append([
+                                $('<input>', { 'type': 'checkbox', 'id': id, 'checked': checked }),
+                                $('<span>', { 'class': 'slider round' })
+                            ]);
+                        };
+                        html.push(createTableRow([
+                            [9, 'Enable Production'],
+                            [3, createSwitch('enableProduction', sObj.amount > 0)]
+                        ]));
+                        html.push($('<br>'));
+                    }
                     $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
                         if (k === 'item') {
@@ -2966,10 +2989,8 @@ const aUI = {
                                 [8, aUtils.create.Select('buff').append(aBuffs.getBuffsForBuilding(buildingName, false, true))]
                             ]);
                         } else if (k === 'amount') {
-                            table = createTableRow([
-                                [4, 'Amount: '],
-                                [8, $('<input>', { 'id': 'amount', 'class': 'form-control' })]
-                            ]);
+                            // Skip rendering amount field - handled by Enable Production checkbox
+                            return;
                         } else if (k === 'stack') {
                             var options = [];
                             for (var i = 25; i >= 1; i--) {
@@ -2995,8 +3016,8 @@ const aUI = {
                     aUtils.create.container().append([
                         $('<label>').html('Notes:-'),
                         $('<br>'),
-                        $('<label>').html('&#10551; If anything is "None" that means it is disabled!!'),
-                        $('<label>').html('&#10551; Buff is applied when the building is in production!'),
+                        $('<label>').html('&#10551; Enable Production: Maintains continuous production'),
+                        $('<label>').html('&#10551; Buff is applied when the building is in production'),
                         $('<label>').html('&#10551; Building level doesn\'t matter ;) (you can create anything @@)'),
                         createTableRow([[9, 'Building Settings'], [3, '&nbsp;']], true)
                     ].concat(settings()).concat([
@@ -3033,10 +3054,6 @@ const aUI = {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
                 aWindow.withsBody('#stack').val(sObj.stack).change();
-                aWindow.withsBody('#amount').on('input', function () {
-                    $(this).val($(this).val().replace(/[^0-9.]/g, ''));
-                    if ($(this).val() > LIMITS.TRADE_MAX_INPUT) $(this).val(LIMITS.TRADE_MAX_INPUT);
-                }).val(sObj.amount).change();
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                 aWindow.sshow();
@@ -3919,24 +3936,37 @@ const aBuffs = {
             return buffs.map(function (buff) { return 'GeneralSpeedBuff_' + buff; });
     },
     getBuffsForBuilding: function (target, isWorkyard, toOptions) {
-        const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
-            if (!buff) return false;
-            const def = buff.GetBuffDefinition();
-            if (def.GetBuffType() !== 0) return false;
-            const targets = def.GetTargetDescription_string().split(',');
-            const targetGroup = def.GetTargetGroup_string() || null;
-            return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);
-        });
-        if (!toOptions) return buffs;
-        var options = [
-            $('<option>', { value: '' }).text('None')
-        ];
-        buffs.forEach(function (buff) {
-            var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
-            var amount = aBuffs.getBuffAmount(buff.GetType());
-            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
-        });
-        return options;
+        try {
+            const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
+                if (!buff) return false;
+                // Check if buff has required methods before using them
+                if (typeof buff.GetBuffDefinition !== 'function' || typeof buff.GetType !== 'function') return false;
+                const def = buff.GetBuffDefinition();
+                if (def.GetBuffType() !== 0) return false;
+                const targets = def.GetTargetDescription_string().split(',');
+                const targetGroup = def.GetTargetGroup_string() || null;
+                return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);
+            });
+            if (!toOptions) return buffs;
+            var options = [
+                $('<option>', { value: '' }).text('None')
+            ];
+            buffs.forEach(function (buff) {
+                // Double-check buff is valid before accessing methods
+                if (!buff || typeof buff.GetType !== 'function') return;
+                var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
+                var amount = aBuffs.getBuffAmount(buff.GetType());
+                options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
+            });
+            return options;
+        } catch (e) {
+            console.error('Error loading buffs for building:', e);
+            // Return empty options if buffs aren't ready yet
+            if (toOptions) {
+                return [$('<option>', { value: '' }).text('None')];
+            }
+            return [];
+        }
     },
     EffectiveFor: function (unit) {
         var result = null;
@@ -6289,18 +6319,6 @@ const aAdventure = {
                         return aAdventure.auto.result("Waiting for troops at star before applying speed buff", false, 2);
                     }
 
-                    // Wait for all specialists to arrive and be at star before applying buff
-                    // This prevents wasting buff time while specialists are still traveling
-                    var allSpecialists = [];
-                    game.getSpecialists().forEach(function (spec) {
-                        if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
-                            allSpecialists.push(spec.GetUniqueID().toKeyString());
-                        }
-                    });
-
-                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists))
-                        return aAdventure.auto.result("Waiting for troops at star before applying speed buff", false, 2);
-
                     const speedBuff = aSession.adventure.currentStep().data || aSettings.defaults.Adventures.speedBuff;
                     aDebug.log('adventure', 'UseSpeedBuff: Target buff:', speedBuff);
 
@@ -6573,18 +6591,6 @@ const aAdventure = {
                         aDebug.log('adventure', 'ApplyBuff: Specialists still busy, waiting for them to reach star');
                         return aAdventure.auto.result("Waiting for troops at star before applying buff", false, 2);
                     }
-
-                    // Wait for all specialists to arrive and be at star before applying buff
-                    // This prevents wasting buff time while specialists are still traveling
-                    var allSpecialists = [];
-                    game.getSpecialists().forEach(function (spec) {
-                        if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
-                            allSpecialists.push(spec.GetUniqueID().toKeyString());
-                        }
-                    });
-
-                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists))
-                        return aAdventure.auto.result("Waiting for troops at star before applying buff", false, 2);
 
                     const canApply = aAdventure.info.canApplyBuff(buff);
                     aDebug.log('adventure', 'ApplyBuff: Can apply?', canApply, '(true=yes, false=already applied, null=error)');

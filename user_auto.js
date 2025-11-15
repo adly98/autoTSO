@@ -601,7 +601,7 @@ const aQueue = {
                 const next = aQueue.queue[aQueue.index + 1];
                 const delay = next ? next.delay : aQueue.interval;
                 if (new Date().getTime() > aQueue.last + delay + TIMEOUTS.WATCHER_TIMEOUT_THRESHOLD) {
-                    aUI.Alert('Error Occured!, Restarting Automation!', 'ERROR');
+                    aUI.Alert('Error Occurred! Restarting Automation!', 'ERROR');
                     aQueue.run();
                 }
             } catch (e) { }
@@ -1298,7 +1298,7 @@ const aUtils = {
                     try {
                         response.data.data.items.source.forEach(function (item) {
                             var name = item.resourceName_string !== "" ? item.resourceName_string : item.buffName_string;
-                            aUI.Alert('Congratulations, you got "x{1} {0}" from mystery box!'.format(aUtils.game.getText(name), item.amount),
+                            aUI.Alert('Congratulations, you got x{1} {0} from mystery box!'.format(aUtils.game.getText(name), item.amount),
                                 name);
                         });
                     } catch (e) { }
@@ -1408,7 +1408,7 @@ const aUI = {
                 aUI.menu.initItem("aStatus", '---', false);
 
                 var m = [
-                    { label: "v{0} {1}".format(auto.version, auto.update.available ? "*New Update Avaliable!!*" : ""), name: "version", onSelect: aUI.modals.Changelog },
+                    { label: "v{0} {1}".format(auto.version, auto.update.available ? "*New Update Available!*" : ""), name: "version", onSelect: aUI.modals.Changelog },
                     { type: 'separator' },
                     { label: "Settings", onSelect: aUI.modals.Settings },
                     { label: "Update", name: "update", enabled: auto.update.available, onSelect: auto.update.updateScript },
@@ -1435,7 +1435,7 @@ const aUI = {
                     {
                         label: "The Pathfinder", enabled: window.hasOwnProperty('aPathfinder'), onSelect: function () {
                             if (!window.hasOwnProperty('aPathfinder')) {
-                                return aUI.Alert('You must download and install the Pathfinder script first!!', 'ERROR');
+                                return aUI.Alert('You must download and install the Pathfinder script first!', 'ERROR');
                             }
                         }
                     },
@@ -1455,7 +1455,7 @@ const aUI = {
                                     if (!aSession.adventure.name)
                                         return aUI.Alert("No active Adventure. please select a new Adventure", 'ERROR');
                                     if (aSession.adventure.index <= 0)
-                                        return aUI.Alert("You are at the first step!!", 'ERROR');
+                                        return aUI.Alert("You are at the first step!", 'ERROR');
                                     aSession.adventure.index--;
                                 }
                             },
@@ -1464,7 +1464,7 @@ const aUI = {
                                     if (!aSession.adventure.name)
                                         return aUI.Alert("No active Adventure. please select a new Adventure", 'ERROR');
                                     if (aSession.adventure.index >= aSession.adventure.steps.length)
-                                        return aUI.Alert("You are at the final step!!", 'ERROR');
+                                        return aUI.Alert("You are at the final step!", 'ERROR');
                                     aSession.adventure.nextStep();
                                 }
                             },
@@ -1595,7 +1595,7 @@ const aUI = {
                 const AdventureActive = aAdventure.info.getActiveAdvetureID(adventure.name) ? 1 : 0;
                 const mapCount = aBuffs.getBuffAmount(['Adventure', adventure.name]) + AdventureActive;
                 if (mapCount < 1)
-                    return aUI.Alert("You don't have any adventure maps for this adventure!!!", "ERROR");
+                    return aUI.Alert("You don't have any adventure maps for this adventure!", "ERROR");
 
                 var repeat = confirm("Repeat the adventure as many as you have? x{0}".format(mapCount));
                 aSession.adventure.repeatCount = mapCount;
@@ -3730,7 +3730,8 @@ const aUI = {
     },
     updateStatus: function (status, from) {
         var date = new Date();
-        var time = "[{0}:{1}:{2}]".format(date.getHours(), date.getMinutes(), date.getSeconds());
+        var lz = function(n) { return n < 10 ? '0' + n : n; };
+        var time = "[{0}:{1}:{2}]".format(lz(date.getHours()), lz(date.getMinutes()), lz(date.getSeconds()));
         from = from ? '[{0}]'.format(from) : '';
         menu.nativeMenu.getItemByName("aStatus").label = time + from + ' ' + status;
         $("#aAdventureStatus").text(from + status);
@@ -4140,7 +4141,7 @@ const aResources = {
                             aQueue.add('turnOnProduction', building.GetGrid());
                         break;
                     default:
-                        console.warn('Unkown Production State "{0}"!'.format(building.GetResourceCreation().GetProductionState()));
+                        console.warn('Unknown Production State "{0}"!'.format(building.GetResourceCreation().GetProductionState()));
                 }
             });
             $.each(reqResources, function (name, amount) {
@@ -4771,7 +4772,7 @@ const aMail = {
             var advName = data.attachments.adventureName;
             var v = game.def("Communication.VO::dIntegerVO", !0);
             v.value = parseInt(data.id);
-            aUI.updateStatus("Accepting \"{0}\" invitaion from {1}".format(loca.GetText('ADN', advName), data.senderName), 'Mail');
+            aUI.updateStatus("Accepting \"{0}\" invitation from {1}".format(loca.GetText('ADN', advName), data.senderName), 'Mail');
             delete aSession.mail.pendingInvites[data.id];
             game.gi.mClientMessages.SendMessagetoServer(93, data.attachments.zoneID, v);
         } catch (e) { console.error('Error accepting adventure invite'); }
@@ -5540,7 +5541,12 @@ const aAdventure = {
                 }
                 return checkList.map(function (general) {
                     if (general.substr(0, 4) === 'buff') {
-                        return aBuffs.getBuffAmount(general) || aUI.Alert('{0} not available!'.format(loca.GetText("RES", general))), false;
+                        var buffAmount = aBuffs.getBuffAmount(general);
+                        if (!buffAmount) {
+                            aUI.Alert('{0} not available!'.format(loca.GetText("RES", general)));
+                            return false;
+                        }
+                        return buffAmount;
                     }
                     general = armyGetSpecialistFromID(general);
                     return general ? (!general.IsInUse() && !general.isTravellingAway()) : false;
@@ -6123,7 +6129,7 @@ const aAdventure = {
         start: function () {
             if (!aSession.isOn.Adventure) return;
             if (!aSession.adventure.steps) {
-                aUI.Alert("Please reselect the adventure!!", 'ARMY');
+                aUI.Alert("Please reselect the adventure!", 'ARMY');
             } else if (aSession.adventure.repeatCount === 0) {
                 aSession.isOn.Adventure = false;
                 aSettings.save();
@@ -6914,7 +6920,7 @@ const auto = {
                         aUtils.file.Write(path, data);
                         aUI.menu.Progress = 90;
                         setTimeout(function () {
-                            aUI.Alert("Updated Successfuly ^_^", 'TransporterAdmiral');
+                            aUI.Alert("Updated Successfully ^_^", 'TransporterAdmiral');
                             reloadScripts();
                         }, TIMEOUTS.ADVENTURE_RETRY_DELAY);
                     } catch (writeError) {

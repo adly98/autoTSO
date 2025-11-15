@@ -6232,7 +6232,23 @@ const aAdventure = {
                     var expectedGenerals = [];
                     try {
                         expectedGenerals = aSession.adventure.getGenerals() || [];
-                        aDebug.log('adventure', 'StarGenerals: Expected generals:', expectedGenerals);
+                        // Log expected generals with their names
+                        if (expectedGenerals.length > 0) {
+                            var expectedNames = [];
+                            for (var i = 0; i < expectedGenerals.length; i++) {
+                                var genId = expectedGenerals[i];
+                                try {
+                                    var gen = armyGetSpecialistFromID(genId);
+                                    var genName = gen && gen.getName ? gen.getName(false) : genId;
+                                    expectedNames.push(genName);
+                                } catch (e) {
+                                    expectedNames.push(genId);
+                                }
+                            }
+                            aDebug.log('adventure', 'StarGenerals: Expected generals:', expectedGenerals.length, '-', expectedNames.join(', '));
+                        } else {
+                            aDebug.log('adventure', 'StarGenerals: Expected generals:', expectedGenerals);
+                        }
                     } catch (e) {
                         aDebug.error('adventure', 'StarGenerals: Error getting expected generals:', e);
                         expectedGenerals = [];
@@ -6249,7 +6265,12 @@ const aAdventure = {
                                 if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
                                     var id = spec.GetUniqueID().toKeyString();
                                     allSpecialists.push(id);
-                                    aDebug.log('adventure', 'StarGenerals: Found specialist:', id, 'Type:', spec.GetTypeName());
+                                    try {
+                                        var specName = spec.getName ? spec.getName(false) : 'ID:' + spec.GetType();
+                                        aDebug.log('adventure', 'StarGenerals: Found specialist:', id, specName);
+                                    } catch (nameError) {
+                                        aDebug.log('adventure', 'StarGenerals: Found specialist:', id);
+                                    }
                                 }
                             } catch (specError) {
                                 aDebug.error('adventure', 'StarGenerals: Error checking specialist:', specError.message || specError.toString());

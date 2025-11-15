@@ -2661,27 +2661,55 @@ const aUI = {
                     if (!aSession.isOn.Adventure)
                         $("#aAdventureToggle").data("cmd", "start").text("Start");
 
-                    $('#aAdventureStepsDiv').empty()
-                        .append(aUtils.create.Row([[6, "Adventure Steps"], [6, "Details"]], "text-center", true))
-                        .append(
-                            aSession.adventure.steps.map(function (step, index) {
-                                var selected = '';
-                                if (index === aSession.adventure.index)
-                                    selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
-                                var text = step.name.replace(/([A-Z])/g, ' $1').trim();
-                                var details = step.data || "";
-                                if (details.indexOf("BuffAd") > -1) {
-                                    details = getImage(assets.GetBuffIcon(details).bitmapData, '22px', '22px') + loca.GetText("RES", details);
+                    var stepsContainer = $('#aAdventureStepsDiv').empty()
+                        .append(aUtils.create.Row([[6, "Adventure Steps"], [6, "Details"]], "text-center", true));
+
+                    // Use traditional for loop instead of .map() for AIR compatibility
+                    for (var index = 0; index < aSession.adventure.steps.length; index++) {
+                        var step = aSession.adventure.steps[index];
+                        var selected = '';
+                        if (index === aSession.adventure.index)
+                            selected = aSession.isOn.Adventure ? 'background: #FF7700;' : 'background: #377fa8;';
+                        var text = step.name.replace(/([A-Z])/g, ' $1').trim();
+
+                        // Handle step.data which can be string, object, or undefined
+                        var details = "";
+                        if (step.data) {
+                            if (typeof step.data === 'object') {
+                                // For AdventureTemplate with object data, show meaningful info
+                                if (step.data.file) {
+                                    // Show filename (last part of path)
+                                    details = step.data.file.split('\\').pop().split('/').pop();
+                                } else if (step.data.generals) {
+                                    // Show general count
+                                    details = step.data.generals.length + ' generals';
+                                } else {
+                                    details = JSON.stringify(step.data);
                                 }
+                            } else {
+                                // For string data, use as-is
+                                details = String(step.data);
+                            }
+                        }
 
-                                return aUtils.create.Row([
-                                    [6, text],
-                                    [6, details, details.indexOf('\\') > -1 ? "text-muted" : ""]
-                                ], "text-center small").attr('style', 'cursor:pointer;{0}'.format(selected)).attr('data-step', index).click(aUI.modals.adventure.AM_SelectedStep)
-                            })
-                        )
+                        // Convert details to string for indexOf check
+                        var detailsStr = String(details);
+                        if (detailsStr.indexOf("BuffAd") > -1) {
+                            details = getImage(assets.GetBuffIcon(detailsStr).bitmapData, '22px', '22px') + loca.GetText("RES", detailsStr);
+                            detailsStr = String(details);
+                        }
 
-                } catch (e) { }
+                        var rowElement = aUtils.create.Row([
+                            [6, text],
+                            [6, details, detailsStr.indexOf('\\') > -1 ? "text-muted" : ""]
+                        ], "text-center small").attr('style', 'cursor:pointer;{0}'.format(selected)).attr('data-step', index).click(aUI.modals.adventure.AM_SelectedStep);
+
+                        stepsContainer.append(rowElement);
+                    }
+
+                } catch (e) {
+                    console.error('AM_UpdateSteps error:', e);
+                }
             },
             AM_SelectedStep: function (e) {
                 try {

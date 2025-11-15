@@ -1774,7 +1774,7 @@ const aUI = {
                     ]),
                     createTableRow([
                         [2, "&#10551; PH Buff:"],
-                        [4, aUtils.create.Select('aQuests_Config_Buffs_PHBuff').append(aBuffs.getBuffsForBuilding('ProvisionHouse', false, true))]
+                        [4, aUtils.create.Select('aQuests_Config_Buffs_PHBuff')]
                     ]),
                     createTableRow([
                         [5, "&#10551; Sell: Resources on Trade office"],
@@ -1786,7 +1786,7 @@ const aUI = {
                         [5, "&#10551; Produce Resource: Turn On Production"],
                         [1, createSwitch('aQuests_Config_ProduceResource_TurnOn', aSettings.defaults.Quests.Config.ProduceResource.TurnOn)],
                         [2, "&#10551; Workyard Buff:"],
-                        [4, aUtils.create.Select('aQuests_Config_ProduceResource_BuffType').append(aBuffs.getBuffsForBuilding('Workyard', true, true))]
+                        [4, aUtils.create.Select('aQuests_Config_ProduceResource_BuffType')]
                     ]),
                     createTableRow([
                         [5, '&#10551; Notify when intervention needed:'],
@@ -2147,6 +2147,13 @@ const aUI = {
                 }));
                 aUI.modals.settings.loadSavedAdventures();
                 aWindow.show();
+                // Populate buff dropdowns lazily after dialog is shown to avoid race conditions
+                try {
+                    $('#aQuests_Config_Buffs_PHBuff').empty().append(aBuffs.getBuffsForBuilding('ProvisionHouse', false, true));
+                    $('#aQuests_Config_ProduceResource_BuffType').empty().append(aBuffs.getBuffsForBuilding('Workyard', true, true));
+                } catch (e) {
+                    console.error('Error populating buff dropdowns:', e);
+                }
                 $('#aAdventure_SpeedBuffs').val(aSettings.defaults.Adventures.speedBuff);
                 $('#aMail_Monitor').val(aSettings.defaults.Mail.TimerMinutes);
                 $('#aQuests_Config_Buffs_PHBuff').val(aSettings.defaults.Quests.Config.Buffs.PHBuff);
@@ -3886,24 +3893,37 @@ const aBuffs = {
             return buffs.map(function (buff) { return 'GeneralSpeedBuff_' + buff; });
     },
     getBuffsForBuilding: function (target, isWorkyard, toOptions) {
-        const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
-            if (!buff) return false;
-            const def = buff.GetBuffDefinition();
-            if (def.GetBuffType() !== 0) return false;
-            const targets = def.GetTargetDescription_string().split(',');
-            const targetGroup = def.GetTargetGroup_string() || null;
-            return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);
-        });
-        if (!toOptions) return buffs;
-        var options = [
-            $('<option>', { value: '' }).text('None')
-        ];
-        buffs.forEach(function (buff) {
-            var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
-            var amount = aBuffs.getBuffAmount(buff.GetType());
-            options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
-        });
-        return options;
+        try {
+            const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
+                if (!buff) return false;
+                // Check if buff has required methods before using them
+                if (typeof buff.GetBuffDefinition !== 'function' || typeof buff.GetType !== 'function') return false;
+                const def = buff.GetBuffDefinition();
+                if (def.GetBuffType() !== 0) return false;
+                const targets = def.GetTargetDescription_string().split(',');
+                const targetGroup = def.GetTargetGroup_string() || null;
+                return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);
+            });
+            if (!toOptions) return buffs;
+            var options = [
+                $('<option>', { value: '' }).text('None')
+            ];
+            buffs.forEach(function (buff) {
+                // Double-check buff is valid before accessing methods
+                if (!buff || typeof buff.GetType !== 'function') return;
+                var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
+                var amount = aBuffs.getBuffAmount(buff.GetType());
+                options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
+            });
+            return options;
+        } catch (e) {
+            console.error('Error loading buffs for building:', e);
+            // Return empty options if buffs aren't ready yet
+            if (toOptions) {
+                return [$('<option>', { value: '' }).text('None')];
+            }
+            return [];
+        }
     },
     EffectiveFor: function (unit) {
         var result = null;

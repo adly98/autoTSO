@@ -6168,40 +6168,77 @@ const aAdventure = {
             },
             InHomeLoadGenerals: function () {
                 try {
-                    if (!game.gi.isOnHomzone())
-                        return aAdventure.auto.result("You must be on home island!");
+                    aDebug.log('adventure', 'InHomeLoadGenerals: Starting step');
 
+                    if (!game.gi.isOnHomzone()) {
+                        aDebug.log('adventure', 'InHomeLoadGenerals: NOT on home island');
+                        return aAdventure.auto.result("You must be on home island!");
+                    }
+
+                    aDebug.log('adventure', 'InHomeLoadGenerals: On home island, updating army');
                     aAdventure.army.updateArmy();
                     const step = aSession.adventure.currentStep();
                     battlePacket = battleLoadDataCheck(step.data);
                     const state = aAdventure.battle.getState();
-                    if (state.army.matched)
+
+                    aDebug.log('adventure', 'InHomeLoadGenerals: Army matched?', state.army.matched, ', Can submit?', state.army.canSubmit);
+
+                    if (state.army.matched) {
+                        aDebug.log('adventure', 'InHomeLoadGenerals: All units loaded successfully');
                         return aAdventure.auto.result("All Units are loaded!!", true, 2);
+                    }
+
+                    aDebug.log('adventure', 'InHomeLoadGenerals: Attempting to load units');
                     return aAdventure.battle.attemptLoad(state, false);
                 } catch (er) { console.error(er) }
             },
             SendGeneralsToAdventure: function () {
                 try {
-                    if (!game.gi.isOnHomzone())
+                    aDebug.log('adventure', 'SendGeneralsToAdventure: Starting step');
+
+                    if (!game.gi.isOnHomzone()) {
+                        aDebug.log('adventure', 'SendGeneralsToAdventure: NOT on home island');
                         return aAdventure.auto.result("You must be on home island!");
+                    }
+
                     const generals = aSession.adventure.getGenerals();
-                    if (aAdventure.info.areGeneralsBusy(generals))
+                    aDebug.log('adventure', 'SendGeneralsToAdventure: Found', generals.length, 'generals to send');
+
+                    if (aAdventure.info.areGeneralsBusy(generals)) {
+                        aDebug.log('adventure', 'SendGeneralsToAdventure: Generals are busy, waiting');
                         return aAdventure.auto.result(null);
+                    }
 
-                    if (!generals.length)
+                    if (!generals.length) {
+                        aDebug.log('adventure', 'SendGeneralsToAdventure: No generals to send');
                         return aAdventure.auto.result("Can't send generals");
+                    }
 
+                    aDebug.log('adventure', 'SendGeneralsToAdventure: Queuing', generals.length, 'generals for travel');
                     generals.forEach(function (id, index) {
+                        try {
+                            var gen = armyGetSpecialistFromID(id);
+                            var genName = gen && gen.getName ? gen.getName(false) : id;
+                            aDebug.log('adventure', 'SendGeneralsToAdventure: Queuing general', index + 1, '/', generals.length, '-', genName);
+                        } catch (e) {
+                            aDebug.log('adventure', 'SendGeneralsToAdventure: Queuing general', index + 1, '/', generals.length, '-', id);
+                        }
                         aQueue.add('sendGeneralsToAdventure', { id: id, num: index + 1, total: generals.length });
                     });
+
+                    aDebug.log('adventure', 'SendGeneralsToAdventure: All generals queued, step complete');
                     return aAdventure.auto.result(null, true);
 
                 } catch (er) { }
             },
             UseSpeedBuff: function () {
                 try {
-                    if (!aAdventure.info.isOnAdventure())
+                    aDebug.log('adventure', 'UseSpeedBuff: Starting step');
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'UseSpeedBuff: NOT on adventure island');
                         return aAdventure.auto.result(null);
+                    }
 
                     // Wait for all specialists to arrive and be at star before applying buff
                     // This prevents wasting buff time while specialists are still traveling
@@ -6212,19 +6249,37 @@ const aAdventure = {
                         }
                     });
 
-                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists))
+                    aDebug.log('adventure', 'UseSpeedBuff: Found', allSpecialists.length, 'specialists on adventure');
+
+                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists)) {
+                        aDebug.log('adventure', 'UseSpeedBuff: Specialists still busy, waiting for them to reach star');
                         return aAdventure.auto.result("Waiting for troops at star before applying speed buff", false, 2);
+                    }
 
                     const speedBuff = aSession.adventure.currentStep().data || aSettings.defaults.Adventures.speedBuff;
-                    if (!speedBuff)
+                    aDebug.log('adventure', 'UseSpeedBuff: Target buff:', speedBuff);
+
+                    if (!speedBuff) {
+                        aDebug.log('adventure', 'UseSpeedBuff: No speed buff configured, skipping');
                         return aAdventure.auto.result("Continuing without speed buff", true, 1)
+                    }
 
-                    if (!aBuffs.getBuffAmount(speedBuff))
+                    var buffAmount = aBuffs.getBuffAmount(speedBuff);
+                    aDebug.log('adventure', 'UseSpeedBuff: Buff amount available:', buffAmount);
+
+                    if (!buffAmount) {
+                        aDebug.log('adventure', 'UseSpeedBuff: Buff not found in star menu, skipping');
                         return aAdventure.auto.result("Can't find Buff in star menu, continuing without spped buff", true, 1)
+                    }
 
+                    aDebug.log('adventure', 'UseSpeedBuff: Queuing buff application');
                     aQueue.add('applyBuff', { what: 'ADVENTURE_BUFF', type: speedBuff, grid: 0 });
+                    aDebug.log('adventure', 'UseSpeedBuff: Step complete');
 
-                } catch (er) { console.error(er); }
+                } catch (er) {
+                    aDebug.error('adventure', 'UseSpeedBuff: Error:', er);
+                    console.error(er);
+                }
                 return aAdventure.auto.result(null, true, 1);
             },
             StarGenerals: function () {
@@ -6401,10 +6456,16 @@ const aAdventure = {
             },
             ApplyBuff: function () {
                 try {
+                    aDebug.log('adventure', 'ApplyBuff: Starting step');
+
                     const step = aSession.adventure.currentStep();
                     const buff = aBuffs.fullName(step.data);
-                    if (!aAdventure.info.isOnAdventure())
+                    aDebug.log('adventure', 'ApplyBuff: Target buff:', buff);
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'ApplyBuff: NOT on adventure island');
                         return aAdventure.auto.result("You must be on adventure island!");
+                    }
 
                     // Wait for all specialists to arrive and be at star before applying buff
                     // This prevents wasting buff time while specialists are still traveling
@@ -6415,33 +6476,57 @@ const aAdventure = {
                         }
                     });
 
-                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists))
+                    aDebug.log('adventure', 'ApplyBuff: Found', allSpecialists.length, 'specialists on adventure');
+
+                    if (allSpecialists.length && aAdventure.info.areGeneralsBusy(allSpecialists)) {
+                        aDebug.log('adventure', 'ApplyBuff: Specialists still busy, waiting for them to reach star');
                         return aAdventure.auto.result("Waiting for troops at star before applying buff", false, 2);
+                    }
 
                     const canApply = aAdventure.info.canApplyBuff(buff);
+                    aDebug.log('adventure', 'ApplyBuff: Can apply?', canApply, '(true=yes, false=already applied, null=error)');
 
-                    if (step.applied || canApply === false)
+                    if (step.applied || canApply === false) {
+                        aDebug.log('adventure', 'ApplyBuff: Buff already applied, skipping');
                         return aAdventure.auto.result("{0} is applied".format(loca.GetText('RES', buff)), true, 3);
+                    }
 
-                    if (canApply === null)
+                    if (canApply === null) {
+                        aDebug.log('adventure', 'ApplyBuff: Error checking buff eligibility');
                         return aAdventure.auto.result('Something is wrong can\'t apply "{0}"!!'.format(loca.GetText('RES', buff)));
+                    }
 
-                    if (!aBuffs.getBuffAmount(buff))
+                    var buffAmount = aBuffs.getBuffAmount(buff);
+                    aDebug.log('adventure', 'ApplyBuff: Buff amount available:', buffAmount);
+
+                    if (!buffAmount) {
+                        aDebug.log('adventure', 'ApplyBuff: Buff not available in inventory');
                         return aAdventure.auto.result('"{0}" is missing!!'.format(loca.GetText('RES', buff)));
+                    }
 
                     const item = aAdventure.data.getItems()[step.data];
                     const amount = item.amount || 1;
+                    aDebug.log('adventure', 'ApplyBuff: Applying to', item.grids.length, 'grids, amount:', amount);
+
                     $.each(item.grids, function (i, grid) {
+                        aDebug.log('adventure', 'ApplyBuff: Applying buff to grid', grid);
                         aBuffs.applyBuff(buff, grid, amount);
                     });
                     step.applied = true;
+                    aDebug.log('adventure', 'ApplyBuff: Buff applied successfully, marked as complete');
                     return aAdventure.auto.result("Applying {0}".format(loca.GetText('RES', buff)), false, 5);
-                } catch (er) { }
+                } catch (er) {
+                    aDebug.error('adventure', 'ApplyBuff: Error:', er);
+                }
             },
             AdventureTemplate: function () {
                 try {
-                    if (!aAdventure.info.isOnAdventure())
+                    aDebug.log('adventure', 'AdventureTemplate: Starting wave execution');
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'AdventureTemplate: NOT on adventure island');
                         return aAdventure.auto.result("You must be on adventure island!");
+                    }
 
                     aAdventure.army.updateArmy();
                     const step = aSession.adventure.currentStep();
@@ -6449,15 +6534,23 @@ const aAdventure = {
                     const attackerState = aAdventure.battle.getState(true);
                     const allState = aAdventure.battle.getState();
 
+                    var fileName = step.file ? step.file.split('\\').pop().split('/').pop() : 'Template';
+                    aDebug.log('adventure', 'AdventureTemplate: Processing', fileName);
 
-                    if (!aSession.adventure.action)
+                    if (!aSession.adventure.action) {
                         aSession.adventure.action = "move";
+                        aDebug.log('adventure', 'AdventureTemplate: Initializing action state to MOVE');
+                    }
+
+                    aDebug.log('adventure', 'AdventureTemplate: Current action state =', aSession.adventure.action);
 
                     if (aSession.adventure.action === 'attacking') {
                         const enemies = aSession.adventure.getEnemies(true);
+                        aDebug.log('adventure', 'AdventureTemplate: ATTACKING state - enemies remaining:', enemies.remaining, '/', enemies.all);
                         if (enemies.remaining) {
                             return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, enemies.remaining, enemies.all), false, 1);
                         } else {
+                            aDebug.log('adventure', 'AdventureTemplate: All enemies killed, resetting action state');
                             aSession.adventure.action = '';
                             return aAdventure.auto.result("{0} All enemies killed, resuming!".format(fileName), true);
                         }
@@ -6465,76 +6558,115 @@ const aAdventure = {
                     }
 
                     if (aSession.adventure.action === "move") {
+                        aDebug.log('adventure', 'AdventureTemplate: MOVE phase - onGrid:', attackerState.grid.onGrid, ', totalOn:', attackerState.grid.totalOn, '/', attackerState.total);
                         if (!attackerState.grid.onGrid &&
-                            attackerState.grid.totalOn < attackerState.total)
+                            attackerState.grid.totalOn < attackerState.total) {
+                            aDebug.log('adventure', 'AdventureTemplate: Attempting move operations');
                             return aAdventure.battle.attemptMove(attackerState, allState);
-                        if (attackerState.grid.onGrid && attackerState.busy.travelling.length)
+                        }
+                        if (attackerState.grid.onGrid && attackerState.busy.travelling.length) {
+                            aDebug.log('adventure', 'AdventureTemplate: Attackers on grid but', attackerState.busy.travelling.length, 'still travelling, waiting');
                             return aAdventure.auto.result();
+                        }
+                        aDebug.log('adventure', 'AdventureTemplate: MOVE complete, transitioning to LOAD');
                         aSession.adventure.action = 'load';
                     }
 
                     if (aSession.adventure.action === "load") {
-                        if (!attackerState.army.matched)
+                        aDebug.log('adventure', 'AdventureTemplate: LOAD phase - army matched:', attackerState.army.matched);
+                        if (!attackerState.army.matched) {
+                            aDebug.log('adventure', 'AdventureTemplate: Attempting load operations');
                             return aAdventure.battle.attemptLoad(attackerState, true);
+                        }
+                        aDebug.log('adventure', 'AdventureTemplate: LOAD complete, transitioning to ATTACK');
                         aSession.adventure.action = "attack";
                     }
 
                     if (aSession.adventure.action === "attack") {
+                        aDebug.log('adventure', 'AdventureTemplate: ATTACK phase - onGrid:', attackerState.grid.onGrid, ', army matched:', attackerState.army.matched);
                         if (!attackerState.grid.onGrid) {
+                            aDebug.log('adventure', 'AdventureTemplate: Attackers not on grid, regressing to MOVE');
                             aSession.adventure.action = 'move';
                             return aAdventure.auto.result();
                         }
                         if (!attackerState.army.matched) {
+                            aDebug.log('adventure', 'AdventureTemplate: Army not matched, regressing to LOAD');
                             aSession.adventure.action = 'load';
                             return aAdventure.auto.result();
                         }
 
+                        aDebug.log('adventure', 'AdventureTemplate: Submitting attack, killAll:', step.killAll);
                         return aAdventure.battle.attemptAttack(attackerState, step.killAll);
                     }
 
-                } catch (err) { console.error(err); }
+                } catch (err) {
+                    aDebug.error('adventure', 'AdventureTemplate: Error:', err);
+                    console.error(err);
+                }
                 return aAdventure.auto.result();
             },
             AdventureTemplate2: function () {
                 try {
-                    if (!aAdventure.info.isOnAdventure())
+                    aDebug.log('adventure', 'AdventureTemplate2: Starting wave execution');
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'AdventureTemplate2: NOT on adventure island');
                         return aAdventure.auto.result("You must be on adventure island!");
+                    }
                     const step = aSession.adventure.currentStep();
 
                     const file = step.file.split('\\');
                     const fileName = "[{0}]".format(file[file.length - 1]);
+                    aDebug.log('adventure', 'AdventureTemplate2: Processing', fileName);
 
-                    if (!aSession.adventure.action)
+                    if (!aSession.adventure.action) {
                         aSession.adventure.action = "move";
+                        aDebug.log('adventure', 'AdventureTemplate2: Initializing action state to MOVE');
+                    }
+
+                    aDebug.log('adventure', 'AdventureTemplate2: Current action state =', aSession.adventure.action);
 
                     if (aSession.adventure.action === 'attacking') {
                         const enemies = aSession.adventure.getEnemies(true);
+                        aDebug.log('adventure', 'AdventureTemplate2: ATTACKING state - enemies remaining:', enemies.remaining, '/', enemies.all);
                         if (enemies.remaining) {
                             return aAdventure.auto.result("{0} Waiting to kill enemies ({1}/{2})".format(fileName, enemies.remaining, enemies.all), false, 1);
                         } else {
+                            aDebug.log('adventure', 'AdventureTemplate2: All enemies killed, resetting action state');
                             aSession.adventure.action = '';
                             return aAdventure.auto.result("{0} All enemies killed, resuming!".format(fileName), true);
                         }
                     }
 
-                    if (aAdventure.info.areGeneralsBusy(step.data, !aSession.adventure.action === "move"))
-                        return aAdventure.auto.result("{0} Waiting for Generals{1}".format(fileName, aAdventure.info.getGeneralsArrivalTime(step.data)), false, 1);
+                    if (aAdventure.info.areGeneralsBusy(step.data, !aSession.adventure.action === "move")) {
+                        var arrivalTime = aAdventure.info.getGeneralsArrivalTime(step.data);
+                        aDebug.log('adventure', 'AdventureTemplate2: Generals busy, arrival time:', arrivalTime);
+                        return aAdventure.auto.result("{0} Waiting for Generals{1}".format(fileName, arrivalTime), false, 1);
+                    }
 
                     const state = aAdventure.info.getBattleState(step.data);
 
                     if (aSession.adventure.action === "move") { // Move generals
+                        aDebug.log('adventure', 'AdventureTemplate2: MOVE phase - attempting move operations');
                         const moveResult = aAdventure.action.move(state, fileName);
                         if (moveResult) return moveResult;
+                        aDebug.log('adventure', 'AdventureTemplate2: MOVE complete, transitioning to LOAD');
                     }
                     if (aSession.adventure.action === "load") { // FreeUnits & Load Units
+                        aDebug.log('adventure', 'AdventureTemplate2: LOAD phase - attempting load operations');
                         const loadResult = aAdventure.action.load(state, fileName);
                         if (loadResult) return loadResult;
+                        aDebug.log('adventure', 'AdventureTemplate2: LOAD complete, transitioning to ATTACK');
                     }
                     if (aSession.adventure.action === "attack") {
+                        aDebug.log('adventure', 'AdventureTemplate2: ATTACK phase - submitting attack, killAll:', step.killAll);
                         const attackResult = aAdventure.action.attack(state, fileName, step.killAll);
                         if (attackResult) return attackResult;
                     }
-                } catch (er) { console.error(er) }
+                } catch (er) {
+                    aDebug.error('adventure', 'AdventureTemplate2: Error:', er);
+                    console.error(er);
+                }
             },
             LoadGeneralsToEnd: function () {
                 try {

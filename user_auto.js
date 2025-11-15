@@ -3937,37 +3937,27 @@ const aBuffs = {
             return buffs.map(function (buff) { return 'GeneralSpeedBuff_' + buff; });
     },
     getBuffsForBuilding: function (target, isWorkyard, toOptions) {
-        try {
-            const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
-                if (!buff) return false;
-                // Check if buff has required methods before using them
-                if (typeof buff.GetBuffDefinition !== 'function' || typeof buff.GetType !== 'function') return false;
+        const buffs = game.gi.mCurrentPlayer.getAvailableBuffs_vector().filter(function (buff) {
+            try {
                 const def = buff.GetBuffDefinition();
                 if (def.GetBuffType() !== 0) return false;
                 const targets = def.GetTargetDescription_string().split(',');
                 const targetGroup = def.GetTargetGroup_string() || null;
                 return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);
-            });
-            if (!toOptions) return buffs;
-            var options = [
-                $('<option>', { value: '' }).text('None')
-            ];
-            buffs.forEach(function (buff) {
-                // Double-check buff is valid before accessing methods
-                if (!buff || typeof buff.GetType !== 'function') return;
+            } catch(e) { return false; }
+        });
+        if (!toOptions) return buffs;
+        var options = [
+            $('<option>', { value: '' }).text('None')
+        ];
+        buffs.forEach(function (buff) {
+            try {
                 var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
                 var amount = aBuffs.getBuffAmount(buff.GetType());
                 options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
-            });
-            return options;
-        } catch (e) {
-            console.error('Error loading buffs for building:', e);
-            // Return empty options if buffs aren't ready yet
-            if (toOptions) {
-                return [$('<option>', { value: '' }).text('None')];
-            }
-            return [];
-        }
+            } catch(e) {}
+        });
+        return options;
     },
     EffectiveFor: function (unit) {
         var result = null;
@@ -4429,8 +4419,7 @@ const aBuildings = {
                     const depoData = aSettings.defaults.Deposits.data[depoName];
                     const onMapDepos = game.zone.mStreetDataMap.getDeposits_vectorByType(depoName);
                     const onTaskGeos = geologists.filter(function (spec) {
-                        var task = spec.GetTask ? spec.GetTask() : null;
-                        return task && task.GetSubType() === index;
+                        try{ return spec.GetTask().GetSubType() === index; } catch(e){ return false; }
                     });
                     const unfoundDepos = (depoData.options[7] || depoData.max) - onMapDepos.length - onTaskGeos.length;
 
@@ -4568,10 +4557,12 @@ const aBuildings = {
         }
     },
     buffBuilding: function (building, buffName) {
-        if (!building || building.productionBuff != null || building.GetResourceCreation().GetProductionState() !== 0 ||
-            building.IsUpgradeInProgress() || building.IsInConstructionMode() || building.IsInDestruction() ||
-            !buffName || !aBuffs.getBuffAmount(buffName)) return;
-        aQueue.add('applyBuff', { what: 'BUILDING', type: buffName, grid: building.GetGrid(), building: building.GetBuildingName_string() });
+        try{
+            if (!building || building.productionBuff != null || building.GetResourceCreation().GetProductionState() !== 0 ||
+                building.IsUpgradeInProgress() || building.IsInConstructionMode() || building.IsInDestruction() ||
+                !buffName || !aBuffs.getBuffAmount(buffName)) return;
+            aQueue.add('applyBuff', { what: 'BUILDING', type: buffName, grid: building.GetGrid(), building: building.GetBuildingName_string() });
+        } catch(e) {}
     },
     getProducableItems: function (name) {
         var building = game.zone.mStreetDataMap.getBuildingByName(name);

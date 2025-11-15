@@ -9,6 +9,7 @@ This guide covers the development setup, workflow, and best practices for contri
 - [Code Quality Tools](#code-quality-tools)
 - [Testing](#testing)
 - [Git Workflow](#git-workflow)
+- [Release Process](#release-process)
 - [AIR Compatibility](#air-compatibility)
 - [Troubleshooting](#troubleshooting)
 
@@ -222,6 +223,178 @@ git commit -m "Fix bug"
    - Description of what changed and why
    - Any testing performed
    - Screenshots/logs if applicable
+
+## Release Process
+
+This project uses GitHub Releases with automated CI/CD for distribution. The release process automatically handles version management.
+
+### How Releases Work
+
+1. **Version Source**: The git tag is the single source of truth for version numbers
+2. **Automatic Versioning**: CI/CD automatically updates `auto.version` in the JavaScript file to match the tag
+3. **Update Mechanism**: Users receive updates through GitHub Releases API (not raw file URLs)
+
+### Creating a Release
+
+**Prerequisites:**
+- Ensure all changes are merged to `main`
+- Ensure all tests pass and code is stable
+- Pull latest changes: `git pull origin main`
+
+**Steps:**
+
+1. **Create and push a version tag:**
+   ```bash
+   # Tag format: v<MAJOR>.<MINOR>.<PATCH>
+   git tag v2.1.0
+   git push origin v2.1.0
+   ```
+
+2. **CI/CD automatically:**
+   - Extracts version from tag (e.g., `v2.1.0` → `2.1.0`)
+   - Updates `auto.version` field in `user_auto.js`
+   - Creates GitHub Release with auto-generated release notes
+   - Uploads release assets:
+     - `user_auto.js` (with updated version)
+     - `resources.json`
+     - All files from `resources/` folder
+
+3. **Verify release:**
+   - Check [Releases page](https://github.com/adly98/autoTSO/releases)
+   - Verify all assets are attached
+   - Review auto-generated release notes
+   - Edit release notes if needed to add highlights or breaking changes
+
+### Versioning Guidelines
+
+Follow [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** (v3.0.0): Breaking changes, major feature overhauls
+- **MINOR** (v2.1.0): New features, backward-compatible
+- **PATCH** (v2.0.1): Bug fixes, minor improvements
+
+Examples:
+```bash
+# Bug fix release
+git tag v2.0.3
+git push origin v2.0.3
+
+# New feature release
+git tag v2.1.0
+git push origin v2.1.0
+
+# Breaking change release
+git tag v3.0.0
+git push origin v3.0.0
+```
+
+### Pre-releases and Testing
+
+For beta testing:
+
+```bash
+# Create a pre-release tag
+git tag v2.1.0-beta.1
+git push origin v2.1.0-beta.1
+```
+
+Mark the release as "pre-release" in the GitHub UI after it's created.
+
+### User Update Process
+
+Users automatically receive updates when:
+1. They start the game (update check runs at initialization)
+2. They manually check via **Tools → Check for Updates**
+
+The update system:
+- Queries GitHub Releases API for latest release
+- Compares tag version with current `auto.version`
+- Shows changelog (from release notes) and prompts for update
+- Downloads and installs files from release assets
+- Creates backup before updating
+
+### Release Workflow Details
+
+The CI/CD workflow (`.github/workflows/release.yml`):
+
+```yaml
+# Triggers on version tags
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Main steps:
+1. Checkout code
+2. Extract version from tag
+3. Update auto.version in user_auto.js
+4. Copy files to release-assets/
+5. Create GitHub Release with assets
+```
+
+### Troubleshooting Releases
+
+**Problem:** Tag pushed but no release created
+
+**Solutions:**
+- Check [Actions tab](https://github.com/adly98/autoTSO/actions) for workflow errors
+- Ensure tag format starts with `v` (e.g., `v2.1.0`)
+- Verify `GITHUB_TOKEN` permissions in workflow
+
+**Problem:** Release created but missing assets
+
+**Solutions:**
+- Check workflow logs for file copy errors
+- Verify all files exist in repository
+- Ensure `resources/` folder has required JSON files
+
+**Problem:** Users not receiving updates
+
+**Solutions:**
+- Verify release is published (not draft)
+- Check that `auto.version` in release matches tag
+- Ensure release assets are publicly accessible
+- Check browser console for API errors (rate limits, network issues)
+
+### Rollback Process
+
+If a release has critical issues:
+
+1. **Delete the problematic tag:**
+   ```bash
+   git tag -d v2.1.0
+   git push origin :refs/tags/v2.1.0
+   ```
+
+2. **Delete the GitHub Release** through the web UI
+
+3. **Fix the issues** and create a new patch release:
+   ```bash
+   git tag v2.1.1
+   git push origin v2.1.1
+   ```
+
+Note: Users on the broken version may need manual intervention.
+
+### Release Checklist
+
+Before creating a release:
+
+- [ ] All changes merged to `main`
+- [ ] CI tests passing
+- [ ] Manual testing completed
+- [ ] No known critical bugs
+- [ ] CHANGELOG or release notes prepared (if custom notes desired)
+- [ ] Version number follows semantic versioning
+- [ ] Tag format is correct (vX.Y.Z)
+
+After creating a release:
+
+- [ ] Verify release appears on GitHub
+- [ ] Check all assets uploaded correctly
+- [ ] Review auto-generated release notes
+- [ ] Test update mechanism with actual game client
+- [ ] Monitor for user-reported issues
 
 ## AIR Compatibility
 

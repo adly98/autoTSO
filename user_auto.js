@@ -74,10 +74,22 @@ const WORK_TIME_OFFSET_SECONDS = 12;
 // Console polyfill for AIR compatibility (console object doesn't exist in AIR)
 if (typeof console === 'undefined') {
     var console = {
-        log: function(msg) { debug('[LOG] ' + msg); },
-        info: function(msg) { debug('[INFO] ' + msg); },
-        error: function(msg) { debug('[ERROR] ' + msg); },
-        warn: function(msg) { debug('[WARN] ' + msg); }
+        log: function() {
+            var args = Array.prototype.slice.call(arguments);
+            debug('[LOG] ' + args.join(' '));
+        },
+        info: function() {
+            var args = Array.prototype.slice.call(arguments);
+            debug('[INFO] ' + args.join(' '));
+        },
+        error: function() {
+            var args = Array.prototype.slice.call(arguments);
+            debug('[ERROR] ' + args.join(' '));
+        },
+        warn: function() {
+            var args = Array.prototype.slice.call(arguments);
+            debug('[WARN] ' + args.join(' '));
+        }
     };
 }
 

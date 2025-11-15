@@ -6408,51 +6408,97 @@ const aAdventure = {
             },
             VisitAdventure: function () {
                 try {
-                    if (!aAdventure.info.getActiveAdvetureID())
+                    aDebug.log('adventure', 'VisitAdventure: Starting step');
+
+                    var adventureID = aAdventure.info.getActiveAdvetureID();
+                    if (!adventureID) {
+                        aDebug.log('adventure', 'VisitAdventure: No active adventure found');
                         return aAdventure.auto.result("Can't find ({0}) in active adventures".format(loca.GetText('ADN', this.data.name)));
+                    }
+
+                    aDebug.log('adventure', 'VisitAdventure: Active adventure ID:', adventureID, ', action state:', aSession.adventure.action);
+
                     if (aSession.adventure.action !== 'Waiting') {
                         if (game.gi.isOnHomzone()) {
+                            aDebug.log('adventure', 'VisitAdventure: On home island, queuing travel to adventure');
                             aQueue.add('travelToZone', 'Adventure');
                             aSession.adventure.action = 'Waiting';
                             return aAdventure.auto.result();
                         } else if (aAdventure.info.isOnAdventure()) {
+                            aDebug.log('adventure', 'VisitAdventure: Arrived on adventure island');
                             return aAdventure.auto.result(null, true, 2);
                         }
+                    } else {
+                        aDebug.log('adventure', 'VisitAdventure: Waiting for arrival');
                     }
-                } catch (er) { console.error(er) }
+                } catch (er) {
+                    aDebug.error('adventure', 'VisitAdventure: Error:', er);
+                    console.error(er);
+                }
             },
             CollectPickups: function () {
-                if (!aAdventure.info.isOnAdventure())
+                aDebug.log('adventure', 'CollectPickups: Starting step');
+
+                if (!aAdventure.info.isOnAdventure()) {
+                    aDebug.log('adventure', 'CollectPickups: NOT on adventure island');
                     return aAdventure.auto.result("You must be on adventure island!");
+                }
+
+                aDebug.log('adventure', 'CollectPickups: Waiting for pickup collection');
                 return aAdventure.auto.result("Waiting for pickups!");
             },
             ReturnHome: function () {
                 try {
+                    aDebug.log('adventure', 'ReturnHome: Starting step');
+
                     if (!game.gi.isOnHomzone() && aSession.adventure.action !== 'Waiting') {
+                        aDebug.log('adventure', 'ReturnHome: On adventure island, queuing travel to home');
                         aQueue.add('travelToZone', 'Home');
                         aSession.adventure.action = 'Waiting';
+                    } else if (game.gi.isOnHomzone()) {
+                        aDebug.log('adventure', 'ReturnHome: Arrived on home island');
+                    } else {
+                        aDebug.log('adventure', 'ReturnHome: Waiting for arrival, action state:', aSession.adventure.action);
                     }
                     return aAdventure.auto.result();
-                } catch (er) { console.error(er) }
+                } catch (er) {
+                    aDebug.error('adventure', 'ReturnHome: Error:', er);
+                    console.error(er);
+                }
             },
             ProduceItem: function () {
                 try {
+                    aDebug.log('adventure', 'ProduceItem: Starting step');
+
                     const step = aSession.adventure.currentStep();
                     const buff = aBuffs.fullName(step.data);
                     const item = aAdventure.data.getItems()[step.data];
                     const amount = item.amount || item.grids.length;
-                    if (!game.gi.isOnHomzone())
-                        return aAdventure.auto.result("You must be on home island!");
 
-                    if (aBuffs.getBuffAmount(buff) >= amount)
+                    aDebug.log('adventure', 'ProduceItem: Target item:', buff, ', amount needed:', amount);
+
+                    if (!game.gi.isOnHomzone()) {
+                        aDebug.log('adventure', 'ProduceItem: NOT on home island');
+                        return aAdventure.auto.result("You must be on home island!");
+                    }
+
+                    var currentAmount = aBuffs.getBuffAmount(buff);
+                    aDebug.log('adventure', 'ProduceItem: Current amount:', currentAmount, '/', amount);
+
+                    if (currentAmount >= amount) {
+                        aDebug.log('adventure', 'ProduceItem: Item produced successfully');
                         return aAdventure.auto.result("{0} produced successfully".format(loca.GetText('RES', buff)), true, 3);
-                    else if (aBuildings.production.inProgress(1, buff))
+                    } else if (aBuildings.production.inProgress(1, buff)) {
+                        aDebug.log('adventure', 'ProduceItem: Production in progress, skip:', step.skip || false);
                         return aAdventure.auto.result("{0} is being produced".format(loca.GetText('RES', buff)), step.skip || false, 3);
-                    else {
+                    } else {
+                        aDebug.log('adventure', 'ProduceItem: Queuing production for', amount, buff);
                         aQueue.add('startProduction', [buff, amount]);
                         return aAdventure.auto.result(null, false, 5);
                     }
-                } catch (er) { }
+                } catch (er) {
+                    aDebug.error('adventure', 'ProduceItem: Error:', er);
+                }
             },
             ApplyBuff: function () {
                 try {
@@ -6670,20 +6716,40 @@ const aAdventure = {
             },
             LoadGeneralsToEnd: function () {
                 try {
-                    if (!aAdventure.info.isOnAdventure())
+                    aDebug.log('adventure', 'LoadGeneralsToEnd: Starting step');
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'LoadGeneralsToEnd: NOT on adventure island');
                         return aAdventure.auto.result("You must be on adventure island to load all units");
+                    }
 
-                    if (aSession.adventure.getEnemies().remaining > 0)
+                    var enemies = aSession.adventure.getEnemies();
+                    aDebug.log('adventure', 'LoadGeneralsToEnd: Remaining enemies:', enemies.remaining);
+
+                    if (enemies.remaining > 0) {
+                        aDebug.log('adventure', 'LoadGeneralsToEnd: Still fighting, waiting for enemies to be killed');
                         return aAdventure.auto.result("Waiting to kill enemies!!");
+                    }
 
+                    aDebug.log('adventure', 'LoadGeneralsToEnd: Updating army info');
                     aAdventure.army.updateArmy();
 
-                    if (!Object.keys(armyInfo.free).length)
-                        return aAdventure.auto.result("No unassigned units, ready to finish", true);
+                    var freeUnits = Object.keys(armyInfo.free);
+                    aDebug.log('adventure', 'LoadGeneralsToEnd: Free units count:', freeUnits.length);
 
+                    if (!freeUnits.length) {
+                        aDebug.log('adventure', 'LoadGeneralsToEnd: No free units, ready to finish adventure');
+                        return aAdventure.auto.result("No unassigned units, ready to finish", true);
+                    }
+
+                    aDebug.log('adventure', 'LoadGeneralsToEnd: Assigning', freeUnits.length, 'free units to generals');
                     aAdventure.action.assignAllUnitsToFinish(armyInfo.free);
+                    aDebug.log('adventure', 'LoadGeneralsToEnd: Assignment queued, waiting for completion');
                     return aAdventure.auto.result();
-                } catch (err) { console.error(err) }
+                } catch (err) {
+                    aDebug.error('adventure', 'LoadGeneralsToEnd: Error:', err);
+                    console.error(err);
+                }
             }
         },
         result: function (message, next, interval) {

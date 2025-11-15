@@ -19,6 +19,26 @@
 
 var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
 
+// Debug Logging Helper
+const aDebug = {
+    log: function(category, ...args) {
+        if (!aSettings.defaults.Debug.enableLogging) return;
+
+        if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
+        if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
+
+        console.log(`[DEBUG ${category}]`, ...args);
+    },
+    error: function(category, ...args) {
+        if (!aSettings.defaults.Debug.enableLogging) return;
+
+        if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
+        if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
+
+        console.error(`[DEBUG ${category}]`, ...args);
+    }
+};
+
 // Configuration Constants
 const TIMEOUTS = {
     QUEUE_RESTART_DELAY: 1000,
@@ -600,6 +620,11 @@ const aSettings = {
             RestartRAM: 0,
             increaseTimeout: false,
             showGrid: false,
+        },
+        Debug: {
+            enableLogging: true,
+            logAdventures: true,
+            logCombat: true,
         },
         Security: {
             validateFilePaths: false,

@@ -47,13 +47,9 @@ const LIMITS = {
 };
 
 const WORK_TIME_OFFSET_SECONDS = 12;
-// Console polyfill for AIR compatibility (console object doesn't exist in AIR)
+
 if (typeof console === 'undefined') {
-    var console = {
-        log: function(msg) { debug(msg); },
-        error: function(msg) { debug(msg); },
-        warn: function(msg) { debug(msg); }
-    };
+    var console = air.Introspector.Console;
 }
 
 // Session Data

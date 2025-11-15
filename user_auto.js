@@ -71,6 +71,7 @@ const WORK_TIME_OFFSET_SECONDS = 12;
 if (typeof console === 'undefined') {
     var console = {
         log: function(msg) { debug('[LOG] ' + msg); },
+        info: function(msg) { debug('[INFO] ' + msg); },
         error: function(msg) { debug('[ERROR] ' + msg); },
         warn: function(msg) { debug('[WARN] ' + msg); }
     };

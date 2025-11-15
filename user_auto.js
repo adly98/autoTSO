@@ -1935,6 +1935,20 @@ const aUI = {
                     ]),
                     createTableRow([[12, '&#10551; When disabled, file operations may access any path (use with caution)']]),
                     $('<br>'),
+                    createTableRow([[9, 'Debug Logging'], [3, '&nbsp;']], true),
+                    createTableRow([
+                        [9, "Enable debug logging"],
+                        [3, createSwitch('aDebug_EnableLogging', aSettings.defaults.Debug.enableLogging)],
+                    ]),
+                    createTableRow([
+                        [9, "&#10551; Log adventure events"],
+                        [3, createSwitch('aDebug_LogAdventures', aSettings.defaults.Debug.logAdventures)],
+                    ]),
+                    createTableRow([
+                        [9, "&#10551; Log combat events"],
+                        [3, createSwitch('aDebug_LogCombat', aSettings.defaults.Debug.logCombat)],
+                    ]),
+                    $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
                     createTableRow([
                         [4, "Restart Client when RAM used:"],
@@ -2033,6 +2047,10 @@ const aUI = {
                     aSettings.defaults.Auto.increaseTimeout = $('#aScript_IncreaseTimeout').is(':checked');
                     //Security
                     aSettings.defaults.Security.validateFilePaths = $('#aSecurity_ValidateFilePaths').is(':checked');
+                    //Debug
+                    aSettings.defaults.Debug.enableLogging = $('#aDebug_EnableLogging').is(':checked');
+                    aSettings.defaults.Debug.logAdventures = $('#aDebug_LogAdventures').is(':checked');
+                    aSettings.defaults.Debug.logCombat = $('#aDebug_LogCombat').is(':checked');
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');

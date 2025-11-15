@@ -6874,87 +6874,137 @@ const auto = {
     version: '2.0.2',
     developer: true,
     update: {
-        url: function () {
-            return atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2FkbHk5OC9hdXRvVFNPL21haW4v');
-        },
+        apiUrl: 'https://api.github.com/repos/adly98/autoTSO/releases/latest',
+        releaseData: null,
         changelog: null,
         available: false,
         checkForUpdate: function (event) {
             if (event) aUI.Alert("Checking for update!", 'TransporterAdmiral');
             try {
-                $.get(auto.update.url() + 'version.json', function (data) {
-                    var json = JSON.parse(data);
-                    auto.update.changelog = json.changelog;
-                    if (auto.update.compareVersions(json.version, auto.version) === 1) {
-                        if (!event) {
-                            aUI.menu.Progress = 70;
-                            if (aSettings.defaults.Auto.AutoUpdate) {
-                                // Show changelog and request user consent before auto-updating
-                                var userConsent = confirm(
-                                    "New update available (v" + json.version + ")!\n\n" +
-                                    "Changelog:\n" + (json.changelog || "No changelog available") + "\n\n" +
-                                    "Do you want to update now?"
-                                );
-                                if (userConsent) {
-                                    auto.update.updateScript();
+                $.ajax({
+                    url: auto.update.apiUrl,
+                    method: 'GET',
+                    timeout: 10000,
+                    success: function (data) {
+                        try {
+                            auto.update.releaseData = data;
+
+                            // Extract version from tag (e.g., "v2.1.0" -> "2.1.0")
+                            var remoteVersion = data.tag_name.replace(/^v/, '');
+                            auto.update.changelog = data.body || 'No changelog available';
+
+                            if (auto.update.compareVersions(remoteVersion, auto.version) === 1) {
+                                if (!event) {
+                                    aUI.menu.Progress = 70;
+                                    if (aSettings.defaults.Auto.AutoUpdate) {
+                                        // Show changelog and request user consent before auto-updating
+                                        var userConsent = confirm(
+                                            "New update available (v" + remoteVersion + ")!\n\n" +
+                                            "Changelog:\n" + auto.update.changelog + "\n\n" +
+                                            "Do you want to update now?"
+                                        );
+                                        if (userConsent) {
+                                            auto.update.updateScript();
+                                        } else {
+                                            auto.update.available = true;
+                                        }
+                                    } else {
+                                        auto.update.available = true;
+                                    }
                                 } else {
-                                    auto.update.available = true;
+                                    aUI.Alert("New Update Available!!", 'TransporterAdmiral');
                                 }
                             } else {
-                                auto.update.available = true;
+                                if (!event)
+                                    aUI.menu.Progress = 80;
+                                else
+                                    aUI.Alert("Latest Version :D", 'TransporterAdmiral');
                             }
-                        } else {
-                            aUI.Alert("New Update Available!!", 'TransporterAdmiral');
+                        } catch (parseError) {
+                            console.error('Failed to parse release data:', parseError);
+                            if (!event) aUI.menu.Progress = 80;
                         }
-                    } else {
-                        if (!event)
-                            aUI.menu.Progress = 80;
-                        else
-                            aUI.Alert("Latest Version :D", 'TransporterAdmiral');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Update check failed:', status, error);
+                        if (xhr.status === 403) {
+                            console.warn('GitHub API rate limit may have been exceeded');
+                        }
+                        // Silently fail - don't block script initialization
+                        if (!event) aUI.menu.Progress = 80;
                     }
                 });
             } catch (e) {
                 console.error('Update check error:', e);
+                if (!event) aUI.menu.Progress = 80;
             }
         },
         updateScript: function () {
             try {
+                if (!auto.update.releaseData || !auto.update.releaseData.assets) {
+                    aUI.Alert("Release data not available", 'ERROR');
+                    return;
+                }
+
+                // Find user_auto.js in release assets
+                var scriptAsset = null;
+                for (var i = 0; i < auto.update.releaseData.assets.length; i++) {
+                    if (auto.update.releaseData.assets[i].name === 'user_auto.js') {
+                        scriptAsset = auto.update.releaseData.assets[i];
+                        break;
+                    }
+                }
+
+                if (!scriptAsset) {
+                    aUI.Alert("user_auto.js not found in release", 'ERROR');
+                    return;
+                }
+
                 aSettings.save();
-                $.get(auto.update.url() + 'user_auto.js', function (data) {
-                    try {
-                        const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
-                        const backupPath = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js.backup").nativePath;
-
-                        // Create backup of current version before updating
+                $.ajax({
+                    url: scriptAsset.browser_download_url,
+                    method: 'GET',
+                    timeout: 30000,
+                    success: function (data) {
                         try {
-                            const currentFile = new air.File(path);
-                            if (currentFile.exists) {
-                                const fileStream = new air.FileStream();
-                                fileStream.open(currentFile, air.FileMode.READ);
-                                const currentData = fileStream.readUTFBytes(currentFile.size);
-                                fileStream.close();
-                                aUtils.file.Write(backupPath, currentData);
-                                console.info('Backup created successfully');
-                            }
-                        } catch (backupError) {
-                            console.error('Backup error:', backupError);
-                        }
+                            const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
+                            const backupPath = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js.backup").nativePath;
 
-                        // Write new version
-                        aUtils.file.Write(path, data);
-                        aUI.menu.Progress = 90;
-                        setTimeout(function () {
-                            aUI.Alert("Updated Successfully ^_^", 'TransporterAdmiral');
-                            reloadScripts();
-                        }, TIMEOUTS.ADVENTURE_RETRY_DELAY);
-                    } catch (writeError) {
-                        console.error('Update write error:', writeError);
-                        aUI.Alert("Update failed - check console for details", 'ERROR');
+                            // Create backup of current version before updating
+                            try {
+                                const currentFile = new air.File(path);
+                                if (currentFile.exists) {
+                                    const fileStream = new air.FileStream();
+                                    fileStream.open(currentFile, air.FileMode.READ);
+                                    const currentData = fileStream.readUTFBytes(currentFile.size);
+                                    fileStream.close();
+                                    aUtils.file.Write(backupPath, currentData);
+                                    console.info('Backup created successfully');
+                                }
+                            } catch (backupError) {
+                                console.error('Backup error:', backupError);
+                            }
+
+                            // Write new version
+                            aUtils.file.Write(path, data);
+                            aUI.menu.Progress = 90;
+                            setTimeout(function () {
+                                aUI.Alert("Updated Successfully ^_^", 'TransporterAdmiral');
+                                reloadScripts();
+                            }, TIMEOUTS.ADVENTURE_RETRY_DELAY);
+                        } catch (writeError) {
+                            console.error('Update write error:', writeError);
+                            aUI.Alert("Update failed - check console for details", 'ERROR');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Update download failed:', status, error);
+                        aUI.Alert("New Version couldn't be downloaded @_@", 'ERROR');
                     }
                 });
             } catch (e) {
                 console.error('Update error:', e);
-                aUI.Alert("New Version couldn't be downloaded @_@", 'ERROR');
+                aUI.Alert("Update error - check console for details", 'ERROR');
             }
         },
         compareVersions: function (v1, v2) {
@@ -6970,29 +7020,94 @@ const auto = {
             }
             return 0;
         },
+        getAssetUrl: function (assetName) {
+            if (!auto.update.releaseData || !auto.update.releaseData.assets) {
+                return null;
+            }
+            for (var i = 0; i < auto.update.releaseData.assets.length; i++) {
+                if (auto.update.releaseData.assets[i].name === assetName) {
+                    return auto.update.releaseData.assets[i].browser_download_url;
+                }
+            }
+            return null;
+        },
         checkFiles: function (force) {
             if (!force && game.auto.resources) return;
             game.auto.resources = {};
             var localResources = aUtils.file.Read(aUtils.file.Path('resources'));
-            $.get(auto.update.url() + 'resources.json', function (data) {
-                var json = JSON.parse(data);
-                localResources = localResources || json;
-                $.each(json, function (file, version) {
-                    if (aUtils.file.checkResource(file) &&
-                        localResources[file] >= version) {
-                        game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
-                    } else {
-                        localResources[file] = version;
-                        auto.update.downloadResource(file);
-                    };
+
+            // Ensure we have release data, otherwise fetch it
+            var processResources = function () {
+                var resourcesUrl = auto.update.getAssetUrl('resources.json');
+                if (!resourcesUrl) {
+                    console.error('resources.json not found in release assets');
+                    return;
+                }
+
+                $.ajax({
+                    url: resourcesUrl,
+                    method: 'GET',
+                    timeout: 10000,
+                    success: function (data) {
+                        try {
+                            var json = JSON.parse(data);
+                            localResources = localResources || json;
+                            $.each(json, function (file, version) {
+                                if (aUtils.file.checkResource(file) &&
+                                    localResources[file] >= version) {
+                                    game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
+                                } else {
+                                    localResources[file] = version;
+                                    auto.update.downloadResource(file);
+                                };
+                            });
+                            aUtils.file.Write(aUtils.file.Path('resources'), JSON.stringify(localResources, null, 2));
+                        } catch (e) {
+                            console.error('Failed to process resources.json:', e);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to download resources.json:', status, error);
+                    }
                 });
-                aUtils.file.Write(aUtils.file.Path('resources'), JSON.stringify(localResources, null, 2));
-            });
+            };
+
+            if (!auto.update.releaseData) {
+                // Fetch release data first
+                $.ajax({
+                    url: auto.update.apiUrl,
+                    method: 'GET',
+                    timeout: 10000,
+                    success: function (data) {
+                        auto.update.releaseData = data;
+                        processResources();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to fetch release data for resources:', status, error);
+                    }
+                });
+            } else {
+                processResources();
+            }
         },
         downloadResource: function (file) {
-            $.get(auto.update.url() + 'resources/{0}.json'.format(file), function (data) {
-                aUtils.file.Write(aUtils.file.getPath(1, file), data);
-                game.auto.resources[file] = JSON.parse(data);
+            var resourceUrl = auto.update.getAssetUrl(file + '.json');
+            if (!resourceUrl) {
+                console.error('Resource not found in release assets:', file);
+                return;
+            }
+
+            $.ajax({
+                url: resourceUrl,
+                method: 'GET',
+                timeout: 10000,
+                success: function (data) {
+                    aUtils.file.Write(aUtils.file.getPath(1, file), data);
+                    game.auto.resources[file] = JSON.parse(data);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to download resource:', file, status, error);
+                }
             });
         }
     },

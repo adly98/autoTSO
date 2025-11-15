@@ -2461,9 +2461,7 @@ const aUI = {
                 });
                 aWindow.withsBody('#aTemplate_AdventureSelect').change(function () {
                     const value = $(this).val();
-                    
-                  
-                  (value);
+                    console.log(value);
                     $("#adventureIcon").html(getImage(assets.GetBuffIcon($('#aTemplate_AdventureSelect').val()).bitmapData));
                     $('#LHTemp, #LHGenerals, #LHUnits').empty();
                     aWindow.steps = [];

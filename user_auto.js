@@ -1053,7 +1053,12 @@ const aUtils = {
             try {
                 var file = new air.File();
                 file.browseForOpen("Select a Template");
-                file.addEventListener(air.Event.SELECT, callback);
+                // Use self-removing handler to prevent memory leak
+                var selectHandler = function(event) {
+                    file.removeEventListener(air.Event.SELECT, selectHandler);
+                    callback(event);
+                };
+                file.addEventListener(air.Event.SELECT, selectHandler);
             } catch (e) { }
         },
         SaveTemplate: function (template) {
@@ -1481,7 +1486,7 @@ const aUI = {
                 } else {
                     if (existingGridPosMenu) {
                         window.nativeWindow.menu.removeItem(existingGridPosMenu);
-                        window.nativeWindow.stage.removeEventListener(64, auto.generateGrid);
+                        window.nativeWindow.stage.removeEventListener("click", auto.generateGrid);
                     }
                 }
                 if (!menu.nativeMenu.getItemByName("Automation").submenu)
@@ -2435,14 +2440,17 @@ const aUI = {
                         var txtFilter = new air.FileFilter("Template", "*.*");
                         var root = new air.File();
                         root.browseForOpenMultiple("Open", new window.runtime.Array(txtFilter));
-                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, function (event) {
+                        // Use self-removing handler to prevent memory leak
+                        var selectHandler = function (event) {
+                            root.removeEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectHandler);
                             event.files.forEach(function (file) {
                                 const data = aUtils.file.Read(file.nativePath);
                                 if (!data) return alert('Invalid file');
                                 aWindow.steps.push({ name: 'AdventureTemplate', file: file.nativePath, data: data });
                             });
                             aUI.modals.adventure.TM_UpdateView();
-                        });
+                        };
+                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectHandler);
                     } else {
                         const isNotVenture = aAdventure.data.getAdventureType($("#aTemplate_AdventureSelect").val()) !== "Venture";
                         if (this.name === 'CollectPickups' && isNotVenture)

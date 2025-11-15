@@ -234,6 +234,8 @@ This project uses GitHub Releases with automated CI/CD for distribution. The rel
 2. **Automatic Versioning**: CI/CD automatically updates `auto.version` in the JavaScript file to match the tag
 3. **Update Mechanism**: Users receive updates through GitHub Releases API (not raw file URLs)
 
+**Migration Note**: For backward compatibility, the first release(s) will include a generated `version.json` file to allow existing users on the old update system to migrate to the new code. This can be removed once all users have updated (typically after 1-2 releases).
+
 ### Creating a Release
 
 **Prerequisites:**
@@ -253,9 +255,11 @@ This project uses GitHub Releases with automated CI/CD for distribution. The rel
 2. **CI/CD automatically:**
    - Extracts version from tag (e.g., `v2.1.0` → `2.1.0`)
    - Updates `auto.version` field in `user_auto.js`
+   - Generates `version.json` for backward compatibility (temporary)
    - Creates GitHub Release with auto-generated release notes
    - Uploads release assets:
      - `user_auto.js` (with updated version)
+     - `version.json` (auto-generated for migration)
      - `resources.json`
      - All files from `resources/` folder
 
@@ -375,6 +379,24 @@ If a release has critical issues:
    ```
 
 Note: Users on the broken version may need manual intervention.
+
+### Removing Backward Compatibility
+
+After 1-2 releases, once most users have migrated to the new update system, you can remove the `version.json` generation:
+
+1. **Edit `.github/workflows/release.yml`:**
+   - Remove the entire `version.json` generation block (lines with cat > release-assets/version.json)
+   - Remove `release-assets/version.json` from the files list in the Create Release step
+
+2. **Commit and tag the change:**
+   ```bash
+   git add .github/workflows/release.yml
+   git commit -m "Remove version.json backward compatibility"
+   git tag v2.2.0  # or appropriate version
+   git push origin main v2.2.0
+   ```
+
+The new releases will no longer include `version.json`, making the system fully GitHub Releases-based.
 
 ### Release Checklist
 

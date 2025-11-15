@@ -26,6 +26,16 @@ jobs:
           # Update version in user_auto.js
           sed -i "s/version: '[^']*'/version: '${{ steps.get_version.outputs.VERSION }}'/" user_auto.js
 
+          # Generate version.json for backward compatibility with old update mechanism
+          # This allows existing users to migrate to the new GitHub Releases system
+          # Can be removed in future releases once all users have updated
+          cat > release-assets/version.json <<EOF
+          {
+            "version": "${{ steps.get_version.outputs.VERSION }}",
+            "changelog": "This release migrates to GitHub Releases API. Future updates will use the new system."
+          }
+          EOF
+
           cp user_auto.js release-assets/
           cp resources.json release-assets/
           cp -r resources release-assets/
@@ -35,6 +45,7 @@ jobs:
         with:
           files: |
             release-assets/user_auto.js
+            release-assets/version.json
             release-assets/resources.json
             release-assets/resources/*.json
           generate_release_notes: true

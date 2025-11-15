@@ -2686,17 +2686,19 @@ const aUI = {
 
                         // Handle step.data which can be string, object, or undefined
                         var details = "";
-                        if (step.data) {
+
+                        // For AdventureTemplate, show filename from step.file
+                        if (step.name === 'AdventureTemplate' && step.file) {
+                            details = step.file.split('\\').pop().split('/').pop();
+                        } else if (step.data) {
                             if (typeof step.data === 'object') {
-                                // For AdventureTemplate with object data, show meaningful info
-                                if (step.data.file) {
-                                    // Show filename (last part of path)
-                                    details = step.data.file.split('\\').pop().split('/').pop();
-                                } else if (step.data.generals) {
-                                    // Show general count
+                                // For object data (like InHomeLoadGenerals with generals list)
+                                if (step.data.generals) {
                                     details = step.data.generals.length + ' generals';
                                 } else {
-                                    details = JSON.stringify(step.data);
+                                    // Count units in template data
+                                    var unitCount = Object.keys(step.data).length;
+                                    details = unitCount + ' unit' + (unitCount !== 1 ? 's' : '');
                                 }
                             } else {
                                 // For string data, use as-is

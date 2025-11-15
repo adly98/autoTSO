@@ -2913,8 +2913,10 @@ const aUI = {
                 var save = function () {
                     if (sObj.hasOwnProperty('item'))
                         aSettings.defaults.Buildings.TProduction[buildingName].item = aWindow.withsBody('#producableItems').val();
-                    if (sObj.hasOwnProperty('amount'))
-                        aSettings.defaults.Buildings.TProduction[buildingName].amount = parseInt(aWindow.withsBody('#amount').val());
+                    if (sObj.hasOwnProperty('amount')) {
+                        var enabled = aWindow.withsBody('#enableProduction').is(':checked');
+                        aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? 1 : 0;
+                    }
                     if (sObj.hasOwnProperty('stack'))
                         aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#stack').val());
                     if (sObj.hasOwnProperty('buff'))
@@ -2925,6 +2927,20 @@ const aUI = {
                 };
                 var settings = function () {
                     var html = [];
+                    // Add "Enable Production" checkbox if building has amount property
+                    if (sObj.hasOwnProperty('amount')) {
+                        var createSwitch = function (id, checked) {
+                            return $('<label>', { 'class': 'switch' }).append([
+                                $('<input>', { 'type': 'checkbox', 'id': id, 'checked': checked }),
+                                $('<span>', { 'class': 'slider round' })
+                            ]);
+                        };
+                        html.push(createTableRow([
+                            [9, 'Enable Production'],
+                            [3, createSwitch('enableProduction', sObj.amount > 0)]
+                        ]));
+                        html.push($('<br>'));
+                    }
                     $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
                         if (k === 'item') {
@@ -2940,10 +2956,8 @@ const aUI = {
                                 [8, aUtils.create.Select('buff').append(aBuffs.getBuffsForBuilding(buildingName, false, true))]
                             ]);
                         } else if (k === 'amount') {
-                            table = createTableRow([
-                                [4, 'Amount: '],
-                                [8, $('<input>', { 'id': 'amount', 'class': 'form-control' })]
-                            ]);
+                            // Skip rendering amount field - handled by Enable Production checkbox
+                            return;
                         } else if (k === 'stack') {
                             var options = [];
                             for (var i = 25; i >= 1; i--) {
@@ -2969,8 +2983,8 @@ const aUI = {
                     aUtils.create.container().append([
                         $('<label>').html('Notes:-'),
                         $('<br>'),
-                        $('<label>').html('&#10551; If anything is "None" that means it is disabled!!'),
-                        $('<label>').html('&#10551; Buff is applied when the building is in production!'),
+                        $('<label>').html('&#10551; Enable Production: Maintains continuous production'),
+                        $('<label>').html('&#10551; Buff is applied when the building is in production'),
                         $('<label>').html('&#10551; Building level doesn\'t matter ;) (you can create anything @@)'),
                         createTableRow([[9, 'Building Settings'], [3, '&nbsp;']], true)
                     ].concat(settings()).concat([
@@ -3007,10 +3021,6 @@ const aUI = {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
                 aWindow.withsBody('#stack').val(sObj.stack).change();
-                aWindow.withsBody('#amount').on('input', function () {
-                    $(this).val($(this).val().replace(/[^0-9.]/g, ''));
-                    if ($(this).val() > LIMITS.TRADE_MAX_INPUT) $(this).val(LIMITS.TRADE_MAX_INPUT);
-                }).val(sObj.amount).change();
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                 aWindow.sshow();

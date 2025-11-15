@@ -21,21 +21,25 @@ var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureMana
 
 // Debug Logging Helper
 const aDebug = {
-    log: function(category, ...args) {
+    log: function(category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
 
         if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
         if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
 
-        console.log(`[DEBUG ${category}]`, ...args);
+        var args = Array.prototype.slice.call(arguments, 1);
+        args.unshift('[DEBUG ' + category + ']');
+        console.log.apply(console, args);
     },
-    error: function(category, ...args) {
+    error: function(category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
 
         if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
         if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
 
-        console.error(`[DEBUG ${category}]`, ...args);
+        var args = Array.prototype.slice.call(arguments, 1);
+        args.unshift('[DEBUG ' + category + ']');
+        console.error.apply(console, args);
     }
 };
 
@@ -67,14 +71,9 @@ const LIMITS = {
 };
 
 const WORK_TIME_OFFSET_SECONDS = 12;
-// Console polyfill for AIR compatibility (console object doesn't exist in AIR)
+
 if (typeof console === 'undefined') {
-    var console = {
-        log: function(msg) { debug('[LOG] ' + msg); },
-        info: function(msg) { debug('[INFO] ' + msg); },
-        error: function(msg) { debug('[ERROR] ' + msg); },
-        warn: function(msg) { debug('[WARN] ' + msg); }
-    };
+    var console = air.Introspector.Console;
 }
 
 // Session Data
@@ -1083,7 +1082,12 @@ const aUtils = {
             try {
                 var file = new air.File();
                 file.browseForOpen("Select a Template");
-                file.addEventListener(air.Event.SELECT, callback);
+                // Use self-removing handler to prevent memory leak
+                var selectHandler = function(event) {
+                    file.removeEventListener(air.Event.SELECT, selectHandler);
+                    callback(event);
+                };
+                file.addEventListener(air.Event.SELECT, selectHandler);
             } catch (e) { }
         },
         SaveTemplate: function (template) {
@@ -1133,6 +1137,22 @@ const aUtils = {
                     (step.name === 'ReturnHome' && game.gi.isOnHomzone()))) {
                     aUI.Alert("{0} Island Loaded!".format(step.name === 'VisitAdventure' ? 'Adventure' : 'Home'), 'QUEST');
                     aSession.adventure.action = '';
+
+                    // Auto-inject StarGenerals step after VisitAdventure if missing
+                    if (step.name === 'VisitAdventure') {
+                        var nextStepIndex = aSession.adventure.index + 1;
+                        var nextStep = aSession.adventure.steps[nextStepIndex];
+
+                        // If next step is not StarGenerals, inject it
+                        if (!nextStep || nextStep.name !== 'StarGenerals') {
+                            aSession.adventure.steps.splice(nextStepIndex, 0, {
+                                name: 'StarGenerals',
+                                data: null
+                            });
+                            console.info('Auto-injected StarGenerals step after VisitAdventure');
+                        }
+                    }
+
                     aSession.adventure.nextStep();
 
                     if (step.name === 'VisitAdventure') {
@@ -1511,7 +1531,7 @@ const aUI = {
                 } else {
                     if (existingGridPosMenu) {
                         window.nativeWindow.menu.removeItem(existingGridPosMenu);
-                        window.nativeWindow.stage.removeEventListener(64, auto.generateGrid);
+                        window.nativeWindow.stage.removeEventListener("click", auto.generateGrid);
                     }
                 }
                 if (!menu.nativeMenu.getItemByName("Automation").submenu)
@@ -1919,6 +1939,20 @@ const aUI = {
                     ]),
                     createTableRow([[12, '&#10551; When disabled, file operations may access any path (use with caution)']]),
                     $('<br>'),
+                    createTableRow([[9, 'Debug Logging'], [3, '&nbsp;']], true),
+                    createTableRow([
+                        [9, "Enable debug logging"],
+                        [3, createSwitch('aDebug_EnableLogging', aSettings.defaults.Debug.enableLogging)],
+                    ]),
+                    createTableRow([
+                        [9, "&#10551; Log adventure events"],
+                        [3, createSwitch('aDebug_LogAdventures', aSettings.defaults.Debug.logAdventures)],
+                    ]),
+                    createTableRow([
+                        [9, "&#10551; Log combat events"],
+                        [3, createSwitch('aDebug_LogCombat', aSettings.defaults.Debug.logCombat)],
+                    ]),
+                    $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
                     createTableRow([
                         [4, "Restart Client when RAM used:"],
@@ -2017,6 +2051,10 @@ const aUI = {
                     aSettings.defaults.Auto.increaseTimeout = $('#aScript_IncreaseTimeout').is(':checked');
                     //Security
                     aSettings.defaults.Security.validateFilePaths = $('#aSecurity_ValidateFilePaths').is(':checked');
+                    //Debug
+                    aSettings.defaults.Debug.enableLogging = $('#aDebug_EnableLogging').is(':checked');
+                    aSettings.defaults.Debug.logAdventures = $('#aDebug_LogAdventures').is(':checked');
+                    aSettings.defaults.Debug.logCombat = $('#aDebug_LogCombat').is(':checked');
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');
@@ -2465,14 +2503,17 @@ const aUI = {
                         var txtFilter = new air.FileFilter("Template", "*.*");
                         var root = new air.File();
                         root.browseForOpenMultiple("Open", new window.runtime.Array(txtFilter));
-                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, function (event) {
+                        // Use self-removing handler to prevent memory leak
+                        var selectHandler = function (event) {
+                            root.removeEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectHandler);
                             event.files.forEach(function (file) {
                                 const data = aUtils.file.Read(file.nativePath);
                                 if (!data) return alert('Invalid file');
                                 aWindow.steps.push({ name: 'AdventureTemplate', file: file.nativePath, data: data });
                             });
                             aUI.modals.adventure.TM_UpdateView();
-                        });
+                        };
+                        root.addEventListener(window.runtime.flash.events.FileListEvent.SELECT_MULTIPLE, selectHandler);
                     } else {
                         const isNotVenture = aAdventure.data.getAdventureType($("#aTemplate_AdventureSelect").val()) !== "Venture";
                         if (this.name === 'CollectPickups' && isNotVenture)
@@ -6178,7 +6219,107 @@ const aAdventure = {
                 return aAdventure.auto.result(null, true, 1);
             },
             StarGenerals: function () {
-                return aAdventure.auto.result(null, true);
+                try {
+                    aDebug.log('adventure', 'StarGenerals: Starting step');
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'StarGenerals: Not on adventure island');
+                        return aAdventure.auto.result("You must be on adventure island!");
+                    }
+
+                    aDebug.log('adventure', 'StarGenerals: On adventure island, collecting specialists');
+
+                    // Get the list of generals that were supposed to be sent to adventure
+                    // from the SendGeneralsToAdventure step (first step in adventure)
+                    // This returns [] if there's no InHomeLoadGenerals step
+                    var expectedGenerals = [];
+                    try {
+                        expectedGenerals = aSession.adventure.getGenerals() || [];
+                        aDebug.log('adventure', 'StarGenerals: Expected generals:', expectedGenerals);
+                    } catch (e) {
+                        aDebug.error('adventure', 'StarGenerals: Error getting expected generals:', e);
+                        expectedGenerals = [];
+                    }
+
+                    // Get ALL specialists currently on adventure (not just battle packet generals)
+                    // This includes troop carriers like Smuggler/Quartermaster
+                    // Use game.getSpecialists() directly instead of aSpecialists.getSpecialists(0)
+                    // because the latter filters to only isGeneral() which excludes carriers
+                    var allSpecialists = [];
+                    try {
+                        game.getSpecialists().forEach(function (spec) {
+                            try {
+                                if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
+                                    var id = spec.GetUniqueID().toKeyString();
+                                    allSpecialists.push(id);
+                                    aDebug.log('adventure', 'StarGenerals: Found specialist:', id, 'Type:', spec.GetTypeName());
+                                }
+                            } catch (specError) {
+                                aDebug.error('adventure', 'StarGenerals: Error checking specialist:', specError.message || specError.toString());
+                            }
+                        });
+                    } catch (e) {
+                        aDebug.error('adventure', 'StarGenerals: Error collecting specialists:', e.message || e.toString());
+                        if (e.stack) aDebug.error('adventure', 'StarGenerals: Stack:', e.stack);
+                    }
+
+                    aDebug.log('adventure', 'StarGenerals: Found', allSpecialists.length, 'of', expectedGenerals.length, 'expected generals');
+
+                    // ONLY wait for expected generals if they were explicitly sent (expectedGenerals.length > 0)
+                    // This handles adventures that start from home with SendGeneralsToAdventure step
+                    if (expectedGenerals.length > 0) {
+                        // If we expected generals but none have arrived yet, wait for them
+                        if (allSpecialists.length === 0) {
+                            aDebug.log('adventure', 'StarGenerals: Waiting for generals to arrive');
+                            return aAdventure.auto.result("Waiting for generals to arrive at adventure", false, 2);
+                        }
+
+                        // If some but not all generals have arrived, keep waiting
+                        if (allSpecialists.length < expectedGenerals.length) {
+                            aDebug.log('adventure', 'StarGenerals: Waiting for all generals', allSpecialists.length, '/', expectedGenerals.length);
+                            return aAdventure.auto.result("Waiting for all generals to arrive ({0}/{1})".format(allSpecialists.length, expectedGenerals.length), false, 2);
+                        }
+                    }
+
+                    // If no specialists are found (and none were expected), just complete
+                    if (!allSpecialists.length) {
+                        aDebug.log('adventure', 'StarGenerals: No specialists found, completing');
+                        return aAdventure.auto.result("No specialists found", true);
+                    }
+
+                    // All expected generals have arrived (or no specific generals were expected)
+                    // At this point in the adventure, there's usually no battlePacket yet
+                    // (it gets created in AdventureTemplate steps)
+                    // So we just verify all generals have arrived and complete the step
+                    aDebug.log('adventure', 'StarGenerals: All generals arrived on adventure island');
+
+                    // Optional: Try to send them to star if battlePacket exists
+                    // This is idempotent and safe to call even if they're already there
+                    try {
+                        if (typeof battlePacket !== 'undefined' && battlePacket) {
+                            aDebug.log('adventure', 'StarGenerals: Battle packet exists, sending to star');
+                            aAdventure.action.starGenerals();
+
+                            // Check if they're busy traveling
+                            var busy = aAdventure.info.areGeneralsBusy(allSpecialists);
+                            aDebug.log('adventure', 'StarGenerals: Generals busy traveling?', busy);
+
+                            if (busy)
+                                return aAdventure.auto.result("Waiting for troops to reach star", false, 2);
+                        } else {
+                            aDebug.log('adventure', 'StarGenerals: No battle packet yet, generals will be positioned later');
+                        }
+                    } catch (e) {
+                        aDebug.error('adventure', 'StarGenerals: Error sending to star (non-fatal):', e);
+                    }
+
+                    aDebug.log('adventure', 'StarGenerals: Complete - all generals ready');
+                    return aAdventure.auto.result("All generals ready", true, 2);
+                } catch (er) {
+                    aDebug.error('adventure', 'StarGenerals: Fatal error:', er);
+                    if (er.stack) aDebug.error('adventure', 'StarGenerals: Stack:', er.stack);
+                    return aAdventure.auto.result("Error in StarGenerals, skipping", true);
+                }
             },
             VisitAdventure: function () {
                 try {

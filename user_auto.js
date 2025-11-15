@@ -335,7 +335,7 @@ const aQueue = {
         const current = aQueue.queue[aQueue.index];
         aQueue.last = new Date().getTime();
         if (!current) { return aQueue.restart(); }
-        try { aQueue.actions[current.fn](current.params); } catch (e) { debug(e) }
+        try { aQueue.actions[current.fn](current.params); } catch (e) { console.error(e) }
         //aQueue.queue[aQueue.index] = null;
         const next = aQueue.queue[++aQueue.index];
         if (!next) { return aQueue.restart(); }
@@ -510,7 +510,7 @@ const aQueue = {
                         const op = game.def('ServerState::cConnectionManager').GetInstance().mMailService.operations['GetHeaders'];
                         aMail.handleHeaders(op.lastResult.data.data.headers_collection.toArray());
                     } catch (e) {
-                        debug('Empty Mail Response!!');
+                        console.warn('Empty Mail Response!!');
                         aMail.setMonitor(0.5);
                     }
                     break;
@@ -809,7 +809,7 @@ const aSettings = {
             const data = JSON.stringify(aSettings.defaults, null, 2);
             aUtils.file.Write(aUtils.file.Path('settings'), data);
             if (alert) aUI.Alert("Settings Saved!");
-        } catch (e) { debug(e); }
+        } catch (e) { console.error(e); }
     },
 
     /**
@@ -992,17 +992,17 @@ const aUtils = {
                 if (!isValid) {
                     // Check if validation is disabled - only override on failure
                     if (!aSettings.defaults.Security.validateFilePaths) {
-                        debug('Path validation disabled - allowing access to: ' + filePath);
+                        console.info('Path validation disabled - allowing access to: ' + filePath);
                         return true;
                     }
-                    debug('Path validation failed: ' + filePath + ' is outside allowed directories');
-                    debug('Invalid path access attempt: ' + filePath);
+                    console.error('Path validation failed: ' + filePath + ' is outside allowed directories');
+                    console.error('Invalid path access attempt: ' + filePath);
                     return false;
                 }
                 return true;
             } catch (e) {
-                debug('Path validation error: ' + e);
-                debug('Path validation error: ' + e);
+                console.error('Path validation error: ' + e);
+                console.error('Path validation error: ' + e);
                 return false;
             }
         },
@@ -1015,7 +1015,7 @@ const aUtils = {
         Read: function (fileName) {
             try {
                 if (!aUtils.file.validatePath(fileName)) {
-                    debug('Read blocked - invalid path: ' + fileName);
+                    console.error('Read blocked - invalid path: ' + fileName);
                     return false;
                 }
 
@@ -1028,8 +1028,8 @@ const aUtils = {
                 if (data === "") { return false; }
                 return JSON.parse(data);
             } catch (e) {
-                debug('File read error: ' + e);
-                debug('Read error: ' + e);
+                console.error('File read error: ' + e);
+                console.error('Read error: ' + e);
                 return false;
             }
         },
@@ -1043,7 +1043,7 @@ const aUtils = {
         Write: function (path, data) {
             try {
                 if (!aUtils.file.validatePath(path)) {
-                    debug('Write blocked - invalid path: ' + path);
+                    console.error('Write blocked - invalid path: ' + path);
                     return false;
                 }
 
@@ -1053,8 +1053,8 @@ const aUtils = {
                 fileStream.close();
                 return true;
             } catch (e) {
-                debug('File write error: ' + e);
-                debug('Write error: ' + e);
+                console.error('File write error: ' + e);
+                console.error('Write error: ' + e);
                 return false;
             }
         },
@@ -1067,15 +1067,15 @@ const aUtils = {
         Delete: function (path) {
             try {
                 if (!aUtils.file.validatePath(path)) {
-                    debug('Delete blocked - invalid path: ' + path);
+                    console.error('Delete blocked - invalid path: ' + path);
                     return false;
                 }
 
                 new air.File(path).deleteFile();
                 return true;
             } catch (e) {
-                debug('File delete error: ' + e);
-                debug('Delete error: ' + e);
+                console.error('File delete error: ' + e);
+                console.error('Delete error: ' + e);
                 return false;
             }
         },
@@ -1109,7 +1109,7 @@ const aUtils = {
                         aSession.zoneAction = null;
                     }
                     if (aSession.adventure.action === "FinishAdventure") {
-                        debug('Finishing adventure');
+                        console.info('Finishing adventure');
                         if (aSettings.defaults.Adventures.reTrain)
                             aAdventure.action.trainLostUnits();
 
@@ -1146,7 +1146,7 @@ const aUtils = {
                         });
                     }
                 }
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         battleFinished: function (e) {
             try {
@@ -1159,7 +1159,7 @@ const aUtils = {
                     "ARMY"
                 );
 
-            } catch (er) { debug(er) }
+            } catch (er) { console.error(er) }
         },
         chatObserver: function () {
             //debug(e);
@@ -1231,7 +1231,7 @@ const aUtils = {
                 dTPVO.stacks = stack;
                 dTPVO.buildingGrid = grid;
                 game.gi.mClientMessages.SendMessagetoServer(91, game.gi.mCurrentViewedZoneID, dTPVO);
-            } catch (er) { debug(er) }
+            } catch (er) { console.error(er) }
         },
         uID: function (string) {
             var arr = string.split('.');
@@ -1308,7 +1308,7 @@ const aUtils = {
                             try {
                                 var k = key;
                                 aTrade.office.trades[k].Live = true;
-                            } catch (e) { debug(e) }
+                            } catch (e) { console.error(e) }
                         });
                         //});
                         if (nextSlot === 2) {
@@ -1340,7 +1340,7 @@ const aUtils = {
                     });
                     aUI.updateStatus('Declining Outbox Trades', 'Quests');
                 } catch (e) {
-                    debug('Outbox: Error ' + e.message);
+                    console.error('Outbox: Error ' + e.message);
                     aQueue.repeat(6000);
                 }
             });
@@ -1357,7 +1357,7 @@ const aUtils = {
                     });
                     aUI.updateStatus('Completing Trades', 'Quests');
                 } catch (e) {
-                    debug('Inbox: Error ' + e.message);
+                    console.error('Inbox: Error ' + e.message);
                     aQueue.repeat(6000);
                 }
             });
@@ -1516,7 +1516,7 @@ const aUI = {
                 }
                 if (!menu.nativeMenu.getItemByName("Automation").submenu)
                     aUI.menu.init();
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         savedItems: function () {
             try {
@@ -1537,7 +1537,7 @@ const aUI = {
                         items.push({ label: category, items: catAdvs });
                 });
                 return items;
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         itemMaker: function (template, len) {
             const name = "{0}".format(template.id || template.name);
@@ -1592,7 +1592,7 @@ const aUI = {
                 aUI.modals.adventure.AM_LoadInfo();
                 aUI.menu.SelectedAdventure = event.target.name;
                 aUI.menu.init();
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         }
     },
     modals: {
@@ -2113,7 +2113,7 @@ const aUI = {
                 $('#aMail_Monitor').val(aSettings.defaults.Mail.TimerMinutes);
                 $('#aQuests_Config_Buffs_PHBuff').val(aSettings.defaults.Quests.Config.Buffs.PHBuff);
                 $('#aQuests_Config_ProduceResource_BuffType').val(aSettings.defaults.Quests.Config.ProduceResource.BuffType);
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         adventure: {
             TM_LoadHomeTemplate: function (templatePath) {
@@ -2423,7 +2423,7 @@ const aUI = {
                 });
                 aWindow.withsBody('#aTemplate_AdventureSelect').change(function () {
                     const value = $(this).val();
-                    debug(value);
+                    console.log(value);
                     $("#adventureIcon").html(getImage(assets.GetBuffIcon($('#aTemplate_AdventureSelect').val()).bitmapData));
                     $('#LHTemp, #LHGenerals, #LHUnits').empty();
                     aWindow.steps = [];
@@ -2584,7 +2584,7 @@ const aUI = {
                     aWindow.withBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                     aWindow.show();
                     $('#aAdventure_SpeedBuffs').val(aSettings.defaults.Adventures.speedBuff);
-                } catch (e) { debug(e); }
+                } catch (e) { console.error(e); }
             },
             AM_LoadInfo: function () {
                 try {
@@ -2616,7 +2616,7 @@ const aUI = {
                     });
                     $('#aAdventureTotalLost').text(totalLost);
                     $('#aAdventureLostUnitsDiv .row').css({ "background": "inherit" });
-                } catch (e) { debug(e) }
+                } catch (e) { console.error(e) }
             },
             AM_UpdateSteps: function () {
                 try {
@@ -2694,7 +2694,7 @@ const aUI = {
                         ]);
                         table.push(createTableRow([[12 - types.length, text]].concat(types.map(function (r) { return [1, createSwitch("{0}_{1}_{2}".format(sub, r, spec.GetType()))] }))));
                         expls.push(spec.GetType());
-                    } catch (e) { debug(e); }
+                    } catch (e) { console.error(e); }
                 });
                 return table;
             }
@@ -2857,7 +2857,7 @@ const aUI = {
                     });
                 });
                 aWindow.sshow();
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         buildingSettings: function (buildingName) {
             try {
@@ -2969,7 +2969,7 @@ const aUI = {
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                 aWindow.sshow();
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         Lootables: function () {
             try {
@@ -3053,7 +3053,7 @@ const aUI = {
                     ].concat(aResources.getResourcesInfo(true, true)))
                 );
                 aWindow.sshow();
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         Excelsior: function () {
             try {
@@ -3203,7 +3203,7 @@ const aUI = {
                 if (aSession.excelsior.interval)
                     $('#aExcelisorContainer :input:not(#aExcelisorCompleteCollection)').prop('disabled', true);
                 aWindow.show();
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         ExplorersSettings: function () {
             var save = function () {
@@ -3434,7 +3434,7 @@ const aUI = {
                     });
                     aWindow.withBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                     aWindow.show();
-                } catch (e) { debug(e) }
+                } catch (e) { console.error(e) }
             },
             savedTrades: function () {
                 try {
@@ -3468,7 +3468,7 @@ const aUI = {
                         ].concat(table))
                     )
                     aWindow.show()
-                } catch (e) { debug(e) }
+                } catch (e) { console.error(e) }
             },
             filterSettings: function (mode) {
                 try {
@@ -3616,7 +3616,7 @@ const aUI = {
                                 return alert('Max Value should be numerical');
                             aSettings.defaults.Mail.EnabledResources[name] = parseInt(max);
                             aWindow.withsBody('#aMailAllowedResources').empty().append(resourcesData);
-                        } catch (a) { debug(a) }
+                        } catch (a) { console.error(a) }
                     });
                     aWindow.withsBody("#aMailAcceptFriend").click(function () {
                         try {
@@ -3626,21 +3626,21 @@ const aUI = {
                             var favorite = $('#aMailFavorite').is(':checked');
                             aSettings.defaults.Mail.EnabledUsers[friendId] = { name: friendName, favorite: favorite };
                             aWindow.withsBody('#aMailAllowedFriends').empty().append(friendsData);
-                        } catch (a) { debug(a) }
+                        } catch (a) { console.error(a) }
                     });
                     aWindow.sData().on('click', '.aMailRemoveAllowedFriend', function () {
                         try {
                             delete aSettings.defaults.Mail.EnabledUsers[$(this).val()];
                             aWindow.withsBody('#aMailAllowedFriends').empty().append(friendsData);
-                        } catch (a) { debug(a) }
+                        } catch (a) { console.error(a) }
                     }).on('click', '.aMailRemoveAllowedResource', function () {
                         try {
                             delete aSettings.defaults.Mail.EnabledResources[$(this).val()];
                             aWindow.withsBody('#aMailAllowedResources').empty().append(resourcesData);
-                        } catch (a) { debug(a) }
+                        } catch (a) { console.error(a) }
                     });
                     aWindow.sshow();
-                } catch (er) { debug(er); }
+                } catch (er) { console.error(er); }
             }
         }
     },
@@ -3772,7 +3772,7 @@ const aEvents = {
                 loca.GetText('RES', resources[eventName]),
                 Math.round(dayValue * 24)
             ), resources[eventName]);
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
     calculateDeposits: function () {
         try {
@@ -3802,7 +3802,7 @@ const aEvents = {
                 }
                 aUI.Alert("Total Pumpkin deposits needed: {0}".format(total), 'HalloweenResource');
             }
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     }
 }
 // ==================== Buffs ====================
@@ -3982,7 +3982,7 @@ const aBuffs = {
         dSA.grid = 1960;
         dSA.endGrid = amount || 0;
         dSA.data = aBuffs.getBuff(buff).GetUniqueId();
-        var responder = game.createResponder(function (e, d) { debug(d) });
+        var responder = game.createResponder(function (e, d) { console.log(d) });
         game.gi.mClientMessages.SendMessagetoServer(61, friend, dSA, responder);
     }
 }
@@ -4004,7 +4004,7 @@ const aResources = {
                 });
                 aQueue.add('gatherResource', ['checkOutbox', friend.id], TIMEOUTS.ADVENTURE_START_DELAY);
                 aQueue.add('gatherResource', ['checkInbox', friend.id], TIMEOUTS.ADVENTURE_START_DELAY);
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         }
     },
     getResourcesInfo: function (AllResources, toOptions) {
@@ -4029,7 +4029,7 @@ const aResources = {
                         [6, "{0}".format(aUtils.format.num(aBuffs.getBuffAmount(['AddResource', x])))]
                     ], false);
             });
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
     Has: function (name, amount, alert) {
         if (game.getResources().HasPlayerResource(name, amount)) return true;
@@ -4072,7 +4072,7 @@ const aResources = {
                             aQueue.add('turnOnProduction', building.GetGrid());
                         break;
                     default:
-                        debug('Unkown Production State "{0}"!'.format(building.GetResourceCreation().GetProductionState()));
+                        console.warn('Unkown Production State "{0}"!'.format(building.GetResourceCreation().GetProductionState()));
                 }
             });
             $.each(reqResources, function (name, amount) {
@@ -4087,7 +4087,7 @@ const aResources = {
             if (fullWareHouse)
                 aUI.Alert('Warehouse is full of "{0}", Can\'t produce more!!'.format(loca.GetText('RES', resource)), resource);
 
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
     Economy: function (name, amount, delta) {
         const review = game.def("ServerState::cEconomyOverviewData", 1).GetResourceProductionAndConsumptionValues(null, name);
@@ -4103,7 +4103,7 @@ const aResources = {
             aSettings.defaults.TransferToStore.boxTypes.forEach(function (item) {
                 aResources.getResourceFormStar(item);
             });
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
     remainingCapacity: function (resName) {
         return game.getResources().GetWareHouseCapacity() - game.getResources().GetResourceAmount(resName);
@@ -4200,7 +4200,7 @@ const aSpecialists = {
                 } catch (er) { }
             });
             //aUI.updateStatus("Sending: {0} Explorers".format(explorers.length), 'Explorers');
-        } catch (e) { debug(e); debug('There has been an error while sending explorers'); }
+        } catch (e) { console.error(e); console.error('There has been an error while sending explorers'); }
     },
     sendGeologists: function (geos, count, type, depo) {
         aSpecialists.getSpecialists(2, true).filter(function (g) { return geos.indexOf(g.GetType()) !== -1; })
@@ -4261,7 +4261,7 @@ const aBuildings = {
                     if (!questVO) {
                         aQueue.add('collect', [buildingVO.GetGrid(), true]);
                     }
-                } catch (e) { debug(e) }
+                } catch (e) { console.error(e) }
             });
         },
         buildings: function () {
@@ -4363,7 +4363,7 @@ const aBuildings = {
                             .forEach(function (mason) { aBuildings.buffBuilding(mason, depoData.options[5]); });
                     }
                 });
-            } catch (er) { debug(er); }
+            } catch (er) { console.error(er); }
         }
     },
     production: {
@@ -4421,7 +4421,7 @@ const aBuildings = {
                     }
                 });
                 return canAfford;
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         order: function (item, amount, check, stack, grid) {
             try {
@@ -4443,7 +4443,7 @@ const aBuildings = {
                 }
                 aUI.Alert("Start producing x{1} {0}".format(loca.GetText("RES", iInfo[1]), amount), iInfo[1]);
                 aUI.updateStatus("Start producing x{1} {0}".format(loca.GetText("RES", iInfo[1]), amount), 'Buffs');
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         }
     },
     excelsior: {
@@ -4624,7 +4624,7 @@ const aMail = {
             v.value = parseInt(id);
             game.gi.mClientMessages.SendMessagetoServer(1177, game.mCurrentViewedZoneID, v, res);
             return true;
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
     handleTradeMail: function (event, data) {
         try {
@@ -4647,7 +4647,7 @@ const aMail = {
             }
             if (!premission) {
                 aSession.mail.pendingTrades[data.id] = data;
-                return debug('Pending {0} from {1}'.format(data.body, data.senderName));
+                return console.info('Pending {0} from {1}'.format(data.body, data.senderName));
             }
             var canTrade = false;
             if (isResource && game.getResources().GetPlayerResource(items.Send.Name).amount >= items.Send.Qty)
@@ -4706,7 +4706,7 @@ const aMail = {
             aUI.updateStatus("Accepting \"{0}\" invitaion from {1}".format(loca.GetText('ADN', advName), data.senderName), 'Mail');
             delete aSession.mail.pendingInvites[data.id];
             game.gi.mClientMessages.SendMessagetoServer(93, data.attachments.zoneID, v);
-        } catch (e) { debug('Error accepting adventure invite'); }
+        } catch (e) { console.error('Error accepting adventure invite'); }
     },
     acceptLootMails: function () {
         try {
@@ -4836,7 +4836,7 @@ const aTrade = {
             tradeVO.receipientId = data.friendID || 0;
             game.gi.mClientMessages.SendMessagetoServer(1049, game.gi.mCurrentViewedZoneID, tradeVO, game.createResponder(callback))
             aUI.Alert("Trade sent!", "Trade");
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
 
     /**
@@ -4869,7 +4869,7 @@ const aTrade = {
             var data = aUtils.file.Read(path) || [];
             data.push(trade);
             aUtils.file.Write(path, JSON.stringify(data, null, 2));
-        } catch (e) { debug("Error saving trade log: " + e); }
+        } catch (e) { console.error("Error saving trade log: " + e); }
     },
 }
 
@@ -5055,7 +5055,7 @@ const aQuests = {
                             default:
                                 aQuests.NTQAlert(data);
                         }
-                    } catch (e) { debug(e) }
+                    } catch (e) { console.error(e) }
                 });
             });
         }
@@ -5137,7 +5137,7 @@ const aQuests = {
                 });
                 if (aQuests.canSubmit(quest) && payToFinish)
                     aQueue.add('payQuest', quest.getQuestName_string());
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         tasks: function (tasks) {
             $.each(tasks, function (i, Task) {
@@ -5218,7 +5218,7 @@ const aQuests = {
                 aQueue.add('sendOfficeTrades');
             if (Object.keys(aResources.gather.list).length)
                 aResources.gather.byTrade();
-        } catch (e) { debug(e) }
+        } catch (e) { console.error(e) }
     },
     NTQAlert: function (data) {
         if (!aSettings.defaults.Quests.Config.Notification) return;
@@ -5360,7 +5360,7 @@ const aAdventure = {
                     );
                 }
                 return aAdventure.auto.result(message, false);
-            } catch (er) { debug(er) }
+            } catch (er) { console.error(er) }
         },
         attemptLoad: function (state, attackersOnly) {
             try {
@@ -5399,7 +5399,7 @@ const aAdventure = {
                 }
                 shortcutsFreeAllUnits();
                 return aAdventure.auto.result("Unloading all Units");
-            } catch (er) { debug(er) }
+            } catch (er) { console.error(er) }
         },
         attemptAttack: function (state, killAll) {
 
@@ -5496,7 +5496,7 @@ const aAdventure = {
                 Result += " ({0}/{1})".format(isFree, Object.keys(generals).length);
                 Result += last > 0 ? ", Continue in {0}".format(aUtils.format.Time(last)) : "!!";
                 return Result;
-            } catch (e) { debug(e) }
+            } catch (e) { console.error(e) }
         },
         checkBuffTargets: function (targets, name) {
             return targets.filter(function (target) {
@@ -5809,7 +5809,7 @@ const aAdventure = {
                     const message = text + " ({0}/{1})!!".format(num++, loadableGenerals.length);
                     aQueue.add('loadGeneralUnits', { army: dRaiseArmyVO, message: message });
                 });
-            } catch (er) { debug(er); }
+            } catch (er) { console.error(er); }
         },
         assignAllUnitsToFinish: function (army) {
             try {
@@ -5854,7 +5854,7 @@ const aAdventure = {
                     });
                     aQueue.add('loadGeneralUnits', { army: dRaiseArmyVO, message: "Loading all free units to finish adventure!!" });
                 });
-            } catch (er) { debug(er) }
+            } catch (er) { console.error(er) }
         },
         sendGeneralAction: function (id, type, order) {
             try {
@@ -5979,7 +5979,7 @@ const aAdventure = {
                 return aAdventure.auto.result("You must be on {0} island!".format(onAdventure ? "adventure" : "home"));
 
             const state = aAdventure.info.newGetBattleState(step.data);
-            debug(state);
+            console.log(state);
             // if (!aSession.adventure.action) aSession.adventure.action = "move";
 
             if (onAdventure) {
@@ -6087,7 +6087,7 @@ const aAdventure = {
                     else
                         return aAdventure.auto.result("Something is wrong, retrying!");
                 } catch (e) {
-                    return debug(e), aAdventure.auto.result("Error: " + e.message);
+                    return console.error(e), aAdventure.auto.result("Error: " + e.message);
                 }
             },
             StartAdventure: function () {
@@ -6126,7 +6126,7 @@ const aAdventure = {
                         } else
                             return aAdventure.auto.result('No Adventure Map found!');
                     }
-                } catch (er) { return debug(er), aAdventure.auto.result('Error: ' + er.message); }
+                } catch (er) { return console.error(er), aAdventure.auto.result('Error: ' + er.message); }
             },
             InHomeLoadGenerals: function () {
                 try {
@@ -6140,7 +6140,7 @@ const aAdventure = {
                     if (state.army.matched)
                         return aAdventure.auto.result("All Units are loaded!!", true, 2);
                     return aAdventure.battle.attemptLoad(state, false);
-                } catch (er) { debug(er) }
+                } catch (er) { console.error(er) }
             },
             SendGeneralsToAdventure: function () {
                 try {
@@ -6174,7 +6174,7 @@ const aAdventure = {
 
                     aQueue.add('applyBuff', { what: 'ADVENTURE_BUFF', type: speedBuff, grid: 0 });
 
-                } catch (er) { debug(er); }
+                } catch (er) { console.error(er); }
                 return aAdventure.auto.result(null, true, 1);
             },
             StarGenerals: function () {
@@ -6193,7 +6193,7 @@ const aAdventure = {
                             return aAdventure.auto.result(null, true, 2);
                         }
                     }
-                } catch (er) { debug(er) }
+                } catch (er) { console.error(er) }
             },
             CollectPickups: function () {
                 if (!aAdventure.info.isOnAdventure())
@@ -6207,7 +6207,7 @@ const aAdventure = {
                         aSession.adventure.action = 'Waiting';
                     }
                     return aAdventure.auto.result();
-                } catch (er) { debug(er) }
+                } catch (er) { console.error(er) }
             },
             ProduceItem: function () {
                 try {
@@ -6309,7 +6309,7 @@ const aAdventure = {
                         return aAdventure.battle.attemptAttack(attackerState, step.killAll);
                     }
 
-                } catch (err) { debug(err); }
+                } catch (err) { console.error(err); }
                 return aAdventure.auto.result();
             },
             AdventureTemplate2: function () {
@@ -6351,7 +6351,7 @@ const aAdventure = {
                         const attackResult = aAdventure.action.attack(state, fileName, step.killAll);
                         if (attackResult) return attackResult;
                     }
-                } catch (er) { debug(er) }
+                } catch (er) { console.error(er) }
             },
             LoadGeneralsToEnd: function () {
                 try {
@@ -6368,7 +6368,7 @@ const aAdventure = {
 
                     aAdventure.action.assignAllUnitsToFinish(armyInfo.free);
                     return aAdventure.auto.result();
-                } catch (err) { debug(err) }
+                } catch (err) { console.error(err) }
             }
         },
         result: function (message, next, interval) {
@@ -6423,7 +6423,7 @@ const aAdventure = {
                         armyInfo.assigned[squad.GetType()] = (armyInfo.assigned[squad.GetType()] || 0) + squad.amount;
                         armyInfo.total[squad.GetType()] = (armyInfo.total[squad.GetType()] || 0) + squad.amount;
                     });
-                } catch (e) { debug(e) }
+                } catch (e) { console.error(e) }
             });
         }
     },
@@ -6473,7 +6473,6 @@ const auto = {
                     }
                 });
             } catch (e) {
-                debug('Update check failed: ' + e);
                 console.error('Update check error:', e);
             }
         },
@@ -6494,10 +6493,9 @@ const auto = {
                                 const currentData = fileStream.readUTFBytes(currentFile.size);
                                 fileStream.close();
                                 aUtils.file.Write(backupPath, currentData);
-                                debug('Backup created successfully');
+                                console.info('Backup created successfully');
                             }
                         } catch (backupError) {
-                            debug('Backup creation failed: ' + backupError);
                             console.error('Backup error:', backupError);
                         }
 
@@ -6509,13 +6507,11 @@ const auto = {
                             reloadScripts();
                         }, TIMEOUTS.ADVENTURE_RETRY_DELAY);
                     } catch (writeError) {
-                        debug('Update write failed: ' + writeError);
                         console.error('Update write error:', writeError);
                         aUI.Alert("Update failed - check console for details", 'ERROR');
                     }
                 });
             } catch (e) {
-                debug('Update failed: ' + e);
                 console.error('Update error:', e);
                 aUI.Alert("New Version couldn't be downloaded @_@", 'ERROR');
             }
@@ -6621,7 +6617,7 @@ const auto = {
             //     }
             // }, 2000);
             aSettings.save();
-        } catch (er) { debug(er) }
+        } catch (er) { console.error(er) }
     }
 }
 

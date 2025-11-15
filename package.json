@@ -5,7 +5,14 @@
   "private": true,
   "scripts": {
     "lint": "eslint user_auto.js",
-    "test": "echo 'No tests yet - pass' && exit 0"
+    "lint:fix": "eslint user_auto.js --fix",
+    "test": "echo 'No tests yet - pass' && exit 0",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "user_auto.js": [
+      "eslint"
+    ]
   },
   "repository": {
     "type": "git",
@@ -19,6 +26,8 @@
   "author": "Roland Knall",
   "license": "UNLICENSED",
   "devDependencies": {
-    "eslint": "^8.50.0"
+    "eslint": "^8.50.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.2"
   }
 }

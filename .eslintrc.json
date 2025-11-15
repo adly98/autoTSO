@@ -74,6 +74,25 @@
     "no-unused-vars": "warn",
     "no-const-assign": "off",
     "prefer-const": "off",
-    "no-var": "off"
+    "no-var": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "SpreadElement",
+        "message": "Spread operator (...) is not supported in Adobe AIR. Use Array.prototype.slice.call() or Function.apply() instead."
+      },
+      {
+        "selector": "RestElement",
+        "message": "Rest parameters (...args) are not supported in Adobe AIR. Use Array.prototype.slice.call(arguments) instead."
+      },
+      {
+        "selector": "TemplateLiteral",
+        "message": "Template literals are not supported in Adobe AIR. Use string concatenation instead."
+      },
+      {
+        "selector": "ArrowFunctionExpression",
+        "message": "Arrow functions are not supported in Adobe AIR. Use function expressions instead."
+      }
+    ]
   }
 }

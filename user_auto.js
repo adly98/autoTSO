@@ -52,6 +52,7 @@ const TIMEOUTS = {
     ADVENTURE_START_DELAY: 10000,
     ADVENTURE_QUEST_COMPLETE_DELAY: 10000,
     ADVENTURE_TRAIN_UNITS_DELAY: 12000,
+    ADVENTURE_SPECIALISTS_ARRIVAL_WAIT: 45000,
     MAIL_RETRY_DELAY: 15000,
     WATCHER_INTERVAL: 30000,
     WATCHER_TIMEOUT_THRESHOLD: 5000,
@@ -108,6 +109,7 @@ const aSession = {
         action: '',
         repeatCount: 0,
         lastTime: null,
+        starGeneralsStartTime: null,
         steps: [],
         getGenerals: function (current) {
             const step = aSession.adventure.steps[current ? aSession.adventure.index : 0];
@@ -360,6 +362,10 @@ const aQueue = {
         },
         collect: function (args) {
             const building = game.zone.GetBuildingFromGridPosition(args[0]);
+            if (!building) {
+                console.warn('collect: Building at grid', args[0], 'not found (may have been collected already)');
+                return;
+            }
             game.gi.SelectBuilding(building);
             aUI.updateStatus('Collecting {0}{1}!'.format(
                 args[1] ? 'Mystery Box from ' : '',
@@ -1138,18 +1144,18 @@ const aUtils = {
                     aUI.Alert("{0} Island Loaded!".format(step.name === 'VisitAdventure' ? 'Adventure' : 'Home'), 'QUEST');
                     aSession.adventure.action = '';
 
-                    // Auto-inject StarGenerals step after VisitAdventure if missing
+                    // Auto-inject WaitForDeparture step after VisitAdventure if missing
                     if (step.name === 'VisitAdventure') {
                         var nextStepIndex = aSession.adventure.index + 1;
                         var nextStep = aSession.adventure.steps[nextStepIndex];
 
-                        // If next step is not StarGenerals, inject it
-                        if (!nextStep || nextStep.name !== 'StarGenerals') {
+                        // If next step is not WaitForDeparture, inject it
+                        if (!nextStep || nextStep.name !== 'WaitForDeparture') {
                             aSession.adventure.steps.splice(nextStepIndex, 0, {
-                                name: 'StarGenerals',
+                                name: 'WaitForDeparture',
                                 data: null
                             });
-                            console.info('Auto-injected StarGenerals step after VisitAdventure');
+                            console.info('Auto-injected WaitForDeparture step after VisitAdventure');
                         }
                     }
 
@@ -6351,31 +6357,11 @@ const aAdventure = {
                         return aAdventure.auto.result("You must be on adventure island!");
                     }
 
-                    aDebug.log('adventure', 'StarGenerals: On adventure island, collecting specialists');
-
-                    // Get the list of generals that were supposed to be sent to adventure
-                    // from the SendGeneralsToAdventure step (first step in adventure)
-                    // This returns [] if there's no InHomeLoadGenerals step
+                    // Get list of expected generals from InHomeLoadGenerals step
                     var expectedGenerals = [];
                     try {
                         expectedGenerals = aSession.adventure.getGenerals() || [];
-                        // Log expected generals with their names
-                        if (expectedGenerals.length > 0) {
-                            var expectedNames = [];
-                            for (var i = 0; i < expectedGenerals.length; i++) {
-                                var genId = expectedGenerals[i];
-                                try {
-                                    var gen = armyGetSpecialistFromID(genId);
-                                    var genName = gen && gen.getName ? gen.getName(false) : genId;
-                                    expectedNames.push(genName);
-                                } catch (e) {
-                                    expectedNames.push(genId);
-                                }
-                            }
-                            aDebug.log('adventure', 'StarGenerals: Expected generals:', expectedGenerals.length, '-', expectedNames.join(', '));
-                        } else {
-                            aDebug.log('adventure', 'StarGenerals: Expected generals:', expectedGenerals);
-                        }
+                        aDebug.log('adventure', 'StarGenerals: Expected', expectedGenerals.length, 'generals from InHomeLoadGenerals');
                     } catch (e) {
                         aDebug.error('adventure', 'StarGenerals: Error getting expected generals:', e);
                         expectedGenerals = [];
@@ -6383,20 +6369,32 @@ const aAdventure = {
 
                     // Get ALL specialists currently on adventure (not just battle packet generals)
                     // This includes troop carriers like Smuggler/Quartermaster
-                    // Use game.getSpecialists() directly instead of aSpecialists.getSpecialists(0)
-                    // because the latter filters to only isGeneral() which excludes carriers
                     var allSpecialists = [];
+                    var arrivedSpecialists = [];
+                    var travelingSpecialists = [];
+
                     try {
                         game.getSpecialists().forEach(function (spec) {
                             try {
                                 if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
                                     var id = spec.GetUniqueID().toKeyString();
                                     allSpecialists.push(id);
+
+                                    // Check if this specialist is still traveling
+                                    var isTraveling = spec.GetTask() !== null;
+
+                                    if (isTraveling) {
+                                        travelingSpecialists.push(id);
+                                    } else {
+                                        arrivedSpecialists.push(id);
+                                    }
+
                                     try {
                                         var specName = spec.getName ? spec.getName(false) : 'ID:' + spec.GetType();
-                                        aDebug.log('adventure', 'StarGenerals: Found specialist:', id, specName);
+                                        var status = isTraveling ? 'traveling' : 'arrived';
+                                        aDebug.log('adventure', 'StarGenerals: Found specialist:', specName, '-', status);
                                     } catch (nameError) {
-                                        aDebug.log('adventure', 'StarGenerals: Found specialist:', id);
+                                        aDebug.log('adventure', 'StarGenerals: Found specialist ID:', id);
                                     }
                                 }
                             } catch (specError) {
@@ -6408,49 +6406,44 @@ const aAdventure = {
                         if (e.stack) aDebug.error('adventure', 'StarGenerals: Stack:', e.stack);
                     }
 
-                    aDebug.log('adventure', 'StarGenerals: Found', allSpecialists.length, 'of', expectedGenerals.length, 'expected generals');
+                    aDebug.log('adventure', 'StarGenerals: Found', allSpecialists.length, 'total,', arrivedSpecialists.length, 'arrived,', travelingSpecialists.length, 'traveling');
 
-                    // ONLY wait for expected generals if they were explicitly sent (expectedGenerals.length > 0)
-                    // This handles adventures that start from home with SendGeneralsToAdventure step
+                    // Wait for expected generals to arrive AND be idle (not traveling)
                     if (expectedGenerals.length > 0) {
-                        // If we expected generals but none have arrived yet, wait for them
-                        if (allSpecialists.length === 0) {
-                            aDebug.log('adventure', 'StarGenerals: Waiting for generals to arrive');
-                            return aAdventure.auto.result("Waiting for generals to arrive at adventure", false, 2);
+                        // Still waiting for some to appear on the zone
+                        if (allSpecialists.length < expectedGenerals.length) {
+                            aDebug.log('adventure', 'StarGenerals: Waiting for specialists to appear on zone');
+                            return aAdventure.auto.result("Waiting for specialists to depart ({0}/{1})".format(allSpecialists.length, expectedGenerals.length), false, 2);
                         }
 
-                        // If some but not all generals have arrived, keep waiting
-                        if (allSpecialists.length < expectedGenerals.length) {
-                            aDebug.log('adventure', 'StarGenerals: Waiting for all generals', allSpecialists.length, '/', expectedGenerals.length);
-                            return aAdventure.auto.result("Waiting for all generals to arrive ({0}/{1})".format(allSpecialists.length, expectedGenerals.length), false, 2);
+                        // All are on zone, but some still traveling
+                        if (travelingSpecialists.length > 0) {
+                            aDebug.log('adventure', 'StarGenerals: Waiting for specialists to finish traveling');
+                            return aAdventure.auto.result("Waiting for specialists to arrive ({0}/{1})".format(arrivedSpecialists.length, allSpecialists.length), false, 2);
                         }
                     }
 
-                    // If no specialists are found (and none were expected), just complete
-                    if (!allSpecialists.length) {
-                        aDebug.log('adventure', 'StarGenerals: No specialists found, completing');
+                    // If no specialists found and none expected, complete
+                    if (!allSpecialists.length && !expectedGenerals.length) {
+                        aDebug.log('adventure', 'StarGenerals: No specialists expected or found, completing');
                         return aAdventure.auto.result("No specialists found", true);
                     }
 
-                    // All expected generals have arrived (or no specific generals were expected)
-                    // At this point in the adventure, there's usually no battlePacket yet
-                    // (it gets created in AdventureTemplate steps)
-                    // So we just verify all generals have arrived and complete the step
-                    aDebug.log('adventure', 'StarGenerals: All generals arrived on adventure island');
+                    // All expected specialists have arrived
+                    aDebug.log('adventure', 'StarGenerals: All specialists arrived on adventure island');
 
-                    // Optional: Try to send them to star if battlePacket exists
-                    // This is idempotent and safe to call even if they're already there
+                    // Try to send them to star if battlePacket exists
                     try {
                         if (typeof battlePacket !== 'undefined' && battlePacket) {
                             aDebug.log('adventure', 'StarGenerals: Battle packet exists, sending to star');
                             aAdventure.action.starGenerals();
 
-                            // Check if they're busy traveling
+                            // Check if they're busy traveling to star
                             var busy = aAdventure.info.areGeneralsBusy(allSpecialists);
                             aDebug.log('adventure', 'StarGenerals: Generals busy traveling?', busy);
 
                             if (busy)
-                                return aAdventure.auto.result("Waiting for troops to reach star", false, 2);
+                                return aAdventure.auto.result("Waiting for specialists to reach star", false, 2);
                         } else {
                             aDebug.log('adventure', 'StarGenerals: No battle packet yet, generals will be positioned later');
                         }
@@ -6458,12 +6451,65 @@ const aAdventure = {
                         aDebug.error('adventure', 'StarGenerals: Error sending to star (non-fatal):', e);
                     }
 
-                    aDebug.log('adventure', 'StarGenerals: Complete - all generals ready');
-                    return aAdventure.auto.result("All generals ready", true, 2);
+                    aDebug.log('adventure', 'StarGenerals: Complete - all specialists ready');
+                    return aAdventure.auto.result("All specialists ready", true, 2);
                 } catch (er) {
                     aDebug.error('adventure', 'StarGenerals: Fatal error:', er);
                     if (er.stack) aDebug.error('adventure', 'StarGenerals: Stack:', er.stack);
                     return aAdventure.auto.result("Error in StarGenerals, skipping", true);
+                }
+            },
+            WaitForDeparture: function () {
+                try {
+                    aDebug.log('adventure', 'WaitForDeparture: Starting step');
+
+                    if (!aAdventure.info.isOnAdventure()) {
+                        aDebug.log('adventure', 'WaitForDeparture: Not on adventure island');
+                        return aAdventure.auto.result("You must be on adventure island!");
+                    }
+
+                    // Initialize wait timer on first run
+                    if (!aSession.adventure.starGeneralsStartTime) {
+                        aSession.adventure.starGeneralsStartTime = new Date().getTime();
+                        aDebug.log('adventure', 'WaitForDeparture: Starting wait for all specialists to depart from home island');
+                    }
+
+                    // Calculate elapsed time
+                    var now = new Date().getTime();
+                    var elapsed = now - aSession.adventure.starGeneralsStartTime;
+                    var elapsedSeconds = Math.floor(elapsed / 1000);
+                    var waitTimeSeconds = Math.floor(TIMEOUTS.ADVENTURE_SPECIALISTS_ARRIVAL_WAIT / 1000);
+                    var remaining = Math.max(0, waitTimeSeconds - elapsedSeconds);
+
+                    aDebug.log('adventure', 'WaitForDeparture: Wait time - elapsed:', elapsedSeconds, 's, remaining:', remaining, 's');
+
+                    // Wait for configured time to ensure all specialists have departed from home
+                    if (elapsed < TIMEOUTS.ADVENTURE_SPECIALISTS_ARRIVAL_WAIT) {
+                        aDebug.log('adventure', 'WaitForDeparture: Waiting for departure window');
+                        return aAdventure.auto.result("Waiting for all specialists to depart ({0}s remaining)".format(remaining), false, 2);
+                    }
+
+                    // Wait complete - reset timer and inject StarGenerals step
+                    aSession.adventure.starGeneralsStartTime = null;
+                    aDebug.log('adventure', 'WaitForDeparture: Wait complete, injecting StarGenerals step');
+
+                    // Inject StarGenerals step after this one
+                    var nextStepIndex = aSession.adventure.index + 1;
+                    var nextStep = aSession.adventure.steps[nextStepIndex];
+
+                    if (!nextStep || nextStep.name !== 'StarGenerals') {
+                        aSession.adventure.steps.splice(nextStepIndex, 0, {
+                            name: 'StarGenerals',
+                            data: null
+                        });
+                        console.info('WaitForDeparture: Injected StarGenerals step');
+                    }
+
+                    return aAdventure.auto.result("Departure window complete", true, 2);
+                } catch (er) {
+                    aDebug.error('adventure', 'WaitForDeparture: Fatal error:', er);
+                    if (er.stack) aDebug.error('adventure', 'WaitForDeparture: Stack:', er.stack);
+                    return aAdventure.auto.result("Error in WaitForDeparture, skipping", true);
                 }
             },
             VisitAdventure: function () {
@@ -7040,7 +7086,15 @@ const auto = {
             var processResources = function () {
                 var resourcesUrl = auto.update.getAssetUrl('resources.json');
                 if (!resourcesUrl) {
-                    console.error('resources.json not found in release assets');
+                    console.warn('resources.json not found in release assets - using local resources');
+                    // Fall back to local resources if they exist
+                    if (localResources) {
+                        $.each(localResources, function (file, version) {
+                            if (aUtils.file.checkResource(file)) {
+                                game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
+                            }
+                        });
+                    }
                     return;
                 }
 
@@ -7067,7 +7121,16 @@ const auto = {
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error('Failed to download resources.json:', status, error);
+                        console.warn('Failed to download resources.json:', status, error);
+                        // Fall back to local resources
+                        if (localResources) {
+                            console.info('Using cached local resources');
+                            $.each(localResources, function (file, version) {
+                                if (aUtils.file.checkResource(file)) {
+                                    game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
+                                }
+                            });
+                        }
                     }
                 });
             };
@@ -7083,7 +7146,9 @@ const auto = {
                         processResources();
                     },
                     error: function (xhr, status, error) {
-                        console.error('Failed to fetch release data for resources:', status, error);
+                        console.warn('Failed to fetch release data for resources:', status, error);
+                        // Continue without release data - resources will use fallback/cached versions
+                        processResources();
                     }
                 });
             } else {

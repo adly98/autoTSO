@@ -21,7 +21,7 @@ var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureMana
 
 // Debug Logging Helper
 const aDebug = {
-    log: function(category) {
+    log: function (category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
 
         if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
@@ -31,7 +31,7 @@ const aDebug = {
         args.unshift('[DEBUG ' + category + ']');
         console.log(args.join(" "))
     },
-    error: function(category) {
+    error: function (category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
 
         if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
@@ -990,7 +990,7 @@ const aUtils = {
                 ];
 
                 var fileNativePath = file.nativePath;
-                var isValid = allowedDirs.some(function(allowedDir) {
+                var isValid = allowedDirs.some(function (allowedDir) {
                     return fileNativePath.indexOf(allowedDir) === 0;
                 });
 
@@ -1017,7 +1017,7 @@ const aUtils = {
          * @param {string} fileName - Full path to the file
          * @returns {Object|boolean} Parsed JSON object, or false if file doesn't exist or is invalid
          */
-        Read: function (fileName) {
+        Read: function (fileName, isNotJson) {
             try {
                 if (!aUtils.file.validatePath(fileName)) {
                     console.error('Read blocked - invalid path: ' + fileName);
@@ -1031,7 +1031,7 @@ const aUtils = {
                 var data = fileStream.readUTFBytes(file.size);
                 fileStream.close();
                 if (data === "") { return false; }
-                return JSON.parse(data);
+                return isNotJson ? data : JSON.parse(data);
             } catch (e) {
                 console.error('File read error: ' + e);
                 console.error('Read error: ' + e);
@@ -1089,7 +1089,7 @@ const aUtils = {
                 var file = new air.File();
                 file.browseForOpen("Select a Template");
                 // Use self-removing handler to prevent memory leak
-                var selectHandler = function(event) {
+                var selectHandler = function (event) {
                     file.removeEventListener(air.Event.SELECT, selectHandler);
                     callback(event);
                 };
@@ -3769,7 +3769,7 @@ const aUI = {
     },
     updateStatus: function (status, from) {
         var date = new Date();
-        var lz = function(n) { return n < 10 ? '0' + n : n; };
+        var lz = function (n) { return n < 10 ? '0' + n : n; };
         var time = "[{0}:{1}:{2}]".format(lz(date.getHours()), lz(date.getMinutes()), lz(date.getSeconds()));
         from = from ? '[{0}]'.format(from) : '';
         menu.nativeMenu.getItemByName("aStatus").label = time + from + ' ' + status;
@@ -3950,7 +3950,7 @@ const aBuffs = {
                 const targets = def.GetTargetDescription_string().split(',');
                 const targetGroup = def.GetTargetGroup_string() || null;
                 return targets.indexOf(target) !== -1 || game.def('BuffSystem.cBuffDefinition').targetGroups.groupContains(targetGroup, target) || (isWorkyard && targets.indexOf('Workyard') !== -1);
-            } catch(e) { return false; }
+            } catch (e) { return false; }
         });
         if (!toOptions) return buffs;
         var options = [
@@ -3961,7 +3961,7 @@ const aBuffs = {
                 var des = loca.GetText('DES', buff.GetType()).split('Target')[0];
                 var amount = aBuffs.getBuffAmount(buff.GetType());
                 options.push($('<option>', { value: buff.GetType() }).text("{0} ({1}): {2}".format(loca.GetText('RES', buff.GetType()), amount, des)));
-            } catch(e) {}
+            } catch (e) { }
         });
         return options;
     },
@@ -4425,7 +4425,7 @@ const aBuildings = {
                     const depoData = aSettings.defaults.Deposits.data[depoName];
                     const onMapDepos = game.zone.mStreetDataMap.getDeposits_vectorByType(depoName);
                     const onTaskGeos = geologists.filter(function (spec) {
-                        try{ return spec.GetTask().GetSubType() === index; } catch(e){ return false; }
+                        try { return spec.GetTask().GetSubType() === index; } catch (e) { return false; }
                     });
                     const unfoundDepos = (depoData.options[7] || depoData.max) - onMapDepos.length - onTaskGeos.length;
 
@@ -4563,12 +4563,12 @@ const aBuildings = {
         }
     },
     buffBuilding: function (building, buffName) {
-        try{
+        try {
             if (!building || building.productionBuff != null || building.GetResourceCreation().GetProductionState() !== 0 ||
                 building.IsUpgradeInProgress() || building.IsInConstructionMode() || building.IsInDestruction() ||
                 !buffName || !aBuffs.getBuffAmount(buffName)) return;
             aQueue.add('applyBuff', { what: 'BUILDING', type: buffName, grid: building.GetGrid(), building: building.GetBuildingName_string() });
-        } catch(e) {}
+        } catch (e) { }
     },
     getProducableItems: function (name) {
         var building = game.zone.mStreetDataMap.getBuildingByName(name);
@@ -6924,91 +6924,94 @@ const auto = {
         releaseData: null,
         changelog: null,
         available: false,
-        checkForUpdate: function (event) {
-            if (event) aUI.Alert("Checking for update!", 'TransporterAdmiral');
-            try {
-                $.ajax({
-                    url: auto.update.apiUrl,
-                    method: 'GET',
-                    timeout: 10000,
-                    success: function (data) {
-                        try {
-                            auto.update.releaseData = data;
-
-                            // Extract version from tag (e.g., "v2.1.0" -> "2.1.0")
-                            var remoteVersion = data.tag_name.replace(/^v/, '');
-                            auto.update.changelog = data.body || 'No changelog available';
-
-                            if (auto.update.compareVersions(remoteVersion, auto.version) === 1) {
-                                if (!event) {
-                                    aUI.menu.Progress = 70;
-                                    if (aSettings.defaults.Auto.AutoUpdate) {
-                                        // Show changelog and request user consent before auto-updating
-                                        var userConsent = confirm(
-                                            "New update available (v" + remoteVersion + ")!\n\n" +
-                                            "Changelog:\n" + auto.update.changelog + "\n\n" +
-                                            "Do you want to update now?"
-                                        );
-                                        if (userConsent) {
-                                            auto.update.updateScript();
-                                        } else {
-                                            auto.update.available = true;
-                                        }
-                                    } else {
-                                        auto.update.available = true;
-                                    }
-                                } else {
-                                    aUI.Alert("New Update Available!!", 'TransporterAdmiral');
-                                }
-                            } else {
-                                if (!event)
-                                    aUI.menu.Progress = 80;
-                                else
-                                    aUI.Alert("Latest Version :D", 'TransporterAdmiral');
+        fetchReleaseData: function (fromUser) {
+            $.ajax({
+                url: auto.update.apiUrl,
+                method: 'GET',
+                timeout: 10000,
+                dataType: 'json',
+                success: function (data) {
+                    auto.update.releaseData = data;
+                    auto.update.changelog = data.body || 'No changelog available';
+                    var remoteVersion = data.tag_name.replace(/^v/, '');
+                    auto.update.available = auto.update.compareVersions(remoteVersion, auto.version) === 1;
+                    if (!fromUser) {
+                        if (auto.developer){
+                            auto.update.checkLocalResources();
+                            aUI.menu.Progress = 99;
+                        }
+                        aUI.menu.Timer = setInterval(function () {
+                            aUI.menu.Progress++;
+                            aUI.updateStatus("Initiating {0}%".format(aUI.menu.Progress));
+                            if (aUI.menu.Progress === 10) {
+                                auto.update.checkForUpdate();
                             }
-                        } catch (parseError) {
-                            console.error('Failed to parse release data:', parseError);
-                            if (!event) aUI.menu.Progress = 80;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Update check failed:', status, error);
-                        if (xhr.status === 403) {
-                            console.warn('GitHub API rate limit may have been exceeded');
-                        }
-                        // Silently fail - don't block script initialization
-                        if (!event) aUI.menu.Progress = 80;
+                            if (aUI.menu.Progress === 50) {
+                                auto.update.checkLocalResources();
+                            }
+                            if (aUI.menu.Progress >= 100) {
+                                clearInterval(aUI.menu.Timer);
+                                auto.init();
+                            }
+                        }, 300);
+                    } else if (auto.update.available) {
+                        auto.update.checkForUpdate(true);
                     }
-                });
-            } catch (e) {
-                console.error('Update check error:', e);
-                if (!event) aUI.menu.Progress = 80;
+                },
+                error: function (xhr, status, error) {
+                    console.error('Fetch release data failed', status, error);
+                    if (xhr.status === 403) {
+                        console.warn('GitHub API rate limit may have been exceeded');
+                    }
+                    auto.update.loadLocalResources();
+                    auto.init();
+                }
+            });
+        },
+        checkForUpdate: function (fromUser) {
+            if (fromUser) { aUI.Alert("Checking for update!", 'TransporterAdmiral'); }
+            if (!auto.update.releaseData) {
+                if (fromUser) { return aUI.Alert("Update check failed!", 'ERROR'); }
+                aUI.menu.Progress = 80;
+                return console.error('Update check failed');
+            }
+            if (!auto.update.available) {
+                if (fromUser) { return aUI.Alert("Latest Version :D", 'TransporterAdmiral'); }
+                aUI.menu.Progress = 40;
+                return console.info('No Update Available')
+            }
+            var userConsent = aSettings.defaults.Auto.AutoUpdate ||
+                (fromUser && confirm(
+                    "New update available (v" + remoteVersion + ")!\n\n" +
+                    "Changelog:\n" + auto.update.changelog + "\n\n" +
+                    "Do you want to update now?"
+                ));
+
+            if (userConsent) {
+                auto.update.updateScript();
+            } else if (fromUser) {
+                aUI.menu.init();
+                aUI.Alert("New Update Available!!", 'TransporterAdmiral');
+            } else {
+                aUI.menu.Progress = 70;
             }
         },
         updateScript: function () {
             try {
                 if (!auto.update.releaseData || !auto.update.releaseData.assets) {
-                    aUI.Alert("Release data not available", 'ERROR');
-                    return;
+                    return aUI.Alert("Release data not available", 'ERROR');
                 }
 
-                // Find user_auto.js in release assets
-                var scriptAsset = null;
-                for (var i = 0; i < auto.update.releaseData.assets.length; i++) {
-                    if (auto.update.releaseData.assets[i].name === 'user_auto.js') {
-                        scriptAsset = auto.update.releaseData.assets[i];
-                        break;
-                    }
-                }
+                const scriptUrl = auto.update.getAssetUrl('user_auto.js');
 
-                if (!scriptAsset) {
-                    aUI.Alert("user_auto.js not found in release", 'ERROR');
-                    return;
+                if (!scriptUrl) {
+                    return aUI.Alert("user_auto.js not found in release", 'ERROR');
                 }
 
                 aSettings.save();
+
                 $.ajax({
-                    url: scriptAsset.browser_download_url,
+                    url: scriptUrl,
                     method: 'GET',
                     timeout: 30000,
                     success: function (data) {
@@ -7018,12 +7021,8 @@ const auto = {
 
                             // Create backup of current version before updating
                             try {
-                                const currentFile = new air.File(path);
-                                if (currentFile.exists) {
-                                    const fileStream = new air.FileStream();
-                                    fileStream.open(currentFile, air.FileMode.READ);
-                                    const currentData = fileStream.readUTFBytes(currentFile.size);
-                                    fileStream.close();
+                                const currentData = aUtils.file.Read(path, true);
+                                if (currentData) {
                                     aUtils.file.Write(backupPath, currentData);
                                     console.info('Backup created successfully');
                                 }
@@ -7077,83 +7076,50 @@ const auto = {
             }
             return null;
         },
-        checkFiles: function (force) {
+        loadLocalResources: function(){
+            var localResources = aUtils.file.Read(aUtils.file.Path('resources'));
+            if (localResources) {
+                $.each(localResources, function (file, version) {
+                    if (aUtils.file.checkResource(file)) {
+                        game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
+                    }
+                });
+            }
+        },
+        checkLocalResources: function (force) {
             if (!force && game.auto.resources) return;
             game.auto.resources = {};
-            var localResources = aUtils.file.Read(aUtils.file.Path('resources'));
-
-            // Ensure we have release data, otherwise fetch it
-            var processResources = function () {
-                var resourcesUrl = auto.update.getAssetUrl('resources.json');
-                if (!resourcesUrl) {
-                    console.warn('resources.json not found in release assets - using local resources');
-                    // Fall back to local resources if they exist
-                    if (localResources) {
-                        $.each(localResources, function (file, version) {
-                            if (aUtils.file.checkResource(file)) {
-                                game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
-                            }
-                        });
-                    }
-                    return;
-                }
-
-                $.ajax({
-                    url: resourcesUrl,
-                    method: 'GET',
-                    timeout: 10000,
-                    success: function (data) {
-                        try {
-                            var json = JSON.parse(data);
-                            localResources = localResources || json;
-                            $.each(json, function (file, version) {
-                                if (aUtils.file.checkResource(file) &&
-                                    localResources[file] >= version) {
-                                    game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
-                                } else {
-                                    localResources[file] = version;
-                                    auto.update.downloadResource(file);
-                                };
-                            });
-                            aUtils.file.Write(aUtils.file.Path('resources'), JSON.stringify(localResources, null, 2));
-                        } catch (e) {
-                            console.error('Failed to process resources.json:', e);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.warn('Failed to download resources.json:', status, error);
-                        // Fall back to local resources
-                        if (localResources) {
-                            console.info('Using cached local resources');
-                            $.each(localResources, function (file, version) {
-                                if (aUtils.file.checkResource(file)) {
-                                    game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
-                                }
-                            });
-                        }
-                    }
-                });
-            };
-
-            if (!auto.update.releaseData) {
-                // Fetch release data first
-                $.ajax({
-                    url: auto.update.apiUrl,
-                    method: 'GET',
-                    timeout: 10000,
-                    success: function (data) {
-                        auto.update.releaseData = data;
-                        processResources();
-                    },
-                    error: function (xhr, status, error) {
-                        console.warn('Failed to fetch release data for resources:', status, error);
-                        // Continue without release data - resources will use fallback/cached versions
-                        processResources();
-                    }
-                });
-            } else {
-                processResources();
+            const resourcesUrl = auto.update.getAssetUrl('resources.json');
+            if (!resourcesUrl) {
+                console.warn('resources.json not found in release assets - using local resources');
+                aUI.menu.Progress = 90;
+                return auto.update.loadLocalResources();
             }
+            $.ajax({
+                url: resourcesUrl,
+                method: 'GET',
+                timeout: 10000,
+                dataType: 'json',
+                success: function (data) {
+                    var localResources = aUtils.file.Read(aUtils.file.Path('resources')) || data;
+                    $.each(json, function (file, version) {
+                        if (aUtils.file.checkResource(file) &&
+                            localResources[file] >= version) {
+                            game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
+                        } else {
+                            localResources[file] = version;
+                            auto.update.downloadResource(file);
+                        };
+                    });
+                    aUtils.file.Write(aUtils.file.Path('resources'), JSON.stringify(localResources, null, 2));
+                    aUI.menu.Progress = 90;
+                },
+                error: function (xhr, status, error) {
+                    console.warn('Failed to download resources.json:', status, error);
+                    aUI.menu.Progress = 90;
+                    auto.update.loadLocalResources();
+                }
+            });
         },
         downloadResource: function (file) {
             var resourceUrl = auto.update.getAssetUrl(file + '.json');
@@ -7181,18 +7147,7 @@ const auto = {
         aUI.menu.Progress = auto.developer ? 94 : 0;
         aUI.menu.init(true);
         aSettings.load();
-        auto.update.checkFiles();
-        aUI.menu.Timer = setInterval(function () {
-            aUI.menu.Progress++;
-            aUI.updateStatus("Initiating {0}%".format(aUI.menu.Progress));
-            if (aUI.menu.Progress === 10) {
-                auto.update.checkForUpdate();
-            }
-            if (aUI.menu.Progress >= 100) {
-                clearInterval(aUI.menu.Timer);
-                auto.init();
-            }
-        }, 300);
+        auto.update.fetchReleaseData();
     },
     init: function () {
         try {

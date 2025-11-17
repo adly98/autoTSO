@@ -6944,7 +6944,7 @@ const auto = {
                             aUI.menu.Progress++;
                             aUI.updateStatus("Initiating {0}%".format(aUI.menu.Progress));
                             if (aUI.menu.Progress === 10) {
-                                auto.update.checkForUpdate();
+                                auto.update.checkForUpdate(false, remoteVersion);
                             }
                             if (aUI.menu.Progress === 50) {
                                 auto.update.checkLocalResources();
@@ -6955,7 +6955,7 @@ const auto = {
                             }
                         }, 300);
                     } else if (auto.update.available) {
-                        auto.update.checkForUpdate(true);
+                        auto.update.checkForUpdate(true, remoteVersion);
                     }
                 },
                 error: function (xhr, status, error) {
@@ -6968,7 +6968,7 @@ const auto = {
                 }
             });
         },
-        checkForUpdate: function (fromUser) {
+        checkForUpdate: function (fromUser, remoteVersion) {
             if (fromUser) { aUI.Alert("Checking for update!", 'TransporterAdmiral'); }
             if (!auto.update.releaseData) {
                 if (fromUser) { return aUI.Alert("Update check failed!", 'ERROR'); }
@@ -7079,7 +7079,7 @@ const auto = {
         loadLocalResources: function(){
             var localResources = aUtils.file.Read(aUtils.file.Path('resources'));
             if (localResources) {
-                $.each(localResources, function (file, version) {
+                $.each(localResources, function (file) {
                     if (aUtils.file.checkResource(file)) {
                         game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));
                     }
@@ -7102,7 +7102,7 @@ const auto = {
                 dataType: 'json',
                 success: function (data) {
                     var localResources = aUtils.file.Read(aUtils.file.Path('resources')) || data;
-                    $.each(json, function (file, version) {
+                    $.each(data, function (file, version) {
                         if (aUtils.file.checkResource(file) &&
                             localResources[file] >= version) {
                             game.auto.resources[file] = aUtils.file.Read(aUtils.file.getPath(1, file));

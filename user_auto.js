@@ -4646,7 +4646,7 @@ const aBuildings = {
                 }
                 const inProgress = aBuildings.production.inProgress(building.productionQueue.mProductionType, settings.item);
                 if (settings.amount > inProgress)
-                    aQueue.add('startProduction', [settings.item, settings.amount, true, settings.stack, building.GetGrid()]);
+                    aQueue.add('startProduction', [settings.item, settings.amount * settings.stack, true, settings.stack, building.GetGrid()]);
             });
         } catch (e) { }
     }

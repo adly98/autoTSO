@@ -29,32 +29,62 @@ TProduction: {
 
 - **`amount`** (number): Dual-purpose field
   - **Enable/Disable flag**: `0` = disabled, `>0` = enabled
-  - **Production quantity**: For most buildings, specifies how many items to keep in the production queue
+  - **Queue slots**: Specifies how many production queue slots to maintain
   - **Special case - Bookbinder**: Only used as enable/disable (always produces quantity of 1)
+  - Example: `amount: 3` means keep 3 queue slots filled
 
-- **`stack`** (number, optional): Number of production slots to fill
-  - Applies to buildings with multiple production queues
-  - Not present in buildings with single queue (e.g., SiegeWorkshop)
+- **`stack`** (number, optional): Items per queue slot
+  - Specifies how many items to produce in each queue slot
+  - Default: 1 if not specified
+  - Example: `stack: 5` means each queue slot produces 5 items
+  - Combined with amount: `amount: 2, stack: 5` = 2 queue slots × 5 items each = 10 total items
 
 - **`buff`** (string, optional): Production buff type to apply
   - Examples: speed buffs, quality buffs, etc.
   - Empty string means no buff
 
-### 2. The Amount Field - A Critical Design Detail
+### 2. Understanding Amount and Stack Fields
 
-The `amount` field serves **two purposes**:
+The `amount` and `stack` fields work together to control production:
+
+#### Amount Field
 
 1. **Enable/Disable Control** (all buildings)
    - `amount = 0`: Production disabled for this building
    - `amount > 0`: Production enabled for this building
 
-2. **Quantity Control** (most buildings except Bookbinder)
-   - Specifies how many production orders to maintain in the queue
-   - The system ensures `amount` items are always in production
+2. **Queue Slot Control** (most buildings except Bookbinder)
+   - Specifies how many production queue slots to keep filled
+   - The system ensures `amount` queue slots are always in production
+
+#### Stack Field
+
+- **Items per Queue Slot**: Controls how many items each queue slot produces
+- Combined effect: Total items = `amount × stack`
+
+#### Examples
+
+1. **Single queue slot with multiple items:**
+   ```javascript
+   { item: 'Manuscript', amount: 1, stack: 5, buff: 'barazek' }
+   ```
+   - Result: 1 queue slot × 5 items = 5 manuscripts total
+
+2. **Multiple queue slots with single items:**
+   ```javascript
+   { item: 'Sword', amount: 10, stack: 1, buff: '' }
+   ```
+   - Result: 10 queue slots × 1 item = 10 swords total
+
+3. **Multiple queue slots with multiple items:**
+   ```javascript
+   { item: 'Bread', amount: 5, stack: 10, buff: '' }
+   ```
+   - Result: 5 queue slots × 10 items = 50 bread total
 
 **Why this dual-purpose design?**
 - Provides consistent enable/disable interface across all buildings
-- Eliminates need for separate enable flag
+- Allows flexible production strategies (many small batches vs few large batches)
 - Simplifies UI and logic
 
 **Important:** All production buildings MUST have the `amount` field. Missing this field will prevent the building from being managed by the auto system.
@@ -285,12 +315,27 @@ To add a new production building to the auto system:
 ## Migration History
 
 ### Version 2.0.4 (2025-01-18)
-- **Issue:** Bookbinder lacked `amount` field, preventing enable/disable functionality
+
+#### Issue 1: Bookbinder Missing Amount Field
+- **Problem:** Bookbinder lacked `amount` field, preventing enable/disable functionality
 - **Solution:**
   - Added `amount: 0` to Bookbinder default settings
   - Implemented `aSettings.migrate()` function for backward compatibility
   - Updated Bookbinder production logic to start new production when enabled
 - **Impact:** All users with old settings automatically upgraded on next load
+
+#### Issue 2: Amount/Stack Parameter Calculation Bug
+- **Problem:** Production buildings (e.g., ProvisionHouse2) weren't calculating total items correctly
+  - Settings: `amount: 1, stack: 5` (expected 5 items total)
+  - Actual: Only 1 item produced
+  - Root cause: `manage()` was passing `settings.amount` directly instead of `settings.amount * settings.stack`
+- **Solution:**
+  - Fixed line 4649 in `manage()` function to calculate total items: `settings.amount * settings.stack`
+  - Updated documentation to clarify `amount` = queue slots, `stack` = items per slot
+- **Files Changed:**
+  - `user_auto.js:4649` - Fixed parameter calculation
+  - `docs/AUTO_BUILDING_SYSTEM.md` - Enhanced documentation with examples
+- **Impact:** Buildings now correctly produce `amount × stack` total items
 
 ## Future Considerations
 

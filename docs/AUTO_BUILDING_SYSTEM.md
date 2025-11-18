@@ -27,11 +27,11 @@ TProduction: {
   - Empty string means no production selected
   - Must match a valid production type for the building
 
-- **`amount`** (number): Dual-purpose field
-  - **Enable/Disable flag**: `0` = disabled, `>0` = enabled
-  - **Queue slots**: Specifies how many production queue slots to maintain
-  - **Special case - Bookbinder**: Only used as enable/disable (always produces quantity of 1)
-  - Example: `amount: 3` means keep 3 queue slots filled
+- **`amount`** (number): Enable/disable flag and queue management
+  - **UI usage**: `0` = disabled, `1` = enabled (user can only toggle on/off)
+  - **Script usage**: Can be set to higher values for automated quest/task management
+  - The UI never exposes queue slot configuration - that's handled by the script
+  - Example: UI sets `amount: 1` when enabled, but quest automation might set `amount: 5` internally
 
 - **`stack`** (number, optional): Items per queue slot
   - Specifies how many items to produce in each queue slot
@@ -47,45 +47,44 @@ TProduction: {
 
 The `amount` and `stack` fields work together to control production:
 
-#### Amount Field
+#### Amount Field - Two Different Contexts
 
-1. **Enable/Disable Control** (all buildings)
-   - `amount = 0`: Production disabled for this building
-   - `amount > 0`: Production enabled for this building
+**In the UI (User-facing):**
+- Simple boolean: enabled (1) or disabled (0)
+- Users cannot configure queue slots through the UI
+- The UI dialog is for continuous production: "produce item Y indefinitely until I say stop"
 
-2. **Queue Slot Control** (most buildings except Bookbinder)
-   - Specifies how many production queue slots to keep filled
-   - The system ensures `amount` queue slots are always in production
+**In the Script (Internal automation):**
+- Can be set to any value for automated quest/task management
+- Example: Quest requires 50 items → script sets `amount: 5, stack: 10` temporarily
+- After quest completes, returns to user's settings (`amount: 1` if enabled)
 
 #### Stack Field
 
-- **Items per Queue Slot**: Controls how many items each queue slot produces
-- Combined effect: Total items = `amount × stack`
+- **Items per production run**: Controls how many items each production run produces
+- Max typically 15-25 depending on building/item
+- User configures this via "Items per run" dropdown in UI
 
 #### Examples
 
-1. **Single queue slot with multiple items:**
-   ```javascript
-   { item: 'Manuscript', amount: 1, stack: 5, buff: 'barazek' }
-   ```
-   - Result: 1 queue slot × 5 items = 5 manuscripts total
+**User Configuration (via UI):**
+```javascript
+{ item: 'Manuscript', amount: 1, stack: 5, buff: 'barazek' }
+```
+- Enabled with 5 items per run
+- Script maintains 1 queue slot continuously
 
-2. **Multiple queue slots with single items:**
-   ```javascript
-   { item: 'Sword', amount: 10, stack: 1, buff: '' }
-   ```
-   - Result: 10 queue slots × 1 item = 10 swords total
+**Script Automation (quest handling):**
+```javascript
+{ item: 'Sword', amount: 10, stack: 1, buff: '' }
+```
+- Script temporarily sets 10 queue slots for quest
+- Produces 10 swords total, then reverts to user settings
 
-3. **Multiple queue slots with multiple items:**
-   ```javascript
-   { item: 'Bread', amount: 5, stack: 10, buff: '' }
-   ```
-   - Result: 5 queue slots × 10 items = 50 bread total
-
-**Why this dual-purpose design?**
-- Provides consistent enable/disable interface across all buildings
-- Allows flexible production strategies (many small batches vs few large batches)
-- Simplifies UI and logic
+**Why this design?**
+- **UI simplicity**: Users just enable/disable and set items per run
+- **Script flexibility**: Automation can use queue slots for efficiency
+- **Clear separation**: Dialog is for continuous production, scripts handle complex automation
 
 **Important:** All production buildings MUST have the `amount` field. Missing this field will prevent the building from being managed by the auto system.
 
@@ -200,43 +199,41 @@ if (name === 'Bookbinder') {
 
 #### Settings UI Structure
 
-**Location:** `user_auto.js:2981-3045`
+**Location:** `user_auto.js:2981-3027`
 
-The building settings dialog presents a simple, streamlined interface:
+The building settings dialog presents a simple, streamlined interface focused on continuous production:
 
 **Description:** "Enable/disable production of the item below. Buff is applied during production. Items per run can be configured where supported."
 
 **Fields:**
 
 **1. Enable Production** (Checkbox)
-- Simple on/off toggle for the building
+- Simple on/off toggle for continuous production
 - When disabled, `amount` is set to 0
-- When enabled, `amount` is set to queue slots value (or 1 if no queue slots)
+- When enabled, `amount` is set to 1 (one queue slot)
+- Queue management beyond this is handled internally by the script
 
-**2. Queue Slots** (Dropdown: 1-25)
-- Only visible for buildings that support production queues (have `stack` field)
-- Not shown for Bookbinder and similar single-production buildings
-- Specifies how many production queue slots to maintain
-- Saved to `settings.amount` when enabled
-
-**3. Item** (Dropdown)
-- Selects which item to produce
+**2. Item** (Dropdown)
+- Selects which item to produce continuously
 - Saved to `settings.item`
 
-**4. Items per run** (Dropdown: 1-25)
+**3. Items per run** (Dropdown: 1-25)
 - Only visible for buildings with `stack` field
 - Specifies how many items each production run produces
 - Saved to `settings.stack`
+- Limited by game mechanics (typically max 15-25)
 
-**5. Buff** (Dropdown)
+**4. Buff** (Dropdown)
 - Optional production buff to apply during production
 - Saved to `settings.buff`
+- Only shown for buildings that support buffs
 
 #### UI Design Principles
 
-- **Simplicity**: Minimal text, clear purpose
+- **Simplicity**: No queue slot configuration - that's for script automation
+- **Continuous production focus**: Dialog is about "produce Y indefinitely"
 - **Contextual**: Only shows fields relevant to the building type
-- **Consistency**: Same interface pattern for all buildings
+- **Separation of concerns**: Users configure continuous production, scripts handle complex automation
 
 #### Saving Settings
 
@@ -255,9 +252,10 @@ if (sObj.hasOwnProperty('stack'))
 ```
 
 **Key Changes:**
-- When enabled, `amount` is set to the user-selected queue slots value (not hardcoded to 1)
+- When enabled, `amount` is always set to 1 (one queue slot for continuous production)
 - When disabled, `amount` is set to 0
-- Stack is now controlled via `#itemsPerSlot` field for clarity
+- Queue slot management beyond 1 is handled by script automation, not the UI
+- Stack controlled via `#itemsPerRun` field
 
 ### 6. Production Queue System
 
@@ -363,23 +361,25 @@ To add a new production building to the auto system:
 - **Impact:** Buildings now correctly produce `amount × stack` total items
 
 #### Issue 3: Confusing UI for Building Settings
-- **Problem:** The settings UI was confusing
-  - Enable Production checkbox set `amount` to 1 (hardcoded), preventing users from configuring multiple queue slots
-  - Field labels didn't clearly explain the dual nature of amount/stack
+- **Problem:** The settings UI was confusing and exposed unnecessary complexity
+  - Enable Production checkbox setting queue slots was misleading
+  - Users don't need queue slot configuration - that's for script automation
+  - Dialog mixed continuous production (user concern) with queue management (script concern)
   - Too verbose with unnecessary information
-- **Solution:** Simplified building settings dialog:
-  - **Enable Production**: Simple on/off toggle
-  - **Queue Slots**: Dropdown (1-25) for buildings that support queues (only shown if building has `stack` field)
-  - **Items per run**: Renamed from "Items per stack" for clarity
-  - **Simplified description**: Single line explaining enable/disable, buff, and items per run
-  - Bookbinder and similar buildings don't show queue slots (they don't support it)
+- **Solution:** Radically simplified building settings dialog:
+  - **Removed queue slots from UI entirely** - script handles this internally
+  - **Enable Production**: Simple on/off toggle (sets amount to 1 or 0)
+  - **Items per run**: How many items per production run (max 15-25 typically)
+  - **Simplified description**: Single line explaining continuous production concept
+  - **Clear separation**: Dialog for continuous production, script uses `amount` field for automation
 - **Files Changed:**
-  - `user_auto.js:2965-3092` - Redesigned settings UI and save logic
-  - `docs/AUTO_BUILDING_SYSTEM.md` - Documented new UI structure
+  - `user_auto.js:2965-3080` - Redesigned settings UI, removed queue slots
+  - `docs/AUTO_BUILDING_SYSTEM.md` - Documented UI/script separation
 - **Impact:**
-  - Users can configure multiple queue slots while keeping production enabled
-  - Simpler, less cluttered interface
-  - Contextual fields only show when building supports them
+  - Much simpler dialog focused on continuous production
+  - No confusion about queue slots vs items per run
+  - Script can still use `amount` field for quest/task automation
+  - Clear mental model: "produce item Y indefinitely until I say stop"
 
 ## Future Considerations
 

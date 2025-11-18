@@ -2967,11 +2967,11 @@ const aUI = {
                         aSettings.defaults.Buildings.TProduction[buildingName].item = aWindow.withsBody('#producableItems').val();
                     if (sObj.hasOwnProperty('amount')) {
                         var enabled = aWindow.withsBody('#enableProduction').is(':checked');
-                        var queueSlots = parseInt(aWindow.withsBody('#queueSlots').val()) || 1;
-                        aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? queueSlots : 0;
+                        // UI only enables/disables (amount=1 or 0). Script can set higher values for automation.
+                        aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? 1 : 0;
                     }
                     if (sObj.hasOwnProperty('stack'))
-                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#itemsPerSlot').val());
+                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#itemsPerRun').val());
                     if (sObj.hasOwnProperty('buff'))
                         aSettings.defaults.Buildings.TProduction[buildingName].buff = aWindow.withsBody('#buff').val();
                     aSettings.save();
@@ -2992,18 +2992,6 @@ const aUI = {
                             [9, 'Enable Production'],
                             [3, createSwitch('enableProduction', sObj.amount > 0)]
                         ]));
-
-                        // Add Queue Slots input (only for buildings that support it - i.e., have 'stack' field)
-                        if (sObj.hasOwnProperty('stack')) {
-                            var queueSlotsOptions = [];
-                            for (var i = 1; i <= 25; i++) {
-                                queueSlotsOptions.push($('<option>', { 'value': i, 'selected': i === Math.max(1, sObj.amount) }).text(i));
-                            }
-                            html.push(createTableRow([
-                                [4, 'Queue Slots:'],
-                                [8, aUtils.create.Select('queueSlots').append(queueSlotsOptions)]
-                            ]));
-                        }
                     }
                     $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
@@ -3029,7 +3017,7 @@ const aUI = {
                             }
                             table = createTableRow([
                                 [4, 'Items per run: '],
-                                [8, aUtils.create.Select('itemsPerSlot').append(options)]
+                                [8, aUtils.create.Select('itemsPerRun').append(options)]
                             ]);
                         }
                         html.push(table);
@@ -3082,9 +3070,9 @@ const aUI = {
                 aWindow.withsBody('#buff').change(function () {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
-                // Initialize itemsPerSlot if present
-                if (aWindow.withsBody('#itemsPerSlot').length) {
-                    aWindow.withsBody('#itemsPerSlot').val(sObj.stack).change();
+                // Initialize itemsPerRun if present
+                if (aWindow.withsBody('#itemsPerRun').length) {
+                    aWindow.withsBody('#itemsPerRun').val(sObj.stack).change();
                 }
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });

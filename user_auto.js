@@ -2967,15 +2967,22 @@ const aUI = {
                         aSettings.defaults.Buildings.TProduction[buildingName].item = aWindow.withsBody('#producableItems').val();
                     if (sObj.hasOwnProperty('amount')) {
                         var enabled = aWindow.withsBody('#enableProduction').is(':checked');
-                        aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? 1 : 0;
+                        var queueSlots = parseInt(aWindow.withsBody('#queueSlots').val()) || 1;
+                        aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? queueSlots : 0;
                     }
                     if (sObj.hasOwnProperty('stack'))
-                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#stack').val());
+                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#itemsPerSlot').val());
                     if (sObj.hasOwnProperty('buff'))
                         aSettings.defaults.Buildings.TProduction[buildingName].buff = aWindow.withsBody('#buff').val();
                     aSettings.save();
                     aWindow.shide();
 
+                };
+                var updateTotalItems = function () {
+                    var queueSlots = parseInt(aWindow.withsBody('#queueSlots').val()) || 1;
+                    var itemsPerSlot = parseInt(aWindow.withsBody('#itemsPerSlot').val()) || 1;
+                    var total = queueSlots * itemsPerSlot;
+                    aWindow.withsBody('#totalItems').text(total + ' items total');
                 };
                 var settings = function () {
                     var html = [];
@@ -2992,6 +2999,16 @@ const aUI = {
                             [3, createSwitch('enableProduction', sObj.amount > 0)]
                         ]));
                         html.push($('<br>'));
+
+                        // Add Queue Slots input (only shown when enabled)
+                        var queueSlotsOptions = [];
+                        for (var i = 1; i <= 25; i++) {
+                            queueSlotsOptions.push($('<option>', { 'value': i, 'selected': i === Math.max(1, sObj.amount) }).text(i));
+                        }
+                        html.push(createTableRow([
+                            [4, 'Queue Slots:'],
+                            [8, aUtils.create.Select('queueSlots').append(queueSlotsOptions).change(updateTotalItems)]
+                        ]));
                     }
                     $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
@@ -3008,20 +3025,30 @@ const aUI = {
                                 [8, aUtils.create.Select('buff').append(aBuffs.getBuffsForBuilding(buildingName, false, true))]
                             ]);
                         } else if (k === 'amount') {
-                            // Skip rendering amount field - handled by Enable Production checkbox
+                            // Skip rendering amount field - handled by Enable Production checkbox and Queue Slots
                             return;
                         } else if (k === 'stack') {
                             var options = [];
-                            for (var i = 25; i >= 1; i--) {
-                                options.push($('<option>', { 'value': i }).text(i));
+                            for (var i = 1; i <= 25; i++) {
+                                options.push($('<option>', { 'value': i, 'selected': i === sObj.stack }).text(i));
                             }
                             table = createTableRow([
-                                [4, 'Items per stack: '],
-                                [8, aUtils.create.Select('stack').append(options)]
+                                [4, 'Items per Slot: '],
+                                [8, aUtils.create.Select('itemsPerSlot').append(options).change(updateTotalItems)]
                             ]);
                         }
                         html.push(table);
                     });
+
+                    // Add total items display
+                    if (sObj.hasOwnProperty('amount') && sObj.hasOwnProperty('stack')) {
+                        html.push($('<br>'));
+                        html.push(createTableRow([
+                            [4, ''],
+                            [8, $('<strong>', { 'id': 'totalItems', 'style': 'color: #4CAF50;' })]
+                        ]));
+                    }
+
                     return html;
                 }
                 aWindow.settings(save);
@@ -3036,8 +3063,10 @@ const aUI = {
                         $('<label>').html('Notes:-'),
                         $('<br>'),
                         $('<label>').html('&#10551; Enable Production: Maintains continuous production'),
+                        $('<label>').html('&#10551; Queue Slots: Number of production slots to keep filled'),
+                        $('<label>').html('&#10551; Items per Slot: How many items each queue slot produces'),
+                        $('<label>').html('&#10551; Total Items: Queue Slots × Items per Slot'),
                         $('<label>').html('&#10551; Buff is applied when the building is in production'),
-                        $('<label>').html('&#10551; Building level doesn\'t matter ;) (you can create anything @@)'),
                         createTableRow([[9, 'Building Settings'], [3, '&nbsp;']], true)
                     ].concat(settings()).concat([
                         $('<br>'),
@@ -3072,7 +3101,15 @@ const aUI = {
                 aWindow.withsBody('#buff').change(function () {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
-                aWindow.withsBody('#stack').val(sObj.stack).change();
+                // Initialize itemsPerSlot and update total items display
+                if (aWindow.withsBody('#itemsPerSlot').length) {
+                    aWindow.withsBody('#itemsPerSlot').val(sObj.stack).change();
+                    updateTotalItems();
+                }
+                // Legacy support for old 'stack' field ID
+                if (aWindow.withsBody('#stack').length) {
+                    aWindow.withsBody('#stack').val(sObj.stack).change();
+                }
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                 aWindow.sshow();

@@ -198,41 +198,67 @@ if (name === 'Bookbinder') {
 
 ### 5. User Interface Integration
 
-#### Settings UI
+#### Settings UI Structure
 
-**Location:** `user_auto.js:2970-2980`
+**Location:** `user_auto.js:2987-3053`
 
-The enable/disable checkbox is automatically generated for buildings with the `amount` field:
+The building settings dialog presents a clear, user-friendly interface with the following fields:
 
-```javascript
-if (sObj.hasOwnProperty('amount')) {
-    var createSwitch = function (id, checked) {
-        return $('<label>', { 'class': 'switch' }).append([
-            $('<input>', { 'type': 'checkbox', 'id': id, 'checked': checked }),
-            $('<span>', { 'class': 'slider round' })
-        ]);
-    };
-    html.push(createTableRow([
-        [9, 'Enable Production'],
-        [3, createSwitch('enableProduction', sObj.amount > 0)]
-    ]));
-}
-```
+**1. Enable Production** (Checkbox)
+- Simple on/off toggle for the building
+- When disabled, `amount` is set to 0
+- When enabled, uses the value from Queue Slots
+
+**2. Queue Slots** (Dropdown: 1-25)
+- Only visible for buildings with `amount` field
+- Specifies how many production queue slots to maintain
+- Saved to `settings.amount` when enabled
+
+**3. Items per Slot** (Dropdown: 1-25)
+- Only visible for buildings with `stack` field
+- Specifies how many items each queue slot produces
+- Saved to `settings.stack`
+
+**4. Total Items** (Calculated Display)
+- Read-only display showing `Queue Slots × Items per Slot`
+- Updates in real-time as user changes values
+- Helps users understand total production
+
+**5. Item** (Dropdown)
+- Selects which item to produce
+- Saved to `settings.item`
+
+**6. Buff** (Dropdown)
+- Optional production buff to apply
+- Saved to `settings.buff`
+
+#### UI Benefits
+
+- **Clarity**: Each field has a clear, specific purpose
+- **Real-time Feedback**: Total items calculated and displayed immediately
+- **Consistency**: All buildings use the same interface structure
+- **Flexibility**: Users can configure production strategy (many small batches vs few large batches)
 
 #### Saving Settings
 
-**Location:** `user_auto.js:2955-2958`
+**Location:** `user_auto.js:2965-2980`
 
 When user saves building settings:
 
 ```javascript
 if (sObj.hasOwnProperty('amount')) {
     var enabled = aWindow.withsBody('#enableProduction').is(':checked');
-    aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? 1 : 0;
+    var queueSlots = parseInt(aWindow.withsBody('#queueSlots').val()) || 1;
+    aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? queueSlots : 0;
 }
+if (sObj.hasOwnProperty('stack'))
+    aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#itemsPerSlot').val());
 ```
 
-**Note:** For buildings with quantity support, the actual quantity value may be set separately. The checkbox sets it to 1 (enabled) or 0 (disabled).
+**Key Changes:**
+- When enabled, `amount` is set to the user-selected queue slots value (not hardcoded to 1)
+- When disabled, `amount` is set to 0
+- Stack is now controlled via `#itemsPerSlot` field for clarity
 
 ### 6. Production Queue System
 
@@ -336,6 +362,25 @@ To add a new production building to the auto system:
   - `user_auto.js:4649` - Fixed parameter calculation
   - `docs/AUTO_BUILDING_SYSTEM.md` - Enhanced documentation with examples
 - **Impact:** Buildings now correctly produce `amount × stack` total items
+
+#### Issue 3: Confusing UI for Building Settings
+- **Problem:** The settings UI was confusing and didn't clearly show production quantities
+  - Enable Production checkbox set `amount` to 1 (hardcoded), preventing users from configuring multiple queue slots
+  - No clear indication of total items that would be produced
+  - Field labels didn't clearly explain the dual nature of amount/stack
+- **Solution:** Restructured building settings dialog with clearer fields:
+  - **Enable Production**: Simple on/off toggle
+  - **Queue Slots**: Explicit dropdown (1-25) for number of queue slots
+  - **Items per Slot**: Renamed from "Items per stack" for clarity
+  - **Total Items**: Real-time calculated display showing total production
+  - Enhanced notes section explaining each field
+- **Files Changed:**
+  - `user_auto.js:2965-3112` - Redesigned settings UI and save logic
+  - `docs/AUTO_BUILDING_SYSTEM.md` - Documented new UI structure and benefits
+- **Impact:**
+  - Users can now configure multiple queue slots while keeping production enabled
+  - Clear visual feedback on total production quantity
+  - More intuitive interface reducing configuration errors
 
 ## Future Considerations
 

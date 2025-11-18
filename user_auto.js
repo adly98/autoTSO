@@ -6938,7 +6938,7 @@ const aAdventure = {
 }
 
 const auto = {
-    version: '2.0.2',
+    version: '2.0.3',
     developer: true,
     update: {
         apiUrl: 'https://api.github.com/repos/adly98/autoTSO/releases/latest',
@@ -7038,14 +7038,14 @@ const auto = {
                     success: function (data) {
                         try {
                             const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
-                            const backupPath = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js.backup").nativePath;
+                            const backupPath = air.File.applicationDirectory.resolvePath("auto/user_auto.js.v" + auto.version).nativePath;
 
                             // Create backup of current version before updating
                             try {
                                 const currentData = aUtils.file.Read(path, true);
                                 if (currentData) {
                                     aUtils.file.Write(backupPath, currentData);
-                                    console.info('Backup created successfully');
+                                    console.info('Backup created successfully at:', backupPath);
                                 }
                             } catch (backupError) {
                                 console.error('Backup error:', backupError);

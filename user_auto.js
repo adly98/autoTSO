@@ -840,6 +840,16 @@ const aSettings = {
                 }
             });
         }
+
+        // Migrate Auto settings for backup configuration
+        if (aSettings.Auto) {
+            if (!aSettings.Auto.hasOwnProperty('CreateBackup')) {
+                aSettings.Auto.CreateBackup = true; // Enable by default for safety
+            }
+            if (!aSettings.Auto.hasOwnProperty('KeepBackups')) {
+                aSettings.Auto.KeepBackups = 3; // Keep last 3 backups by default
+            }
+        }
     },
     extend: function (target, source) {
         for (var prop in source) {

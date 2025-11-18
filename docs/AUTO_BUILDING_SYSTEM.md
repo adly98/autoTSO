@@ -200,44 +200,43 @@ if (name === 'Bookbinder') {
 
 #### Settings UI Structure
 
-**Location:** `user_auto.js:2987-3053`
+**Location:** `user_auto.js:2981-3045`
 
-The building settings dialog presents a clear, user-friendly interface with the following fields:
+The building settings dialog presents a simple, streamlined interface:
+
+**Description:** "Enable/disable production of the item below. Buff is applied during production. Items per run can be configured where supported."
+
+**Fields:**
 
 **1. Enable Production** (Checkbox)
 - Simple on/off toggle for the building
 - When disabled, `amount` is set to 0
-- When enabled, uses the value from Queue Slots
+- When enabled, `amount` is set to queue slots value (or 1 if no queue slots)
 
 **2. Queue Slots** (Dropdown: 1-25)
-- Only visible for buildings with `amount` field
+- Only visible for buildings that support production queues (have `stack` field)
+- Not shown for Bookbinder and similar single-production buildings
 - Specifies how many production queue slots to maintain
 - Saved to `settings.amount` when enabled
 
-**3. Items per Slot** (Dropdown: 1-25)
-- Only visible for buildings with `stack` field
-- Specifies how many items each queue slot produces
-- Saved to `settings.stack`
-
-**4. Total Items** (Calculated Display)
-- Read-only display showing `Queue Slots × Items per Slot`
-- Updates in real-time as user changes values
-- Helps users understand total production
-
-**5. Item** (Dropdown)
+**3. Item** (Dropdown)
 - Selects which item to produce
 - Saved to `settings.item`
 
-**6. Buff** (Dropdown)
-- Optional production buff to apply
+**4. Items per run** (Dropdown: 1-25)
+- Only visible for buildings with `stack` field
+- Specifies how many items each production run produces
+- Saved to `settings.stack`
+
+**5. Buff** (Dropdown)
+- Optional production buff to apply during production
 - Saved to `settings.buff`
 
-#### UI Benefits
+#### UI Design Principles
 
-- **Clarity**: Each field has a clear, specific purpose
-- **Real-time Feedback**: Total items calculated and displayed immediately
-- **Consistency**: All buildings use the same interface structure
-- **Flexibility**: Users can configure production strategy (many small batches vs few large batches)
+- **Simplicity**: Minimal text, clear purpose
+- **Contextual**: Only shows fields relevant to the building type
+- **Consistency**: Same interface pattern for all buildings
 
 #### Saving Settings
 
@@ -364,23 +363,23 @@ To add a new production building to the auto system:
 - **Impact:** Buildings now correctly produce `amount × stack` total items
 
 #### Issue 3: Confusing UI for Building Settings
-- **Problem:** The settings UI was confusing and didn't clearly show production quantities
+- **Problem:** The settings UI was confusing
   - Enable Production checkbox set `amount` to 1 (hardcoded), preventing users from configuring multiple queue slots
-  - No clear indication of total items that would be produced
   - Field labels didn't clearly explain the dual nature of amount/stack
-- **Solution:** Restructured building settings dialog with clearer fields:
+  - Too verbose with unnecessary information
+- **Solution:** Simplified building settings dialog:
   - **Enable Production**: Simple on/off toggle
-  - **Queue Slots**: Explicit dropdown (1-25) for number of queue slots
-  - **Items per Slot**: Renamed from "Items per stack" for clarity
-  - **Total Items**: Real-time calculated display showing total production
-  - Enhanced notes section explaining each field
+  - **Queue Slots**: Dropdown (1-25) for buildings that support queues (only shown if building has `stack` field)
+  - **Items per run**: Renamed from "Items per stack" for clarity
+  - **Simplified description**: Single line explaining enable/disable, buff, and items per run
+  - Bookbinder and similar buildings don't show queue slots (they don't support it)
 - **Files Changed:**
-  - `user_auto.js:2965-3112` - Redesigned settings UI and save logic
-  - `docs/AUTO_BUILDING_SYSTEM.md` - Documented new UI structure and benefits
+  - `user_auto.js:2965-3092` - Redesigned settings UI and save logic
+  - `docs/AUTO_BUILDING_SYSTEM.md` - Documented new UI structure
 - **Impact:**
-  - Users can now configure multiple queue slots while keeping production enabled
-  - Clear visual feedback on total production quantity
-  - More intuitive interface reducing configuration errors
+  - Users can configure multiple queue slots while keeping production enabled
+  - Simpler, less cluttered interface
+  - Contextual fields only show when building supports them
 
 ## Future Considerations
 

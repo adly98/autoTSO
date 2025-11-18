@@ -2978,12 +2978,6 @@ const aUI = {
                     aWindow.shide();
 
                 };
-                var updateTotalItems = function () {
-                    var queueSlots = parseInt(aWindow.withsBody('#queueSlots').val()) || 1;
-                    var itemsPerSlot = parseInt(aWindow.withsBody('#itemsPerSlot').val()) || 1;
-                    var total = queueSlots * itemsPerSlot;
-                    aWindow.withsBody('#totalItems').text(total + ' items total');
-                };
                 var settings = function () {
                     var html = [];
                     // Add "Enable Production" checkbox if building has amount property
@@ -2998,17 +2992,18 @@ const aUI = {
                             [9, 'Enable Production'],
                             [3, createSwitch('enableProduction', sObj.amount > 0)]
                         ]));
-                        html.push($('<br>'));
 
-                        // Add Queue Slots input (only shown when enabled)
-                        var queueSlotsOptions = [];
-                        for (var i = 1; i <= 25; i++) {
-                            queueSlotsOptions.push($('<option>', { 'value': i, 'selected': i === Math.max(1, sObj.amount) }).text(i));
+                        // Add Queue Slots input (only for buildings that support it - i.e., have 'stack' field)
+                        if (sObj.hasOwnProperty('stack')) {
+                            var queueSlotsOptions = [];
+                            for (var i = 1; i <= 25; i++) {
+                                queueSlotsOptions.push($('<option>', { 'value': i, 'selected': i === Math.max(1, sObj.amount) }).text(i));
+                            }
+                            html.push(createTableRow([
+                                [4, 'Queue Slots:'],
+                                [8, aUtils.create.Select('queueSlots').append(queueSlotsOptions)]
+                            ]));
                         }
-                        html.push(createTableRow([
-                            [4, 'Queue Slots:'],
-                            [8, aUtils.create.Select('queueSlots').append(queueSlotsOptions).change(updateTotalItems)]
-                        ]));
                     }
                     $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
@@ -3025,7 +3020,7 @@ const aUI = {
                                 [8, aUtils.create.Select('buff').append(aBuffs.getBuffsForBuilding(buildingName, false, true))]
                             ]);
                         } else if (k === 'amount') {
-                            // Skip rendering amount field - handled by Enable Production checkbox and Queue Slots
+                            // Skip rendering amount field - handled by Enable Production checkbox
                             return;
                         } else if (k === 'stack') {
                             var options = [];
@@ -3033,21 +3028,12 @@ const aUI = {
                                 options.push($('<option>', { 'value': i, 'selected': i === sObj.stack }).text(i));
                             }
                             table = createTableRow([
-                                [4, 'Items per Slot: '],
-                                [8, aUtils.create.Select('itemsPerSlot').append(options).change(updateTotalItems)]
+                                [4, 'Items per run: '],
+                                [8, aUtils.create.Select('itemsPerSlot').append(options)]
                             ]);
                         }
                         html.push(table);
                     });
-
-                    // Add total items display
-                    if (sObj.hasOwnProperty('amount') && sObj.hasOwnProperty('stack')) {
-                        html.push($('<br>'));
-                        html.push(createTableRow([
-                            [4, ''],
-                            [8, $('<strong>', { 'id': 'totalItems', 'style': 'color: #4CAF50;' })]
-                        ]));
-                    }
 
                     return html;
                 }
@@ -3060,13 +3046,8 @@ const aUI = {
                 ));
                 aWindow.sData().append(
                     aUtils.create.container().append([
-                        $('<label>').html('Notes:-'),
+                        $('<label>').html('Enable/disable production of the item below. Buff is applied during production. Items per run can be configured where supported.'),
                         $('<br>'),
-                        $('<label>').html('&#10551; Enable Production: Maintains continuous production'),
-                        $('<label>').html('&#10551; Queue Slots: Number of production slots to keep filled'),
-                        $('<label>').html('&#10551; Items per Slot: How many items each queue slot produces'),
-                        $('<label>').html('&#10551; Total Items: Queue Slots × Items per Slot'),
-                        $('<label>').html('&#10551; Buff is applied when the building is in production'),
                         createTableRow([[9, 'Building Settings'], [3, '&nbsp;']], true)
                     ].concat(settings()).concat([
                         $('<br>'),
@@ -3101,14 +3082,9 @@ const aUI = {
                 aWindow.withsBody('#buff').change(function () {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
-                // Initialize itemsPerSlot and update total items display
+                // Initialize itemsPerSlot if present
                 if (aWindow.withsBody('#itemsPerSlot').length) {
                     aWindow.withsBody('#itemsPerSlot').val(sObj.stack).change();
-                    updateTotalItems();
-                }
-                // Legacy support for old 'stack' field ID
-                if (aWindow.withsBody('#stack').length) {
-                    aWindow.withsBody('#stack').val(sObj.stack).change();
                 }
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });

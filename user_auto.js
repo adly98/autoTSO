@@ -742,7 +742,7 @@ const aSettings = {
                 CarnivalGrounds: { item: '', amount: 0, stack: 1 },
                 ArtificerStudy: { item: '', amount: 0, stack: 1 },
                 Laboratory: { item: '', amount: 0, stack: 1 },
-                SiegeWorkshop: { item: '', amount: 0 },
+                SiegeWorkshop: { item: '', amount: 0, stack: 1 },
                 ToyFactory: { item: '', amount: 0, stack: 1 },
                 Chocolatier: { item: '', amount: 0, stack: 1 },
                 SnackStand: { item: '', amount: 0, stack: 1 },

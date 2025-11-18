@@ -733,7 +733,7 @@ const aSettings = {
                 EliteBarracks: { item: '', amount: 0, stack: 1, buff: '' },
                 Barracks3: { item: '', amount: 0, stack: 1, buff: '' },
                 ExpeditionWeaponSmith: { item: '', amount: 0, stack: 1, buff: '' },
-                Bookbinder: { item: '', buff: '' },
+                Bookbinder: { item: '', amount: 0, buff: '' },
                 AdventureBookbinder: { item: '', amount: 0, stack: 1 },
                 Oilmill: { item: '', amount: 0, stack: 1 },
                 OilRefinery: { item: '', amount: 0, stack: 1 },
@@ -825,6 +825,19 @@ const aSettings = {
     load: function () {
         var data = aUtils.file.Read(aUtils.file.Path('settings')) || readSettings(null, 'auto');
         aSettings = aSettings.extend(aSettings.defaults, data);
+        aSettings.migrate();
+    },
+    migrate: function () {
+        // Migrate old settings to ensure all production buildings have the amount field
+        // This provides backward compatibility for settings saved before the amount field was mandatory
+        if (aSettings.Buildings && aSettings.Buildings.TProduction) {
+            $.each(aSettings.Buildings.TProduction, function (buildingName, settings) {
+                if (!settings.hasOwnProperty('amount')) {
+                    // Add amount field with default value of 0 (disabled)
+                    settings.amount = 0;
+                }
+            });
+        }
     },
     extend: function (target, source) {
         for (var prop in source) {
@@ -4618,10 +4631,17 @@ const aBuildings = {
                     aQueue.add('applyBuff', { what: 'BUILDING', type: settings.buff, grid: building.GetGrid(), building: building.GetBuildingName_string() });
                 }
                 if (!settings.item || settings.amount === 0) return;
-                if (name === 'Bookbinder' && TP[0]) {
-                    var productionVO = TP[0].GetProductionOrder().GetProductionVO();
-                    if (productionVO.producedItems === 1)
-                        aQueue.add('completeProduction', [2, productionVO.type_string]);
+                if (name === 'Bookbinder') {
+                    // Bookbinder special handling: books don't support quantity, only enable/disable
+                    if (TP[0]) {
+                        // Complete existing production
+                        var productionVO = TP[0].GetProductionOrder().GetProductionVO();
+                        if (productionVO.producedItems === 1)
+                            aQueue.add('completeProduction', [2, productionVO.type_string]);
+                    } else {
+                        // Start new production if enabled and no production exists
+                        aQueue.add('startProduction', [settings.item, 1, true, 1, building.GetGrid()]);
+                    }
                     return;
                 }
                 const inProgress = aBuildings.production.inProgress(building.productionQueue.mProductionType, settings.item);

@@ -21,11 +21,22 @@ var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureMana
 
 // Debug Logging Helper
 const aDebug = {
+
+    validCategories: {
+        'adventure': aSettings.defaults.Debug.logAdventures, 
+        'combat': aSettings.defaults.Debug.logCombat, 
+        'geologists': aSettings.defaults.Debug.logGeologists, 
+        'explorers': aSettings.defaults.Debug.logExplorers
+    },
+    categoryDebugEnabled: function (category) {
+        var validCategory = Object.prototype.hasOwnProperty.call(aDebug.validCategories, category);
+        var enabled = aDebug.validCategories[category];
+        return validCategory && enabled;
+    },
+
     log: function (category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
-
-        if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
-        if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
+        if (!aDebug.categoryDebugEnabled(category)) return;
 
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift('[DEBUG ' + category + ']');
@@ -33,9 +44,7 @@ const aDebug = {
     },
     error: function (category) {
         if (!aSettings.defaults.Debug.enableLogging) return;
-
-        if (category === 'adventure' && !aSettings.defaults.Debug.logAdventures) return;
-        if (category === 'combat' && !aSettings.defaults.Debug.logCombat) return;
+        if (!aDebug.categoryDebugEnabled(category)) return;
 
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift('[DEBUG ' + category + ']');
@@ -70,6 +79,12 @@ const LIMITS = {
     CLIENT_PACKET_TIMEOUT_DEFAULT: 30000,
     CLIENT_PACKET_TIMEOUT_INCREASED: 120000
 };
+
+const SPECIALIST_TYPE = {
+    GENNERAL: 0,
+    EXPLORER: 1,
+    GEOLOGIST: 2
+}
 
 const WORK_TIME_OFFSET_SECONDS = 12;
 
@@ -631,6 +646,8 @@ const aSettings = {
             enableLogging: true,
             logAdventures: true,
             logCombat: true,
+            logGeologists: false,
+            logExplorers: false,
         },
         Security: {
             validateFilePaths: false,
@@ -2784,7 +2801,7 @@ const aUI = {
                 var expls = [];
                 game.getSpecialists().sort(specNameSorter).forEach(function (spec) {
                     try {
-                        if (!spec || spec.GetBaseType() !== 1 || expls.indexOf(spec.GetType()) !== -1) return;
+                        if (!aSpecialists.isType(spec, SPECIALIST_TYPE.EXPLORER) || expls.indexOf(spec.GetType()) !== -1) return;
                         var text = $('<span>').append([
                             $(getImageTag(spec.getIconID(), '26px', '26px')),
                             loca.GetText("SPE", spec.GetSpecialistDescription().getName_string())
@@ -2887,7 +2904,7 @@ const aUI = {
                 var geos = [];
                 game.getSpecialists().sort(specNameSorter).forEach(function (geo) {
                     try {
-                        if (!geo || geo.GetBaseType() !== 2 || geos.indexOf(geo.GetType()) !== -1) return;
+                        if (!aSpecialists.isType(geo, SPECIALIST_TYPE.GEOLOGIST) || geos.indexOf(geo.GetType()) !== -1) return;
                         var text = $('<span>').attr({ 'title': "Testing tooltip" }).append([
                             $(getImageTag(geo.getIconID(), '26px', '26px')),
                             loca.GetText("SPE", geo.GetSpecialistDescription().getName_string())
@@ -3830,7 +3847,7 @@ const aEvents = {
             var tasks = game.def("global").specialistTaskDefinitions_vector[1].subtasks_vector.filter(function (task) {
                 return [4, 5].indexOf(task.subTaskID) === -1;
             });
-            aSpecialists.getSpecialists(1).forEach(function (spec) {
+            aSpecialists.getSpecialists(SPECIALIST_TYPE.EXPLORER).forEach(function (spec) {
                 try {
                     var skills = spec.getSkillTree().getItems_vector().concat(spec.skills.getItems_vector());
                     var taskID = 0, taskValue = 0;
@@ -4243,9 +4260,7 @@ const aSpecialists = {
         // false -> return all
         return game.getSpecialists().sort(specNameSorter).filter(function (spec) {
             try {
-                if (!spec || game.player.GetPlayerId() !== spec.getPlayerID() ||
-                    (type === 0 && !spec.GetSpecialistDescription().isGeneral()) ||
-                    (type !== 0 && spec.GetBaseType() !== type)) return false;
+                if (!aSpecialists.isType(spec, type)) return false;
                 if (typeof task === 'number') {
                     if (!spec.IsInUse()) return false;
                     return spec.GetTask().GetSubType() === task;
@@ -4254,11 +4269,36 @@ const aSpecialists = {
             } catch (e) { return false }
         });
     },
+    
+    /**
+     * Returns if the specialist belongs to the current player.
+     * @param {Object} spec
+     * @returns true if owned by player, false otherwise
+     */
+    isOwnedByPlayer: function (spec) {
+        return spec && game.player.GetPlayerId() === spec.getPlayerID();
+    },
+
+    /**
+     * Determines if the given specialist belongs to the requested category.
+     * Base types mirror the client enum: 1 = Explorer, 2 = Geologist, generals are detected via isGeneral().
+     * @param {Object} spec
+     * @param {number} type
+     * @returns {boolean}
+     */
+    isType: function (spec, type) {
+        if (!aSpecialists.isOwnedByPlayer(spec)) 
+            return false;
+        if (spec && type === 0) return spec.GetSpecialistDescription().isGeneral();
+        if (typeof type !== 'number') return true;
+        return spec.GetBaseType() === type;
+    },
+
     manageExplorers: function () {
         if (!game.gi.isOnHomzone() || !aSession.isOn.Explorers) return;
         // aQueue.add('status', ['Checking Explorers!']);
         try {
-            const explorers = aSpecialists.getSpecialists(1, true);
+            const explorers = aSpecialists.getSpecialists(SPECIALIST_TYPE.EXPLORER, true);
             if (!explorers.length) return;
 
             const template = aSettings.defaults.Explorers.useTemplate ? aUtils.file.Read(aSettings.defaults.Explorers.template) : false;
@@ -4266,6 +4306,9 @@ const aSpecialists = {
             const tasks = game.def("global").specialistTaskDefinitions_vector[1].subtasks_vector.filter(function (task) {
                 return [4, 5].indexOf(task.subTaskID) === -1;
             });
+
+            aDebug.log('explorer', 'Sending', explorers.length, 'explorers', template ? 'using template' : 'using default tasks', activeEvent ? 'with active event: ' + activeEvent : '');
+
             var sub = 0;
             explorers.forEach(function (expl, index) {
                 try {
@@ -4312,14 +4355,45 @@ const aSpecialists = {
                 } catch (er) { }
             });
             //aUI.updateStatus("Sending: {0} Explorers".format(explorers.length), 'Explorers');
-        } catch (e) { console.error(e); console.error('There has been an error while sending explorers'); }
+        } catch (e) { 
+            console.error(e); console.error('There has been an error while sending explorers'); 
+        }
     },
+
     sendGeologists: function (geos, count, type, depo) {
-        aSpecialists.getSpecialists(2, true).filter(function (g) { return geos.indexOf(g.GetType()) !== -1; })
-            .forEach(function (geo, index) {
-                if (index + 1 > count) return;
-                aQueue.add('sendGeologist', [geo.GetUniqueID().toKeyString(), type, depo, index + 1, count]);
-            });
+        aDebug.log('geologist', 'Request to send', count, 'geologists for', depo, 'allowed types:', geos);
+        var availableGeos = aSpecialists.getSpecialists(SPECIALIST_TYPE.GEOLOGIST, true);
+        if (!geos || !geos.length || !count) {
+            aDebug.log('geologist', 'No geologists configured or count is zero for', depo);
+            return;
+        }
+        if (!availableGeos.length) {
+            aDebug.log('geologist', 'No idle geologists available to send for', depo);
+            return;
+        }
+        var sent = 0;
+        for (var i = 0; i < availableGeos.length; i++) {
+            var geo = availableGeos[i];
+            if (!geo) { continue; }
+            var allowed = false;
+            for (var j = 0; j < geos.length; j++) {
+            if (geos[j] === geo.GetType()) {
+                allowed = true;
+                break;
+            }
+            }
+            if (!allowed) {
+            aDebug.log('geologist', 'Skipping geologist', geo.GetType(), 'not in allowed list for', depo);
+            continue;
+            }
+            sent++;
+            aDebug.log('geologist', 'Sending geologist', geo.GetUniqueID().toKeyString(), '(', sent, '/', count, ') for', depo);
+            aQueue.add('sendGeologist', [geo.GetUniqueID().toKeyString(), type, depo, sent, count]);
+            if (sent >= count) { break; }
+        }
+        if (sent === 0) {
+            aDebug.log('geologist', 'No matching geologists were sent for', depo);
+        }
     }
 }
 // ==================== Buildings ====================
@@ -4434,7 +4508,7 @@ const aBuildings = {
                 var buildingSlots = game.gi.mCurrentPlayer.mBuildQueue.GetTotalAvailableSlots() - game.gi.mCurrentPlayer.mBuildQueue.GetQueue_vector().length;
                 var buildingLisences = game.gi.mCurrentPlayer.GetMaxBuildingCount() - game.gi.mCurrentPlayer.mCurrentBuildingsCountAll;
 
-                const geologists = aSpecialists.getSpecialists(2);
+                const geologists = aSpecialists.getSpecialists(SPECIALIST_TYPE.GEOLOGIST);
                 $.each(Object.keys(aSettings.defaults.Deposits.data), function (index, depoName) {
                     const depoData = aSettings.defaults.Deposits.data[depoName];
                     const onMapDepos = game.zone.mStreetDataMap.getDeposits_vectorByType(depoName);
@@ -5939,7 +6013,7 @@ const aAdventure = {
         assignAllUnitsToFinish: function (army) {
             try {
                 aUI.playSound('UnitProduced');
-                aSpecialists.getSpecialists(0).forEach(function (general) {
+                aSpecialists.getSpecialists(SPECIALIST_TYPE.GENNERAL).forEach(function (general) {
                     if (general.GetTask() !== null) { return; }
                     const HasElite = general.GetArmy().HasEliteUnits();
                     var remainingCapacity = general.GetMaxMilitaryUnits() - general.GetArmy().GetUnitsCount();
@@ -6331,9 +6405,12 @@ const aAdventure = {
                     // This prevents wasting buff time while specialists are still traveling
                     var allSpecialists = [];
                     game.getSpecialists().forEach(function (spec) {
-                        if (spec && spec.getPlayerID() === game.player.GetPlayerId()) {
-                            allSpecialists.push(spec.GetUniqueID().toKeyString());
-                        }
+                        var allSpecialists = [];
+                        game.getSpecialists().forEach(function (spec) {
+                            if (aSpecialists.isOwnedByPlayer(spec)) {
+                                allSpecialists.push(spec.GetUniqueID().toKeyString());
+                            }
+                        });
                     });
 
                     aDebug.log('adventure', 'UseSpeedBuff: Found', allSpecialists.length, 'specialists on adventure');

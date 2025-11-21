@@ -733,7 +733,7 @@ const aSettings = {
                 EliteBarracks: { item: '', amount: 0, stack: 1, buff: '' },
                 Barracks3: { item: '', amount: 0, stack: 1, buff: '' },
                 ExpeditionWeaponSmith: { item: '', amount: 0, stack: 1, buff: '' },
-                Bookbinder: { item: '', buff: '' },
+                Bookbinder: { item: '', amount: 0, buff: '' },
                 AdventureBookbinder: { item: '', amount: 0, stack: 1 },
                 Oilmill: { item: '', amount: 0, stack: 1 },
                 OilRefinery: { item: '', amount: 0, stack: 1 },
@@ -742,7 +742,7 @@ const aSettings = {
                 CarnivalGrounds: { item: '', amount: 0, stack: 1 },
                 ArtificerStudy: { item: '', amount: 0, stack: 1 },
                 Laboratory: { item: '', amount: 0, stack: 1 },
-                SiegeWorkshop: { item: '', amount: 0 },
+                SiegeWorkshop: { item: '', amount: 0, stack: 1 },
                 ToyFactory: { item: '', amount: 0, stack: 1 },
                 Chocolatier: { item: '', amount: 0, stack: 1 },
                 SnackStand: { item: '', amount: 0, stack: 1 },
@@ -825,6 +825,19 @@ const aSettings = {
     load: function () {
         var data = aUtils.file.Read(aUtils.file.Path('settings')) || readSettings(null, 'auto');
         aSettings = aSettings.extend(aSettings.defaults, data);
+        aSettings.migrate();
+    },
+    migrate: function () {
+        // Migrate old settings to ensure all production buildings have the amount field
+        // This provides backward compatibility for settings saved before the amount field was mandatory
+        if (aSettings.Buildings && aSettings.Buildings.TProduction) {
+            $.each(aSettings.Buildings.TProduction, function (buildingName, settings) {
+                if (!settings.hasOwnProperty('amount')) {
+                    // Add amount field with default value of 0 (disabled)
+                    settings.amount = 0;
+                }
+            });
+        }
     },
     extend: function (target, source) {
         for (var prop in source) {
@@ -2954,10 +2967,11 @@ const aUI = {
                         aSettings.defaults.Buildings.TProduction[buildingName].item = aWindow.withsBody('#producableItems').val();
                     if (sObj.hasOwnProperty('amount')) {
                         var enabled = aWindow.withsBody('#enableProduction').is(':checked');
+                        // UI only enables/disables (amount=1 or 0). Script can set higher values for automation.
                         aSettings.defaults.Buildings.TProduction[buildingName].amount = enabled ? 1 : 0;
                     }
                     if (sObj.hasOwnProperty('stack'))
-                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#stack').val());
+                        aSettings.defaults.Buildings.TProduction[buildingName].stack = parseInt(aWindow.withsBody('#itemsPerRun').val());
                     if (sObj.hasOwnProperty('buff'))
                         aSettings.defaults.Buildings.TProduction[buildingName].buff = aWindow.withsBody('#buff').val();
                     aSettings.save();
@@ -2978,7 +2992,6 @@ const aUI = {
                             [9, 'Enable Production'],
                             [3, createSwitch('enableProduction', sObj.amount > 0)]
                         ]));
-                        html.push($('<br>'));
                     }
                     $.each(aSettings.defaults.Buildings.TProduction[buildingName], function (k) {
                         var table = null;
@@ -2999,16 +3012,17 @@ const aUI = {
                             return;
                         } else if (k === 'stack') {
                             var options = [];
-                            for (var i = 25; i >= 1; i--) {
-                                options.push($('<option>', { 'value': i }).text(i));
+                            for (var i = 1; i <= 25; i++) {
+                                options.push($('<option>', { 'value': i, 'selected': i === sObj.stack }).text(i));
                             }
                             table = createTableRow([
-                                [4, 'Items per stack: '],
-                                [8, aUtils.create.Select('stack').append(options)]
+                                [4, 'Items per run: '],
+                                [8, aUtils.create.Select('itemsPerRun').append(options)]
                             ]);
                         }
                         html.push(table);
                     });
+
                     return html;
                 }
                 aWindow.settings(save);
@@ -3020,11 +3034,8 @@ const aUI = {
                 ));
                 aWindow.sData().append(
                     aUtils.create.container().append([
-                        $('<label>').html('Notes:-'),
+                        $('<label>').html('Enable/disable production of the item below. Buff is applied during production. Items per run can be configured where supported.'),
                         $('<br>'),
-                        $('<label>').html('&#10551; Enable Production: Maintains continuous production'),
-                        $('<label>').html('&#10551; Buff is applied when the building is in production'),
-                        $('<label>').html('&#10551; Building level doesn\'t matter ;) (you can create anything @@)'),
                         createTableRow([[9, 'Building Settings'], [3, '&nbsp;']], true)
                     ].concat(settings()).concat([
                         $('<br>'),
@@ -3059,7 +3070,10 @@ const aUI = {
                 aWindow.withsBody('#buff').change(function () {
                     aWindow.withsBody('#buffImg').html(getImage(assets.GetResourceIcon($(this).val()).bitmapData, '26px'));
                 }).val(sObj.buff).change();
-                aWindow.withsBody('#stack').val(sObj.stack).change();
+                // Initialize itemsPerRun if present
+                if (aWindow.withsBody('#itemsPerRun').length) {
+                    aWindow.withsBody('#itemsPerRun').val(sObj.stack).change();
+                }
 
                 aWindow.withsBody(".remTable").css({ "background": "inherit", "margin-top": "5px" });
                 aWindow.sshow();
@@ -4618,15 +4632,22 @@ const aBuildings = {
                     aQueue.add('applyBuff', { what: 'BUILDING', type: settings.buff, grid: building.GetGrid(), building: building.GetBuildingName_string() });
                 }
                 if (!settings.item || settings.amount === 0) return;
-                if (name === 'Bookbinder' && TP[0]) {
-                    var productionVO = TP[0].GetProductionOrder().GetProductionVO();
-                    if (productionVO.producedItems === 1)
-                        aQueue.add('completeProduction', [2, productionVO.type_string]);
+                if (name === 'Bookbinder') {
+                    // Bookbinder special handling: books don't support quantity, only enable/disable
+                    if (TP[0]) {
+                        // Complete existing production
+                        var productionVO = TP[0].GetProductionOrder().GetProductionVO();
+                        if (productionVO.producedItems === 1)
+                            aQueue.add('completeProduction', [2, productionVO.type_string]);
+                    } else {
+                        // Start new production if enabled and no production exists
+                        aQueue.add('startProduction', [settings.item, 1, true, 1, building.GetGrid()]);
+                    }
                     return;
                 }
                 const inProgress = aBuildings.production.inProgress(building.productionQueue.mProductionType, settings.item);
                 if (settings.amount > inProgress)
-                    aQueue.add('startProduction', [settings.item, settings.amount, true, settings.stack, building.GetGrid()]);
+                    aQueue.add('startProduction', [settings.item, settings.amount * settings.stack, true, settings.stack, building.GetGrid()]);
             });
         } catch (e) { }
     }

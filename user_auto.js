@@ -21,34 +21,57 @@ var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureMana
 
 // Debug Logging Helper
 const aDebug = {
-
-    validCategories: {
-        'adventure': aSettings.defaults.Debug.logAdventures, 
-        'combat': aSettings.defaults.Debug.logCombat, 
-        'geologists': aSettings.defaults.Debug.logGeologists, 
-        'explorers': aSettings.defaults.Debug.logExplorers
-    },
+    /**
+     * Determines whether a category can emit debug output. If aSettings is not yet
+     * defined, valid categories default to true so early logs are not suppressed.
+     * @param {string} category
+     * @returns {boolean}
+     */
     categoryDebugEnabled: function (category) {
-        var validCategory = Object.prototype.hasOwnProperty.call(aDebug.validCategories, category);
-        var enabled = aDebug.validCategories[category];
-        return validCategory && enabled;
+        const validCategories = ['adventure', 'combat', 'geologists', 'explorers'];
+        const isValid = validCategories.indexOf(category) !== -1;
+        if (!isValid) return false;
+
+        if (typeof aSettings === 'undefined' ||
+            !aSettings.defaults ||
+            !aSettings.defaults.Debug) {
+            return true;
+        }
+
+        const flags = {
+            adventure: aSettings.defaults.Debug.logAdventures,
+            combat: aSettings.defaults.Debug.logCombat,
+            geologists: aSettings.defaults.Debug.logGeologists,
+            explorers: aSettings.defaults.Debug.logExplorers
+        };
+        return !!flags[category];
+    },
+
+    isLoggingEnabled: function () {
+        if (typeof aSettings === 'undefined' ||
+            !aSettings.defaults ||
+            !aSettings.defaults.Debug) {
+            return true;
+        }
+        return !!aSettings.defaults.Debug.enableLogging;
     },
 
     log: function (category) {
-        if (!aSettings.defaults.Debug.enableLogging) return;
+        if (!aDebug.isLoggingEnabled()) return;
         if (!aDebug.categoryDebugEnabled(category)) return;
 
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift('[DEBUG ' + category + ']');
-        console.log(args.join(" "))
+        console.log(args.join(" "));
     },
+
     error: function (category) {
-        if (!aSettings.defaults.Debug.enableLogging) return;
+        if (!aDebug.isLoggingEnabled()) return;
         if (!aDebug.categoryDebugEnabled(category)) return;
 
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift('[DEBUG ' + category + ']');
-        console.error(args.join(" "))
+        console.error(args.join(" "));
     }
 };
 

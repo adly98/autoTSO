@@ -7062,7 +7062,7 @@ const aAdventure = {
 
 const auto = {
     version: '2.0.3',
-    developer: true,
+    developer: false,
     update: {
         apiUrl: 'https://api.github.com/repos/adly98/autoTSO/releases/latest',
         releaseData: null,
@@ -7080,7 +7080,7 @@ const auto = {
                     var remoteVersion = data.tag_name.replace(/^v/, '');
                     auto.update.available = auto.update.compareVersions(remoteVersion, auto.version) === 1;
                     if (!fromUser) {
-                        if (auto.developer){
+                        if (auto.developer) {
                             auto.update.checkLocalResources();
                             aUI.menu.Progress = 99;
                         }
@@ -7121,7 +7121,7 @@ const auto = {
             }
             if (!auto.update.available) {
                 if (fromUser) { return aUI.Alert("Latest Version :D", 'TransporterAdmiral'); }
-                aUI.menu.Progress = 40;
+                aUI.menu.Progress = 45;
                 return console.info('No Update Available')
             }
             var userConsent = aSettings.defaults.Auto.AutoUpdate ||
@@ -7137,7 +7137,7 @@ const auto = {
                 aUI.menu.init();
                 aUI.Alert("New Update Available!!", 'TransporterAdmiral');
             } else {
-                aUI.menu.Progress = 70;
+                aUI.menu.Progress = 45;
             }
         },
         updateScript: function () {
@@ -7161,40 +7161,17 @@ const auto = {
                     success: function (data) {
                         try {
                             const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
+                            const backupPath = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js.backup").nativePath;
 
-                            // Create backup of current version before updating (if enabled)
-                            if (aSettings.defaults.Auto.CreateBackup) {
-                                try {
-                                    const backupPath = air.File.applicationDirectory.resolvePath("auto/user_auto.js.v" + auto.version).nativePath;
-                                    const currentData = aUtils.file.Read(path, true);
-                                    if (currentData) {
-                                        aUtils.file.Write(backupPath, currentData);
-                                        console.info('Backup created successfully at:', backupPath);
-
-                                        // Clean up old backups if KeepBackups is set
-                                        if (aSettings.defaults.Auto.KeepBackups > 0) {
-                                            try {
-                                                const autoDir = air.File.applicationDirectory.resolvePath("auto");
-                                                const files = autoDir.getDirectoryListing();
-                                                const backupFiles = files.filter(function(file) {
-                                                    return file.name.match(/^user_auto\.js\.v\d+\.\d+\.\d+$/);
-                                                }).sort(function(a, b) {
-                                                    return b.modificationDate.getTime() - a.modificationDate.getTime();
-                                                });
-
-                                                // Delete older backups beyond KeepBackups limit
-                                                for (var i = aSettings.defaults.Auto.KeepBackups; i < backupFiles.length; i++) {
-                                                    backupFiles[i].deleteFile();
-                                                    console.info('Deleted old backup:', backupFiles[i].name);
-                                                }
-                                            } catch (cleanupError) {
-                                                console.error('Backup cleanup error:', cleanupError);
-                                            }
-                                        }
-                                    }
-                                } catch (backupError) {
-                                    console.error('Backup error:', backupError);
+                            // Create backup of current version before updating
+                            try {
+                                const currentData = aUtils.file.Read(path, true);
+                                if (currentData) {
+                                    aUtils.file.Write(backupPath, currentData);
+                                    console.info('Backup created successfully');
                                 }
+                            } catch (backupError) {
+                                console.error('Backup error:', backupError);
                             }
 
                             // Write new version
@@ -7243,7 +7220,7 @@ const auto = {
             }
             return null;
         },
-        loadLocalResources: function(){
+        loadLocalResources: function () {
             var localResources = aUtils.file.Read(aUtils.file.Path('resources'));
             if (localResources) {
                 $.each(localResources, function (file) {
@@ -7309,12 +7286,20 @@ const auto = {
             });
         }
     },
-    load: function () {
-        if (!game.hasOwnProperty('auto')) game.auto = {};
-        aUI.menu.Progress = auto.developer ? 94 : 0;
-        aUI.menu.init(true);
-        aSettings.load();
-        auto.update.fetchReleaseData();
+    load: function (count) {
+        try{
+            if (!game.hasOwnProperty('auto')) game.auto = {};
+            aQueue.clearIDs();
+            aUI.menu.Progress = 0;
+            aUI.menu.init(true);
+            aSettings.load();
+            auto.update.fetchReleaseData();
+        }catch(e){ 
+            if(count < 6)
+                auto.load(++count);
+            else
+                setTimeout(auto.load, 10000);
+        }
     },
     init: function () {
         try {
@@ -7364,4 +7349,4 @@ const auto = {
     }
 }
 
-auto.load();
+auto.load(1);

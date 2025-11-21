@@ -623,6 +623,8 @@ const aSettings = {
     defaults: {
         Auto: {
             AutoUpdate: true,
+            CreateBackup: true,
+            KeepBackups: 3,
             RestartRAM: 0,
             increaseTimeout: false,
             showGrid: false,
@@ -837,6 +839,16 @@ const aSettings = {
                     settings.amount = 0;
                 }
             });
+        }
+
+        // Migrate Auto settings for backup configuration
+        if (aSettings.Auto) {
+            if (!aSettings.Auto.hasOwnProperty('CreateBackup')) {
+                aSettings.Auto.CreateBackup = true; // Enable by default for safety
+            }
+            if (!aSettings.Auto.hasOwnProperty('KeepBackups')) {
+                aSettings.Auto.KeepBackups = 3; // Keep last 3 backups by default
+            }
         }
     },
     extend: function (target, source) {
@@ -1950,6 +1962,15 @@ const aUI = {
                         [9, "Auto Update on start up"],
                         [3, createSwitch('aScript_AutoUpdate', aSettings.defaults.Auto.AutoUpdate)],
                     ]),
+                    createTableRow([
+                        [9, "Create backup before update"],
+                        [3, createSwitch('aScript_CreateBackup', aSettings.defaults.Auto.CreateBackup)],
+                    ]),
+                    createTableRow([
+                        [9, "Keep last X backups"],
+                        [3, $('<input>', { 'id': 'aScript_KeepBackups', 'class': 'form-control', 'type': 'number', 'min': '0', 'max': '10', 'value': aSettings.defaults.Auto.KeepBackups })],
+                    ]),
+                    createTableRow([[12, '&#10551; Older backups are automatically deleted (0 = keep all)']]),
                     $('<br>'),
                     createTableRow([[9, 'Security'], [3, '&nbsp;']], true),
                     createTableRow([
@@ -2066,6 +2087,8 @@ const aUI = {
                 aWindow.Footer().prepend($("<button>").attr({ 'class': "btn btn-primary pull-left" }).text('Save').click(function () {
                     //Script
                     aSettings.defaults.Auto.AutoUpdate = $('#aScript_AutoUpdate').is(':checked');
+                    aSettings.defaults.Auto.CreateBackup = $('#aScript_CreateBackup').is(':checked');
+                    aSettings.defaults.Auto.KeepBackups = parseInt($('#aScript_KeepBackups').val()) || 0;
                     aSettings.defaults.Auto.RestartRAM = parseFloat($('#aScript_RestartRAM').val()) || 0;
                     aSettings.defaults.Auto.increaseTimeout = $('#aScript_IncreaseTimeout').is(':checked');
                     //Security
@@ -6938,7 +6961,7 @@ const aAdventure = {
 }
 
 const auto = {
-    version: '2.0.2',
+    version: '2.0.3',
     developer: true,
     update: {
         apiUrl: 'https://api.github.com/repos/adly98/autoTSO/releases/latest',
@@ -7038,17 +7061,40 @@ const auto = {
                     success: function (data) {
                         try {
                             const path = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js").nativePath;
-                            const backupPath = air.File.applicationDirectory.resolvePath("userscripts/user_auto.js.backup").nativePath;
 
-                            // Create backup of current version before updating
-                            try {
-                                const currentData = aUtils.file.Read(path, true);
-                                if (currentData) {
-                                    aUtils.file.Write(backupPath, currentData);
-                                    console.info('Backup created successfully');
+                            // Create backup of current version before updating (if enabled)
+                            if (aSettings.defaults.Auto.CreateBackup) {
+                                try {
+                                    const backupPath = air.File.applicationDirectory.resolvePath("auto/user_auto.js.v" + auto.version).nativePath;
+                                    const currentData = aUtils.file.Read(path, true);
+                                    if (currentData) {
+                                        aUtils.file.Write(backupPath, currentData);
+                                        console.info('Backup created successfully at:', backupPath);
+
+                                        // Clean up old backups if KeepBackups is set
+                                        if (aSettings.defaults.Auto.KeepBackups > 0) {
+                                            try {
+                                                const autoDir = air.File.applicationDirectory.resolvePath("auto");
+                                                const files = autoDir.getDirectoryListing();
+                                                const backupFiles = files.filter(function(file) {
+                                                    return file.name.match(/^user_auto\.js\.v\d+\.\d+\.\d+$/);
+                                                }).sort(function(a, b) {
+                                                    return b.modificationDate.getTime() - a.modificationDate.getTime();
+                                                });
+
+                                                // Delete older backups beyond KeepBackups limit
+                                                for (var i = aSettings.defaults.Auto.KeepBackups; i < backupFiles.length; i++) {
+                                                    backupFiles[i].deleteFile();
+                                                    console.info('Deleted old backup:', backupFiles[i].name);
+                                                }
+                                            } catch (cleanupError) {
+                                                console.error('Backup cleanup error:', cleanupError);
+                                            }
+                                        }
+                                    }
+                                } catch (backupError) {
+                                    console.error('Backup error:', backupError);
                                 }
-                            } catch (backupError) {
-                                console.error('Backup error:', backupError);
                             }
 
                             // Write new version

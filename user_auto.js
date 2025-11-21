@@ -14,7 +14,7 @@
  * - aMail: Mail and inbox management
  * - aTrade: Trading system integration
  *
- * @version 2.0.2
+ * @version 2.0.3
  */
 
 var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
@@ -7221,6 +7221,7 @@ const auto = {
             return null;
         },
         loadLocalResources: function () {
+            game.auto.resources = {};
             var localResources = aUtils.file.Read(aUtils.file.Path('resources'));
             if (localResources) {
                 $.each(localResources, function (file) {

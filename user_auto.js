@@ -7072,7 +7072,7 @@ const auto = {
             $.ajax({
                 url: auto.update.apiUrl,
                 method: 'GET',
-                timeout: 10000,
+                timeout: 30000,
                 dataType: 'json',
                 success: function (data) {
                     auto.update.releaseData = data;

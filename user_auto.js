@@ -545,6 +545,20 @@ const aQueue = {
         },
         mail: function (args) {
             switch (args[0]) {
+                case 'show':
+                    try {
+                        globalFlash.gui.mMailWindow.Show();
+                    } catch(e) {
+                        console.warn(e)
+                    }
+                    break;
+                case 'hide':
+                    try {
+                        globalFlash.gui.mMailWindow.Hide();
+                    } catch(e) {
+                        console.warn(e)
+                    }
+                    break;
                 case 'getHeaders':
                     aMail.getHeaders();
                     break;
@@ -4970,6 +4984,8 @@ const aMail = {
     manage: function () {
         if (!game.gi.isOnHomzone() || !aSession.isOn.Mail || aSession.mail.monitor > new Date().getTime()) return;
         // aQueue.add('status', ['Checking Inbox!']);
+        aQueue.add('mail', ['show']);
+        aQueue.add('mail', ['hide']);
         aQueue.add('mail', ['getHeaders']);
         aQueue.add('mail', ['handleHeaders'], 7000);
     }
@@ -7353,4 +7369,3 @@ const auto = {
 }
 
 auto.load(1);
-

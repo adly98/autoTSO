@@ -545,6 +545,20 @@ const aQueue = {
         },
         mail: function (args) {
             switch (args[0]) {
+                case 'show':
+                    try {
+                        globalFlash.gui.mMailWindow.Show();
+                    } catch(e) {
+                        console.warn(e)
+                    }
+                    break;
+                case 'hide':
+                    try {
+                        globalFlash.gui.mMailWindow.Hide();
+                    } catch(e) {
+                        console.warn(e)
+                    }
+                    break;
                 case 'getHeaders':
                     aMail.getHeaders();
                     break;
@@ -4590,8 +4604,10 @@ const aBuildings = {
                             }
                         });
                     } else if (depoData.options[4]) {
-                        game.zone.mStreetDataMap.getBuildingsByName_vector(depoName === "Stone" ? "Mason" : depoName + "Mason")
-                            .forEach(function (mason) { aBuildings.buffBuilding(mason, depoData.options[5]); });
+                        var _mason = game.zone.mStreetDataMap.getBuildingsByName_vector(depoName === "Stone" ? "Mason" : depoName + "Mason")
+                        if(_mason){
+                            _mason.forEach(function (mason) { aBuildings.buffBuilding(mason, depoData.options[5]); });
+                        }
                     }
                 });
             } catch (er) { console.error(er); }
@@ -4968,6 +4984,8 @@ const aMail = {
     manage: function () {
         if (!game.gi.isOnHomzone() || !aSession.isOn.Mail || aSession.mail.monitor > new Date().getTime()) return;
         // aQueue.add('status', ['Checking Inbox!']);
+        aQueue.add('mail', ['show']);
+        aQueue.add('mail', ['hide']);
         aQueue.add('mail', ['getHeaders']);
         aQueue.add('mail', ['handleHeaders'], 7000);
     }

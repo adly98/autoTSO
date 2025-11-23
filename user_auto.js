@@ -4590,8 +4590,10 @@ const aBuildings = {
                             }
                         });
                     } else if (depoData.options[4]) {
-                        game.zone.mStreetDataMap.getBuildingsByName_vector(depoName === "Stone" ? "Mason" : depoName + "Mason")
-                            .forEach(function (mason) { aBuildings.buffBuilding(mason, depoData.options[5]); });
+                        var _mason = game.zone.mStreetDataMap.getBuildingsByName_vector(depoName === "Stone" ? "Mason" : depoName + "Mason")
+                        if(_mason){
+                            _mason.forEach(function (mason) { aBuildings.buffBuilding(mason, depoData.options[5]); });
+                        }
                     }
                 });
             } catch (er) { console.error(er); }
@@ -7351,3 +7353,4 @@ const auto = {
 }
 
 auto.load(1);
+

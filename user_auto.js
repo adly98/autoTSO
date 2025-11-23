@@ -2046,6 +2046,14 @@ const aUI = {
                         [9, "&#10551; Log combat events"],
                         [3, createSwitch('aDebug_LogCombat', aSettings.defaults.Debug.logCombat)],
                     ]),
+                    createTableRow([
+                        [9, "&#10551; Log explorer events"],
+                        [3, createSwitch('aDebug_LogExplorer', aSettings.defaults.Debug.logExplorer)],
+                    ]),
+                    createTableRow([
+                        [9, "&#10551; Log geologists events"],
+                        [3, createSwitch('aDebug_LogGeologists', aSettings.defaults.Debug.logGeologists)],
+                    ]),
                     $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
                     createTableRow([
@@ -2151,6 +2159,8 @@ const aUI = {
                     aSettings.defaults.Debug.enableLogging = $('#aDebug_EnableLogging').is(':checked');
                     aSettings.defaults.Debug.logAdventures = $('#aDebug_LogAdventures').is(':checked');
                     aSettings.defaults.Debug.logCombat = $('#aDebug_LogCombat').is(':checked');
+                    aSettings.defaults.Debug.logExplorer = $('#aDebug_LogExplorer').is(':checked');
+                    aSettings.defaults.Debug.logGeologists = $('#aDebug_LogGeologists').is(':checked'); 
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');

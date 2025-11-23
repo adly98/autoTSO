@@ -4380,43 +4380,73 @@ const aSpecialists = {
                         var defaultTask = mainSettings.explDefTaskByType[expl.GetType()];
                         if (defaultTask) { finalTask = defaultTask.split(',') }
                     }
+                    // EVENT OPTIMIZATION ALGORITHM
+                    // Goal: Find the treasure search task that yields the most event items per hour
+                    // Formula: value = (treasureValue × itemModifier) / duration
+                    //
+                    // Process:
+                    // 1. For each treasure search task (Short, Medium, Long, EvenLonger, Prolonged)
+                    // 2. Calculate modified duration based on explorer skills and time bonus
+                    // 3. Get treasure value from event data array (represents expected items per search)
+                    // 4. Calculate efficiency: (items × loot multiplier) / time in hours
+                    // 5. Select task with highest efficiency value
+                    //
+                    // Note: Shorter searches often win because treasure values don't scale proportionally
+                    // with duration. E.g., Short (2.6 items in 1.2h = 2.17/h) vs Prolonged (15.6 items in 14.4h = 1.08/h)
                     if (aSettings.defaults.Explorers.eventOptimize && activeEvent) {
-                        var skills = expl.getSkillTree().getItems_vector().concat(expl.skills.getItems_vector());
-                        var taskValue = 0;
-                        $.each(tasks, function (i, task) {
-                            var duration = task.duration;
-                            var itemModifier = 1;
-                            skills.forEach(function (skill) {
-                                var lvl = skill.getLevel() - 1;
-                                if (lvl === -1) return;
-                                skill.getDefinition().level_vector[lvl].forEach(function (skillDef) {
-                                    if (skillDef.type_string.length === 0 || skillDef.type_string === 'FindTreasure' + task.taskType_string) {
-                                        if (skillDef.modifier_string.toLowerCase() === 'searchtime') {
-                                            duration = skillDef.value !== 0 ? skillDef.value : ((duration * skillDef.multiplier) + skillDef.adder);
-                                        } else if (skillDef.modifier_string.toLowerCase() === 'changeloottablerolls') {
-                                            itemModifier = skillDef.multiplier > itemModifier ? skillDef.multiplier : itemModifier;
-                                        }
+                        try {
+                            if (!aEvents.treasureItems || !aEvents.treasureItems[activeEvent]) {
+                                aDebug.log('explorer', 'Event optimize enabled but no treasure items for event:', activeEvent);
+                            } else {
+                                var skills = expl.getSkillTree().getItems_vector().concat(expl.skills.getItems_vector());
+                                var taskValue = 0;
+                                var bestTask = null;
+                                $.each(tasks, function (i, task) {
+                                    var duration = task.duration;
+                                    var itemModifier = 1;
+
+                                    skills.forEach(function (skill) {
+                                        var lvl = skill.getLevel() - 1;
+                                        if (lvl === -1) return;
+                                        skill.getDefinition().level_vector[lvl].forEach(function (skillDef) {
+                                            if (skillDef.type_string.length === 0 || skillDef.type_string === 'FindTreasure' + task.taskType_string) {
+                                                if (skillDef.modifier_string.toLowerCase() === 'searchtime') {
+                                                    duration = skillDef.value !== 0 ? skillDef.value : ((duration * skillDef.multiplier) + skillDef.adder);
+                                                } else if (skillDef.modifier_string.toLowerCase() === 'changeloottablerolls') {
+                                                    itemModifier = skillDef.multiplier > itemModifier ? skillDef.multiplier : itemModifier;
+                                                }
+                                            }
+                                        });
+                                    });
+                                    duration = Math.round((duration / expl.GetSpecialistDescription().GetTimeBonus()) / 360) / 100;
+                                    var treasureValue = aEvents.treasureItems[activeEvent][i];
+                                    var value = (treasureValue * itemModifier) / duration;
+
+                                    if (value > taskValue) {
+                                        taskValue = value;
+                                        bestTask = task.subTaskID;
+                                        finalTask = [1, task.subTaskID];
                                     }
                                 });
-                            });
-                            duration = Math.round((duration / expl.GetSpecialistDescription().GetTimeBonus()) / 360) / 100;
-                            var value = (aEvents.treasureItems[activeEvent][i] * itemModifier) / duration;
-                            if (value > taskValue) {
-                                taskValue = value;
-                                finalTask = [1, task.subTaskID];
+
+                                aDebug.log('explorer', 'Event optimized task for', expl.GetSpecialistDescription().getName_string(), '- selected task', bestTask, 'with value', taskValue.toFixed(3));
                             }
-                        });
+                        } catch (optError) {
+                            aDebug.log('explorer', 'Error during event optimization:', optError.message);
+                        }
                     }
                     if (!finalTask) {
                         sub++;
                         return;
                     }
                     aQueue.add('sendExplorer', [expl.GetUniqueID().toKeyString(), finalTask, index + 1 - sub, explorers.length - sub]);
-                } catch (er) { }
+                } catch (er) { 
+                    console.error('There has been an error while preparing explorer', er);
+                }
             });
             //aUI.updateStatus("Sending: {0} Explorers".format(explorers.length), 'Explorers');
         } catch (e) { 
-            console.error(e); console.error('There has been an error while sending explorers'); 
+            console.error('There has been an error while sending explorer', e);
         }
     },
 

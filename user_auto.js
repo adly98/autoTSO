@@ -533,18 +533,33 @@ const aSession = {
             } catch (e) { return {} }
         },
         nextStep: function () {
+            var currentStep = aSession.adventure.steps[aSession.adventure.index];
+            aDebug.log('adventure', 'nextStep: Advancing from step', aSession.adventure.index, ':', currentStep ? currentStep.name : 'unknown');
+
             aSession.adventure.index++;
-            if (aSession.adventure.index < aSession.adventure.steps.length)
+
+            if (aSession.adventure.index < aSession.adventure.steps.length) {
+                var nextStep = aSession.adventure.steps[aSession.adventure.index];
+                aDebug.log('adventure', 'nextStep: New index:', aSession.adventure.index, ', next step:', nextStep.name);
                 delete this.currentStep().applied;
+            } else {
+                aDebug.log('adventure', 'nextStep: Reached end of steps, index:', aSession.adventure.index);
+            }
         },
         reset: function () {
             var repeat = aSession.adventure.repeatCount > 0 ? true : false;
+            aDebug.log('adventure', 'reset: Resetting adventure session');
+            aDebug.log('adventure', 'reset: Repeat:', repeat, ', remaining repeats:', aSession.adventure.repeatCount);
+            aDebug.log('adventure', 'reset: Adventure name:', aSession.adventure.name);
+
             aSession.adventure.name = repeat ? aSession.adventure.name : null;
             aSession.adventure.index = 0;
             aSession.adventure.action = '';
             aSession.adventure.repeatCount = repeat ? aSession.adventure.repeatCount : 0;
             aSession.adventure.lastTime = null;
             aSession.adventure.steps = repeat ? aSession.adventure.steps : [];
+
+            aDebug.log('adventure', 'reset: Reset complete - name:', aSession.adventure.name, ', steps:', aSession.adventure.steps.length);
         }
     }
 }
@@ -784,20 +799,25 @@ const aQueue = {
             }
         },
         applyBuff: function (args) {
+            aDebug.log('adventure', 'applyBuff: Type:', args.what, ', buff:', args.type, ', grid:', args.grid, ', target:', args.target);
+
             var status = '';
             var responder = null;
             if (args.what === 'ADVENTURE') {
                 status = 'Starting "{0}" Adventure'.format(loca.GetText('ADN', aSession.adventure.name));
                 args.type = ['Adventure', aSession.adventure.name];
+                aDebug.log('adventure', 'applyBuff: Starting adventure:', aSession.adventure.name);
             } else if (args.what === 'ADVENTURE_BUFF') {
                 status = 'Applying "{0}"'.format(
                     loca.GetText('RES', args.type)
                 );
+                aDebug.log('adventure', 'applyBuff: Applying adventure buff:', args.type, 'on grid:', args.grid);
             } else if (args.what === 'ON_ADVENTURE_BUFF') {
                 status = 'Using "{0}" on "{1}"'.format(
                     loca.GetText('RES', args.type),
                     args.target
                 );
+                aDebug.log('adventure', 'applyBuff: Applying combat buff:', args.type, 'on target:', args.target);
             } else if (args.what === 'BOX') {
                 status = 'Opening "{0}" Mystery Box'.format(loca.GetText('RES', args.type));
                 responder = aUtils.responders.openBox();
@@ -915,14 +935,22 @@ const aQueue = {
         },
         finishAdventureQuests: function () {
             try {
+                aDebug.log('adventure', 'finishAdventureQuests: Checking for finished quests');
                 var finishedQuests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function (e) { return e && e.isFinished(); });
+                aDebug.log('adventure', 'finishAdventureQuests: Found', finishedQuests.length, 'finished quests');
+
                 $.each(finishedQuests, function (i, quest) {
+                    var questName = quest.getQuestName_string();
+                    var isLastQuest = quest.GetQuestDefinition().specialType_string.indexOf('lastQuest') > -1;
+                    aDebug.log('adventure', 'finishAdventureQuests: Completing quest:', questName, ', isLastQuest:', isLastQuest);
+
                     quest.SetQuestMode(1);
                     var dSA = game.def("Communication.VO::dServerAction", true);
                     dSA.type = 1;
                     dSA.data = quest.GetUniqueId();
-                    var Responder = quest.GetQuestDefinition().specialType_string.indexOf('lastQuest') > -1 ?
+                    var Responder = isLastQuest ?
                         game.createResponder(function () {
+                            aDebug.log('adventure', 'finishAdventureQuests: Last quest completed - removing adventure and returning home');
                             AdventureManager.removeAdventure(aAdventure.info.getActiveAdvetureID());
                             aSession.isOn.Adventure = false;
                             aSession.adventure.action = "FinishAdventure";
@@ -935,14 +963,18 @@ const aQueue = {
             } catch (er) { }
         },
         loadGeneralUnits: function (args) {
+            aDebug.log('adventure', 'loadGeneralUnits: Loading units for general');
+            aDebug.log('adventure', 'loadGeneralUnits: Message:', args.message);
             aUI.playSound('UnitProduced');
             game.gi.mClientMessages.SendMessagetoServer(1031, game.gi.mCurrentViewedZoneID, args.army);
             aUI.updateStatus(args.message);
         },
         sendGeneralsToAdventure: function (args) {
+            var adventureID = aAdventure.info.getActiveAdvetureID();
+            aDebug.log('adventure', 'sendGeneralsToAdventure: Sending general', args.id, '(', args.num, '/', args.total, ') to adventure', adventureID);
             armyServices.specialist.sendToZone(
                 armyGetSpecialistFromID(args.id),
-                aAdventure.info.getActiveAdvetureID()
+                adventureID
             );
             aUI.updateStatus(
                 'Sending generals to "{0}" ({1}/{2})'.format(
@@ -957,19 +989,23 @@ const aQueue = {
                 "Adventure": aAdventure.info.getActiveAdvetureID(),
                 "Home": game.gi.mCurrentPlayer.GetHomeZoneId()
             }
+            aDebug.log('adventure', 'travelToZone: Travelling to', destination, '- zone ID:', to[destination]);
             game.gi.visitZone(to[destination]);
             aUI.updateStatus("Travelling to {0} island!".format(destination), 'Adventure');
         },
         retranchGeneral: function (args) {
             const spec = armyGetSpecialistFromID(args.id);
+            aDebug.log('adventure', 'retranchGeneral: Sending general', args.id, 'to star', args.order || '');
             armySendGeneralToStar(spec);
             aUI.updateStatus("{0} Sending generals to Star {1}!!".format(args.file || "", args.order || ""), "Adventure");
         },
         moveGeneral: function (args) {
+            aDebug.log('adventure', 'moveGeneral: Moving general', args.id, 'to grid', battlePacket[args.id] ? battlePacket[args.id].grid : '?', args.order || '');
             aAdventure.action.sendGeneralAction(args.id, 4, args.order || "");
             aUI.updateStatus("{0} Moving generals to position {1}!!".format(args.file || "", args.order || ""), "Adventure");
         },
         attackEnemy: function (args) {
+            aDebug.log('adventure', 'attackEnemy: General', args.id, 'attacking', battlePacket[args.id] ? battlePacket[args.id].targetName : '?', args.order || '');
             aAdventure.action.sendGeneralAction(args.id, 5, args.order || "");
             aUI.updateStatus("{0} Attacking enemy camps {1}!!".format(args.file || "", args.order || ""), "Adventure");
         }
@@ -1609,19 +1645,31 @@ const aUtils = {
     trackers: {
         zoneRefreshed: function () {
             try {
-                if (game.gi.isOnHomzone()) {
+                var isHome = game.gi.isOnHomzone();
+                var isAdventure = aAdventure.info.isOnAdventure();
+                aDebug.log('adventure', 'zoneRefreshed: Zone changed - isHome:', isHome, ', isAdventure:', isAdventure);
+
+                if (isHome) {
                     if (aSession.zoneAction === 'BackHomeFromFriend') {
+                        aDebug.log('adventure', 'zoneRefreshed: Returning home from friend, skipping queue');
                         setTimeout(function () { aQueue.skip(); }, TIMEOUTS.QUEUE_SKIP_DELAY);
                         aSession.zoneAction = null;
                     }
                     if (aSession.adventure.action === "FinishAdventure") {
+                        aDebug.log('adventure', 'zoneRefreshed: Finishing adventure sequence');
                         console.info('Finishing adventure');
-                        if (aSettings.defaults.Adventures.reTrain)
-                            aAdventure.action.trainLostUnits();
 
+                        if (aSettings.defaults.Adventures.reTrain) {
+                            aDebug.log('adventure', 'zoneRefreshed: Retraining lost units');
+                            aAdventure.action.trainLostUnits();
+                        }
+
+                        aDebug.log('adventure', 'zoneRefreshed: Decrementing repeat count from', aSession.adventure.repeatCount);
                         aSession.adventure.repeatCount--;
                         aSession.adventure.reset();
                         aUI.modals.adventure.AM_LoadInfo()
+
+                        aDebug.log('adventure', 'zoneRefreshed: Re-enabling adventure automation after delay');
                         setTimeout(function () {
                             aSession.isOn.Adventure = true;
                             aUI.menu.init();
@@ -1629,14 +1677,17 @@ const aUtils = {
                     }
                 } else {
                     if (aSession.zoneAction === 'ApplyBuffOnFriend') {
+                        aDebug.log('adventure', 'zoneRefreshed: Applied buff on friend, preparing to return home');
                         setTimeout(function () { aQueue.skip(); }, TIMEOUTS.QUEUE_SKIP_DELAY);
                         aSession.zoneAction = 'BackHomeFromFriend';
                     }
                 }
 
                 var step = aSession.adventure.currentStep();
-                if (step && ((step.name === 'VisitAdventure' && aAdventure.info.isOnAdventure()) ||
-                    (step.name === 'ReturnHome' && game.gi.isOnHomzone()))) {
+                if (step && ((step.name === 'VisitAdventure' && isAdventure) ||
+                    (step.name === 'ReturnHome' && isHome))) {
+                    aDebug.log('adventure', 'zoneRefreshed: Step zone match detected - step:', step.name);
+
                     aUI.Alert("{0} Island Loaded!".format(step.name === 'VisitAdventure' ? 'Adventure' : 'Home'), 'QUEST');
                     aSession.adventure.action = '';
 
@@ -1647,34 +1698,54 @@ const aUtils = {
 
                         // If next step is not WaitForDeparture, inject it
                         if (!nextStep || nextStep.name !== 'WaitForDeparture') {
+                            aDebug.log('adventure', 'zoneRefreshed: Auto-injecting WaitForDeparture step at index', nextStepIndex);
                             aSession.adventure.steps.splice(nextStepIndex, 0, {
                                 name: 'WaitForDeparture',
                                 data: null
                             });
                             console.info('Auto-injected WaitForDeparture step after VisitAdventure');
+                        } else {
+                            aDebug.log('adventure', 'zoneRefreshed: WaitForDeparture step already present at index', nextStepIndex);
                         }
                     }
 
+                    aDebug.log('adventure', 'zoneRefreshed: Advancing to next step');
                     aSession.adventure.nextStep();
 
                     if (step.name === 'VisitAdventure') {
-                        const waitingQuests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function (quest) {
+                        var waitingQuests = game.quests.GetQuestPool().GetQuest_vector().toArray().filter(function (quest) {
                             return quest && quest.mQuestMode === 2;
                         });
+                        aDebug.log('adventure', 'zoneRefreshed: Processing waiting quests, count:', waitingQuests.length);
                         waitingQuests.forEach(function (quest) {
                             globalFlash.gui.mQuestBook.SetPreselectedQuest(quest);
                             globalFlash.gui.mQuestBook.Show();
                             globalFlash.gui.mQuestBook.Hide();
                         });
                     }
+                } else if (step) {
+                    aDebug.log('adventure', 'zoneRefreshed: Step zone mismatch - step:', step.name, ', isHome:', isHome, ', isAdventure:', isAdventure);
                 }
             } catch (e) { console.error(e) }
         },
         battleFinished: function (e) {
             try {
-                if (!aAdventure.info.isOnAdventure()) return;
-                aUI.modals.adventure.AM_UpdateInfo(e.data.getCasualties());
-                const enemies = aSession.adventure.getEnemies();
+                aDebug.log('combat', 'battleFinished: Event triggered');
+
+                if (!aAdventure.info.isOnAdventure()) {
+                    aDebug.log('combat', 'battleFinished: Not on adventure, ignoring');
+                    return;
+                }
+
+                var casualties = e.data.getCasualties();
+                aDebug.log('combat', 'battleFinished: Casualties:', casualties);
+
+                aUI.modals.adventure.AM_UpdateInfo(casualties);
+
+                var enemies = aSession.adventure.getEnemies();
+                aDebug.log('combat', 'battleFinished: Enemy camps eliminated:', enemies.all - enemies.remaining, '/', enemies.all);
+                aDebug.log('combat', 'battleFinished: Remaining enemy camps:', enemies.remaining);
+
                 aUI.Alert("Target Enemy Camps Eliminated ({0}/{1})!!".format(
                     enemies.all - enemies.remaining,
                     enemies.all),
@@ -5992,6 +6063,8 @@ const aAdventure = {
      */
     battle: {
         getState: function (attackersOnly) {
+            aDebug.log('adventure', 'getState: Starting state calculation, attackersOnly:', attackersOnly, ', battlePacket size:', Object.keys(battlePacket).length);
+
             const myArmy = JSON.parse(JSON.stringify(armyInfo.total));
             var canSubmitAttack = true, attackSubmitChecker = [];
             const state = {
@@ -6070,15 +6143,28 @@ const aAdventure = {
                 } catch (err) { }
             });
             state.canSubmitAttack = (canSubmitAttack && attackSubmitChecker.indexOf(false) === -1 && attackSubmitChecker.length > 0);
+
+            aDebug.log('adventure', 'getState: State calculated - total:', state.total, ', busy:', state.busy.total, ', onGrid:', state.grid.onGrid, ', totalOn:', state.grid.totalOn);
+            aDebug.log('adventure', 'getState: Army - canSubmit:', state.army.canSubmit, ', matched:', state.army.matched, ', required:', JSON.stringify(state.army.required));
+            aDebug.log('adventure', 'getState: Busy breakdown - travelling:', state.busy.travelling.length, ', moving:', state.busy.moving.length, ', attacking:', state.busy.attacking.length);
+            aDebug.log('adventure', 'getState: Attack - canSubmit:', state.canSubmitAttack);
+
             return state;
         },
         attemptMove: function (attackerState, allState) {
             try {
+                aDebug.log('adventure', 'attemptMove: Starting move phase');
+                aDebug.log('adventure', 'attemptMove: Attackers - onGrid:', attackerState.grid.onGrid, ', totalOn:', attackerState.grid.totalOn, '/', attackerState.total);
+                aDebug.log('adventure', 'attemptMove: All generals - busy:', allState.busy.total, '/', allState.total, ', travelling time:', allState.busy.travellingTime);
+
                 var num = 1;
                 const landingFields = aAdventure.info.getLandingFields();
                 $.each(battlePacket, function (id, general) {
                     if (!general.spec || general.spec.GetTask() || general.onSameGrid) return;
                     const order = "({0}/{1})".format(num++, allState.total);
+                    var actionType = general.canSubmitMove ? (general.grid > 0 ? 'move' : 'retrench') : 'retrench-landing';
+                    aDebug.log('adventure', 'attemptMove: Queueing', general.name, '- action:', actionType, ', target grid:', general.grid, ', order:', order);
+
                     if (general.canSubmitMove) {
                         if (general.grid > 0)
                             return aQueue.add('moveGeneral', { id: id, order: order });
@@ -6090,6 +6176,7 @@ const aAdventure = {
                 });
                 var message = null;
                 if (attackerState.busy.total) {
+                    aDebug.log('adventure', 'attemptMove: Waiting for', attackerState.busy.total, 'generals');
                     message = "Waiting for Generals ({0}/{1}){2}!!".format(
                         allState.total - allState.busy.total,
                         allState.total,
@@ -6101,20 +6188,27 @@ const aAdventure = {
         },
         attemptLoad: function (state, attackersOnly) {
             try {
-                if (state.busy.total > 0)
+                aDebug.log('adventure', 'attemptLoad: Starting load phase, attackersOnly:', attackersOnly);
+                aDebug.log('adventure', 'attemptLoad: State - busy:', state.busy.total, ', canSubmit:', state.army.canSubmit, ', matched:', state.army.matched);
+
+                if (state.busy.total > 0) {
+                    aDebug.log('adventure', 'attemptLoad: Waiting for', state.busy.total, 'generals');
                     return aAdventure.auto.result(
                         "Waiting for Generals ({0}/{1}){2}!!".format(
                             state.total - state.busy.total,
                             state.total,
                             state.busy.travellingTime ? ", Continue in: " + aUtils.format.Time(state.busy.travellingTime) : ""
                         ), false, 1);
+                }
 
                 if (state.army.canSubmit) {
+                    aDebug.log('adventure', 'attemptLoad: Army available, loading generals');
                     aUI.playSound('UnitProduced');
                     var num = 1;
                     $.each(battlePacket, function (id, general) {
                         if (attackersOnly && !general.target) return;
                         if (general.armyMatched) return;
+                        aDebug.log('adventure', 'attemptLoad: Loading general', general.name, '(', num, '/', state.total, ') - units:', JSON.stringify(general.army));
                         var dRaiseArmyVO = new dRaiseArmyVODef();
                         dRaiseArmyVO.armyHolderSpecialistVO = general.spec.CreateSpecialistVOFromSpecialist();
                         $.each(general.army, function (res) {
@@ -6128,44 +6222,56 @@ const aAdventure = {
                     return aAdventure.auto.result();
                 }
                 if (Object.keys(state.army.required).length) {
+                    aDebug.log('adventure', 'attemptLoad: Insufficient units - required:', JSON.stringify(state.army.required));
                     var result = 'You need: ';
                     $.each(state.army.required, function (unit, amount) {
                         result += "{0} {1},".format(amount, loca.GetText('RES', unit));
                     });
                     return aAdventure.auto.result(result.substring(0, result.length - 1));
                 }
+                aDebug.log('adventure', 'attemptLoad: Freeing all units');
                 shortcutsFreeAllUnits();
                 return aAdventure.auto.result("Unloading all Units");
             } catch (er) { console.error(er) }
         },
         attemptAttack: function (state, killAll) {
+            aDebug.log('adventure', 'attemptAttack: Starting attack phase, killAll:', killAll);
+            aDebug.log('adventure', 'attemptAttack: State - total:', state.total, ', busy:', state.busy.total, ', canSubmit:', state.canSubmitAttack);
 
             if (!state.total) {
+                aDebug.log('adventure', 'attemptAttack: No attacks available');
                 aUI.Alert('No attacks available!!', 'ARMY');
                 return aAdventure.auto.result(null, true, 2);
             }
 
-            if (state.busy.total > 0)
+            if (state.busy.total > 0) {
+                aDebug.log('adventure', 'attemptAttack: Waiting for', state.busy.total, 'generals');
                 return aAdventure.auto.result(
                     "Waiting for Generals ({0}/{1})!!".format(
                         state.total - state.busy.total,
                         state.total
                     ), false, 1);
+            }
 
             if (state.canSubmitAttack) {
+                aDebug.log('adventure', 'attemptAttack: Queueing attacks');
                 var num = 1;
                 $.each(battlePacket, function (id, attacker) {
                     if (!attacker.target > 0) { return; }
                     if (attacker.type === 'buff') {
+                        aDebug.log('adventure', 'attemptAttack: Queueing buff', attacker.name, 'on', attacker.targetName);
                         return aQueue.add('applyBuff', { what: "ON_ADVENTURE_BUFF", type: attacker.name, target: attacker.targetName });
                     }
                     const order = "({0}/{1})".format(num++, state.total);
+                    aDebug.log('adventure', 'attemptAttack: Queueing attack', order, '-', attacker.name, 'attacking', attacker.targetName);
                     aQueue.add('attackEnemy', { id: id, order: order }, attacker.time);
                 });
                 aSession.adventure.action = killAll ? 'attacking' : '';
+                aDebug.log('adventure', 'attemptAttack: Action set to:', aSession.adventure.action || 'complete');
                 return aAdventure.auto.result(null, !killAll);
             }
 
+            aDebug.log('adventure', 'attemptAttack: Cannot submit attacks');
             return aAdventure.auto.result(null, true);
         }
     },
@@ -6511,9 +6617,13 @@ const aAdventure = {
          */
         starGenerals: function () {
             try {
+                aDebug.log('adventure', 'starGenerals: Processing battlePacket with', Object.keys(battlePacket).length, 'generals');
+                var queued = 0;
                 $.each(battlePacket, function (id) {
                     var spec = armyGetSpecialistFromID(id);
                     if (!spec.GetGarrisonGridIdx()) return;
+                    queued++;
+                    aDebug.log('adventure', 'starGenerals: Queueing general', id, 'to star');
                     auto.cycle.Queue.add(function () {
                         try {
                             game.gi.mCurrentCursor.mCurrentSpecialist = spec;
@@ -6526,6 +6636,7 @@ const aAdventure = {
                         } catch (e) { }
                     });
                 });
+                aDebug.log('adventure', 'starGenerals: Queued', queued, 'generals to star');
             } catch (er) { }
         },
         loadGenerals: function (attackersOnly, text) {
@@ -6603,6 +6714,10 @@ const aAdventure = {
                 const general = battlePacket[id];
                 const target = type === 5 ? general.target : general.grid;
                 const targetName = type === 5 ? general.targetName : general.grid;
+                const actionType = type === 4 ? 'move' : (type === 5 ? 'attack' : 'type' + type);
+
+                aDebug.log('adventure', 'sendGeneralAction: General:', general.name, ', action:', actionType, ', target:', targetName, ', order:', order);
+
                 game.gi.mCurrentCursor.mCurrentSpecialist = general.spec;
                 var stask = new armySpecTaskDef();
                 stask.uniqueID = general.spec.GetUniqueID();
@@ -6834,39 +6949,67 @@ const aAdventure = {
             },
             StartAdventure: function () {
                 try {
-                    if (!game.gi.isOnHomzone())
-                        return aAdventure.auto.result("You must be on home island!");
+                    aDebug.log('adventure', 'StartAdventure: Starting step for', aSession.adventure.name);
 
-                    if (aSession.adventure.lastTime &&
-                        (new Date().getTime() - aSession.adventure.lastTime <= 180000))
-                        return aAdventure.auto.result("Next Adventure starts at: {0}".format(new Date(aSession.adventure.lastTime + 180000).toLocaleTimeString()));
+                    if (!game.gi.isOnHomzone()) {
+                        aDebug.log('adventure', 'StartAdventure: Not on home island');
+                        return aAdventure.auto.result("You must be on home island!");
+                    }
+
+                    if (aSession.adventure.lastTime) {
+                        var elapsed = new Date().getTime() - aSession.adventure.lastTime;
+                        var remaining = 180000 - elapsed;
+                        aDebug.log('adventure', 'StartAdventure: Cooldown check - elapsed:', Math.floor(elapsed / 1000), 's, remaining:', Math.floor(remaining / 1000), 's');
+                        if (remaining > 0)
+                            return aAdventure.auto.result("Next Adventure starts at: {0}".format(new Date(aSession.adventure.lastTime + 180000).toLocaleTimeString()));
+                    }
 
                     const blackVortex = 'PropagationBuff_AdventureZoneTravelBoost_BlackTree';
-                    if (aSettings.defaults.Adventures.blackVortex &&
+                    var blackVortexEnabled = aSettings.defaults.Adventures.blackVortex;
+                    var isScenario = aAdventure.data.getAdventureType(aSession.adventure.name) === "Scenario";
+                    var buffRunning = game.gi.mZoneBuffManager.isBuffRunning(blackVortex);
+                    var buffAmount = aBuffs.getBuffAmount(blackVortex);
+
+                    aDebug.log('adventure', 'StartAdventure: Black Vortex check - enabled:', blackVortexEnabled, ', scenario:', isScenario, ', running:', buffRunning, ', amount:', buffAmount, ', action:', aSession.adventure.action);
+
+                    if (blackVortexEnabled &&
                         !aSession.adventure.action &&
-                        aAdventure.data.getAdventureType(aSession.adventure.name) !== "Scenario" &&
-                        !game.gi.mZoneBuffManager.isBuffRunning(blackVortex) &&
-                        aBuffs.getBuffAmount(blackVortex)
+                        !isScenario &&
+                        !buffRunning &&
+                        buffAmount
                     ) {
+                        aDebug.log('adventure', 'StartAdventure: Queueing Black Vortex buff');
                         aQueue.add('applyBuff', { what: 'ADVENTURE_BUFF', type: blackVortex, grid: 0 });
                         aSession.adventure.action = "blackVortex";
                         return aAdventure.auto.result();
                     }
 
-                    if (aAdventure.info.getActiveAdvetureID()) {
+                    var activeAdventureID = aAdventure.info.getActiveAdvetureID();
+                    aDebug.log('adventure', 'StartAdventure: Active adventure check - ID:', activeAdventureID);
+
+                    if (activeAdventureID) {
+                        aDebug.log('adventure', 'StartAdventure: Adventure already active');
                         aSession.adventure.action = '';
                         return aAdventure.auto.result('"{0}" is active'.format(loca.GetText('ADN', aSession.adventure.name)), true, 3);
                     } else if (aSession.adventure.action.indexOf('WaitingAdventure') === 0) {
                         var num = parseInt(aSession.adventure.action.split('_')[1]);
-                        aSession.adventure.action = num > 2 ? '' : 'WaitingAdventure_' + (num + 1);
+                        var nextAction = num > 2 ? '' : 'WaitingAdventure_' + (num + 1);
+                        aDebug.log('adventure', 'StartAdventure: Wait state - attempt', num, ', next:', nextAction);
+                        aSession.adventure.action = nextAction;
                         return aAdventure.auto.result('Waiting for "{0}" to start'.format(loca.GetText('ADN', aSession.adventure.name)));
                     } else {
-                        if (aBuffs.getBuffAmount(['Adventure', aSession.adventure.name])) {
+                        var hasMap = aBuffs.getBuffAmount(['Adventure', aSession.adventure.name]);
+                        aDebug.log('adventure', 'StartAdventure: Adventure map check - has map:', hasMap);
+
+                        if (hasMap) {
+                            aDebug.log('adventure', 'StartAdventure: Applying adventure map');
                             aQueue.add('applyBuff', { what: 'ADVENTURE' });
                             aSession.adventure.action = 'WaitingAdventure_1';
                             return aAdventure.auto.result();
-                        } else
+                        } else {
+                            aDebug.log('adventure', 'StartAdventure: No adventure map found');
                             return aAdventure.auto.result('No Adventure Map found!');
+                        }
                     }
                 } catch (er) { return console.error(er), aAdventure.auto.result('Error: ' + er.message); }
             },
@@ -7528,6 +7671,8 @@ const aAdventure = {
          * @sideEffect Updates global armyInfo object
          */
         updateArmy: function () {
+            aDebug.log('adventure', 'updateArmy: Updating army information');
+
             armyInfo = {
                 free: {},
                 assigned: {},
@@ -7538,6 +7683,8 @@ const aAdventure = {
                 armyInfo.free[item.GetType()] = item.GetAmount();
                 armyInfo.total[item.GetType()] = (armyInfo.total[item.GetType()] || 0) + item.GetAmount();
             });
+
+            var generalCount = 0;
             game.getSpecialists().forEach(function (general) {
                 try {
                     const id = general.GetUniqueID().toKeyString();
@@ -7548,8 +7695,14 @@ const aAdventure = {
                         armyInfo.assigned[squad.GetType()] = (armyInfo.assigned[squad.GetType()] || 0) + squad.amount;
                         armyInfo.total[squad.GetType()] = (armyInfo.total[squad.GetType()] || 0) + squad.amount;
                     });
+                    generalCount++;
                 } catch (e) { console.error(e) }
             });
+
+            aDebug.log('adventure', 'updateArmy: Free units:', JSON.stringify(armyInfo.free));
+            aDebug.log('adventure', 'updateArmy: Assigned units:', JSON.stringify(armyInfo.assigned));
+            aDebug.log('adventure', 'updateArmy: Total units:', JSON.stringify(armyInfo.total));
+            aDebug.log('adventure', 'updateArmy: Tracked', generalCount, 'generals');
         }
     },
 }

@@ -185,6 +185,172 @@ var aConsoleLogger = (function () {
 
 // Console wrapper will be initialized in auto.load() when environment is ready
 
+// Global utility function for zero-padding numbers
+var lz = function(n) { return n < 10 ? '0' + n : n; };
+
+// Console File Logger
+var aConsoleLogger = (function() {
+    var logFilePath = null;
+    var isEnabled = false;
+    var isInitializing = false;
+    var isWriting = false;
+
+    function init() {
+        isInitializing = true;
+        try {
+            // Use logs subdirectory for better organization
+            logFilePath = air.File.applicationDirectory.resolvePath('auto/logs/console.log').nativePath;
+            isEnabled = true;
+        } catch (e) {
+            // Silent fail during initialization to avoid recursion
+            isEnabled = false;
+        }
+        isInitializing = false;
+    }
+
+    function formatTimestamp() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = lz(now.getMonth() + 1);
+        var day = lz(now.getDate());
+        var hours = lz(now.getHours());
+        var minutes = lz(now.getMinutes());
+        var seconds = lz(now.getSeconds());
+        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+    }
+
+    function formatArgs(args) {
+        var formatted = [];
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i];
+            if (typeof arg === 'object') {
+                try {
+                    formatted.push(JSON.stringify(arg));
+                } catch (e) {
+                    formatted.push(String(arg));
+                }
+            } else {
+                formatted.push(String(arg));
+            }
+        }
+        return formatted.join(' ');
+    }
+
+    function rotateLogIfNeeded() {
+        try {
+            var file = new air.File(logFilePath);
+            if (!file.exists) return;
+
+            // Get max size from settings (in KB), 0 means no rotation
+            var maxSize = 5000; // Default 5MB
+            if (typeof aSettings !== 'undefined' &&
+                aSettings.defaults &&
+                aSettings.defaults.Debug &&
+                aSettings.defaults.Debug.maxLogFileSize) {
+                maxSize = aSettings.defaults.Debug.maxLogFileSize;
+            }
+
+            if (maxSize === 0) return; // Rotation disabled
+
+            // Check file size (convert bytes to KB)
+            var fileSizeKB = file.size / 1024;
+            if (fileSizeKB <= maxSize) return; // Under limit
+
+            // Get number of rotated logs to keep
+            var keepLogs = 3; // Default
+            if (typeof aSettings !== 'undefined' &&
+                aSettings.defaults &&
+                aSettings.defaults.Debug &&
+                aSettings.defaults.Debug.keepRotatedLogs) {
+                keepLogs = aSettings.defaults.Debug.keepRotatedLogs;
+            }
+
+            // Delete oldest log if we're at the limit
+            var oldestLog = new air.File(logFilePath + '.' + keepLogs);
+            if (oldestLog.exists) {
+                oldestLog.deleteFile();
+            }
+
+            // Shift existing rotated logs (console.log.2 -> console.log.3, etc.)
+            for (var i = keepLogs - 1; i >= 1; i--) {
+                var sourceLog = new air.File(logFilePath + '.' + i);
+                if (sourceLog.exists) {
+                    var targetLog = new air.File(logFilePath + '.' + (i + 1));
+                    sourceLog.moveTo(targetLog, true);
+                }
+            }
+
+            // Rename current log to .1
+            var rotatedLog = new air.File(logFilePath + '.1');
+            file.moveTo(rotatedLog, true);
+
+        } catch (e) {
+            // Silent fail to avoid breaking logging
+        }
+    }
+
+    function writeToFile(type, args) {
+        // Prevent recursion during initialization or while already writing
+        if (isInitializing) return;
+        if (isWriting) return;
+        if (!isEnabled) return;
+
+        // Check if file logging is enabled in settings
+        if (typeof aSettings !== 'undefined' &&
+            aSettings.defaults &&
+            aSettings.defaults.Debug &&
+            !aSettings.defaults.Debug.logToFile) {
+            return;
+        }
+
+        isWriting = true;
+        try {
+            // Validate path (like aUtils.file.Write does)
+            if (typeof aUtils !== 'undefined' &&
+                aUtils.file &&
+                aUtils.file.validatePath &&
+                !aUtils.file.validatePath(logFilePath)) {
+                console.error('Logger: Write blocked - invalid path: ' + logFilePath);
+                return;
+            }
+
+            // Rotate log if needed before writing
+            rotateLogIfNeeded();
+
+            var timestamp = formatTimestamp();
+            var message = formatArgs(args);
+            var logEntry = '[' + type + '] [' + timestamp + '] ' + message + '\n';
+
+            var file = new air.File(logFilePath);
+
+            // Create parent directory if it doesn't exist
+            var parent = file.parent;
+            if (parent && !parent.exists) {
+                parent.createDirectory();
+            }
+
+            // Always use APPEND mode
+            var fileStream = new air.FileStream();
+            fileStream.open(file, air.FileMode.APPEND);
+            fileStream.writeUTFBytes(logEntry);
+            fileStream.close();
+        } catch (e) {
+            // Log error to console, protected by isWriting flag to prevent recursion
+            console.error('Logger: File write error: ' + e);
+        } finally {
+            isWriting = false;
+        }
+    }
+
+    return {
+        init: init,
+        write: writeToFile,
+        getLogPath: function() { return logFilePath; }
+    };
+})();
+
+// Console wrapper will be initialized in auto.load() when environment is ready
+
 // Debug Logging Helper
 const aDebug = {
     /**

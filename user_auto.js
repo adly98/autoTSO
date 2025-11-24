@@ -6177,8 +6177,13 @@ const aAdventure = {
                         else
                             return aQueue.add('retranchGeneral', { id: id, order: order });
                     }
-                    if (landingFields.indexOf(general.grid) > -1 && general.spec.GetGarrisonGridIdx() > 0)
+                    var garrisonIdx = general.spec.GetGarrisonGridIdx();
+                    var onLandingField = landingFields.indexOf(general.grid) > -1;
+                    aDebug.log('adventure', 'attemptMove: General', general.name, '- onLandingField:', onLandingField, ', garrisonIdx:', garrisonIdx);
+                    if (onLandingField && garrisonIdx > 0) {
+                        aDebug.log('adventure', 'attemptMove: Retrenching', general.name, 'from landing field');
                         return aQueue.add('retranchGeneral', { id: id, order: order });
+                    }
                 });
                 var message = null;
                 if (attackerState.busy.total) {
@@ -6627,7 +6632,12 @@ const aAdventure = {
                 var queued = 0;
                 $.each(battlePacket, function (id) {
                     var spec = armyGetSpecialistFromID(id);
-                    if (!spec.GetGarrisonGridIdx()) return;
+                    var garrisonIdx = spec.GetGarrisonGridIdx();
+                    aDebug.log('adventure', 'starGenerals: Checking general', id, ', garrisonIdx:', garrisonIdx);
+                    if (!garrisonIdx) {
+                        aDebug.log('adventure', 'starGenerals: Skipping general', id, '- not in garrison (garrisonIdx is', garrisonIdx, ')');
+                        return;
+                    }
                     queued++;
                     aDebug.log('adventure', 'starGenerals: Queueing general', id, 'to star');
                     auto.cycle.Queue.add(function () {
@@ -6738,7 +6748,13 @@ const aAdventure = {
                     return aAdventure.auto.result("{0} Can't move generals yet!".format(file));
 
                 $.each(battlePacket, function (id, general) {
-                    if (!general.spec.GetGarrisonGridIdx()) return;
+                    var garrisonIdx = general.spec.GetGarrisonGridIdx();
+                    aDebug.log('adventure', 'move: Checking general for retrench - garrisonIdx:', garrisonIdx);
+                    if (!garrisonIdx) {
+                        aDebug.log('adventure', 'move: Skipping general - no garrisonIdx');
+                        return;
+                    }
+                    aDebug.log('adventure', 'move: Retrenching general with garrisonIdx:', garrisonIdx);
                     aQueue.add('retranchGeneral', { id: id, order: "({0}/{1})".format(general.order + 1, Object.keys(battlePacket).length) });
                 });
                 return aAdventure.auto.result();
@@ -6755,7 +6771,13 @@ const aAdventure = {
                     if (general.grid > 0)
                         return aQueue.add('moveGeneral', { id: id, file: file, order: order });
 
-                    if (!general.spec.GetGarrisonGridIdx()) return;
+                    var garrisonIdx = general.spec.GetGarrisonGridIdx();
+                    aDebug.log('adventure', 'move: General not on grid, checking garrison - garrisonIdx:', garrisonIdx);
+                    if (!garrisonIdx) {
+                        aDebug.log('adventure', 'move: Skipping general - no garrisonIdx');
+                        return;
+                    }
+                    aDebug.log('adventure', 'move: Retrenching general from garrison');
                     aQueue.add('retranchGeneral', { id: id, file: file, order: order });
                 });
                 return aAdventure.auto.result();

@@ -6696,12 +6696,9 @@ const aAdventure = {
                     // This prevents wasting buff time while specialists are still traveling
                     var allSpecialists = [];
                     game.getSpecialists().forEach(function (spec) {
-                        var allSpecialists = [];
-                        game.getSpecialists().forEach(function (spec) {
-                            if (aSpecialists.isOwnedByPlayer(spec)) {
-                                allSpecialists.push(spec.GetUniqueID().toKeyString());
-                            }
-                        });
+                        if (aSpecialists.isOwnedByPlayer(spec)) {
+                            allSpecialists.push(spec.GetUniqueID().toKeyString());
+                        }
                     });
 
                     aDebug.log('adventure', 'UseSpeedBuff: Found', allSpecialists.length, 'specialists on adventure');

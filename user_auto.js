@@ -1044,11 +1044,36 @@ const aSettings = {
 
     /**
      * Loads settings from disk and merges with defaults
-     * Falls back to reading legacy settings if file doesn't exist
+     * Supports per-config settings via --clientconfig parameter
+     * Falls back to default settings.json if nickname-specific file doesn't exist
      * @returns {void}
      */
     load: function () {
-        var data = aUtils.file.Read(aUtils.file.Path('settings')) || readSettings(null, 'auto');
+        var settingsPath = aUtils.file.Path('settings');
+        var data = aUtils.file.Read(settingsPath);
+
+        // If nickname-specific settings don't exist, try to load from default settings.json
+        if (!data && aUtils.getConfigNickname()) {
+            console.info('Nickname-specific settings not found, checking for default settings.json');
+            var defaultPath = air.File.applicationDirectory.resolvePath('auto/settings.json').nativePath;
+            data = aUtils.file.Read(defaultPath);
+
+            // If default exists, create a copy with the nickname for future use
+            if (data) {
+                console.info('Creating new settings file from default for config: ' + aUtils.getConfigNickname());
+                try {
+                    aUtils.file.Write(settingsPath, JSON.stringify(data, null, 2));
+                } catch (e) {
+                    console.error('Failed to create nickname-specific settings file:', e);
+                }
+            }
+        }
+
+        // Final fallback to legacy settings if nothing found
+        if (!data) {
+            data = readSettings(null, 'auto');
+        }
+
         aSettings = aSettings.extend(aSettings.defaults, data);
         aSettings.migrate();
     },
@@ -1207,16 +1232,77 @@ const aUtils = {
     },
 
     /**
+     * Sanitizes a filename to be Windows-compatible
+     * Removes invalid characters: < > : " / \ | ? *
+     * @param {string} filename - The filename to sanitize
+     * @returns {string} Sanitized filename safe for Windows filesystems
+     */
+    sanitizeFilename: function(filename) {
+        if (!filename) return 'default';
+
+        // Remove/replace Windows invalid characters: < > : " / \ | ? *
+        // Also remove control characters (ASCII 0-31)
+        var sanitized = filename.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+
+        // Remove leading/trailing dots and spaces (Windows doesn't allow these)
+        sanitized = sanitized.replace(/^[\s.]+|[\s.]+$/g, '');
+
+        // Limit length to 200 characters (Windows MAX_PATH consideration)
+        if (sanitized.length > 200) {
+            sanitized = sanitized.substring(0, 200);
+        }
+
+        // If empty after sanitization, use default
+        return sanitized || 'default';
+    },
+
+    /**
+     * Gets the client config nickname from the global settingsFile variable
+     * This is set by the client when started with --clientconfig parameter
+     * @returns {string|null} Sanitized config nickname or null if using default
+     */
+    getConfigNickname: function() {
+        // settingsFile is a global variable set by the client in index.html
+        // Default value is "settings.json", custom configs have different names
+        // eslint-disable-next-line no-undef
+        if (typeof settingsFile !== 'undefined' && settingsFile !== 'settings.json') {
+            // Extract nickname from settingsFile (remove .json extension if present)
+            // eslint-disable-next-line no-undef
+            var nickname = settingsFile.replace('.json', '');
+            return aUtils.sanitizeFilename(nickname);
+        }
+
+        // Alternative: try to get from rawArgs (also set by client)
+        // eslint-disable-next-line no-undef
+        if (typeof rawArgs !== 'undefined' && rawArgs['clientconfig']) {
+            // eslint-disable-next-line no-undef
+            var nickname = rawArgs['clientconfig'].replace('.json', '');
+            return aUtils.sanitizeFilename(nickname);
+        }
+
+        return null; // Use default settings
+    },
+
+    /**
      * File I/O Operations
      * @namespace aUtils.file
      */
     file: {
         /**
          * Constructs file path in the auto directory
+         * Supports per-config settings when using --clientconfig parameter
          * @param {string} segment - File name (without .json extension)
          * @returns {string} Full native file path
          */
         Path: function (segment) {
+            // Special handling for settings file - append config nickname if available
+            if (segment === 'settings') {
+                var nickname = aUtils.getConfigNickname();
+                if (nickname) {
+                    segment = 'settings.' + nickname;
+                    console.info('Using per-config settings file: ' + segment + '.json');
+                }
+            }
             return air.File.applicationDirectory.resolvePath('auto/' + segment + '.json').nativePath;
         },
         getPath: function (type, file) {

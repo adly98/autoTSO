@@ -19,6 +19,172 @@
 
 var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
 
+// Global utility function for zero-padding numbers
+var lz = function(n) { return n < 10 ? '0' + n : n; };
+
+// Console File Logger
+var aConsoleLogger = (function() {
+    var logFilePath = null;
+    var isEnabled = false;
+    var isInitializing = false;
+    var isWriting = false;
+
+    function init() {
+        isInitializing = true;
+        try {
+            // Use logs subdirectory for better organization
+            logFilePath = air.File.applicationDirectory.resolvePath('auto/logs/console.log').nativePath;
+            isEnabled = true;
+        } catch (e) {
+            // Silent fail during initialization to avoid recursion
+            isEnabled = false;
+        }
+        isInitializing = false;
+    }
+
+    function formatTimestamp() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = lz(now.getMonth() + 1);
+        var day = lz(now.getDate());
+        var hours = lz(now.getHours());
+        var minutes = lz(now.getMinutes());
+        var seconds = lz(now.getSeconds());
+        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+    }
+
+    function formatArgs(args) {
+        var formatted = [];
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i];
+            if (typeof arg === 'object') {
+                try {
+                    formatted.push(JSON.stringify(arg));
+                } catch (e) {
+                    formatted.push(String(arg));
+                }
+            } else {
+                formatted.push(String(arg));
+            }
+        }
+        return formatted.join(' ');
+    }
+
+    function rotateLogIfNeeded() {
+        try {
+            var file = new air.File(logFilePath);
+            if (!file.exists) return;
+
+            // Get max size from settings (in KB), 0 means no rotation
+            var maxSize = 5000; // Default 5MB
+            if (typeof aSettings !== 'undefined' &&
+                aSettings.defaults &&
+                aSettings.defaults.Debug &&
+                aSettings.defaults.Debug.maxLogFileSize) {
+                maxSize = aSettings.defaults.Debug.maxLogFileSize;
+            }
+
+            if (maxSize === 0) return; // Rotation disabled
+
+            // Check file size (convert bytes to KB)
+            var fileSizeKB = file.size / 1024;
+            if (fileSizeKB <= maxSize) return; // Under limit
+
+            // Get number of rotated logs to keep
+            var keepLogs = 3; // Default
+            if (typeof aSettings !== 'undefined' &&
+                aSettings.defaults &&
+                aSettings.defaults.Debug &&
+                aSettings.defaults.Debug.keepRotatedLogs) {
+                keepLogs = aSettings.defaults.Debug.keepRotatedLogs;
+            }
+
+            // Delete oldest log if we're at the limit
+            var oldestLog = new air.File(logFilePath + '.' + keepLogs);
+            if (oldestLog.exists) {
+                oldestLog.deleteFile();
+            }
+
+            // Shift existing rotated logs (console.log.2 -> console.log.3, etc.)
+            for (var i = keepLogs - 1; i >= 1; i--) {
+                var sourceLog = new air.File(logFilePath + '.' + i);
+                if (sourceLog.exists) {
+                    var targetLog = new air.File(logFilePath + '.' + (i + 1));
+                    sourceLog.moveTo(targetLog, true);
+                }
+            }
+
+            // Rename current log to .1
+            var rotatedLog = new air.File(logFilePath + '.1');
+            file.moveTo(rotatedLog, true);
+
+        } catch (e) {
+            // Silent fail to avoid breaking logging
+        }
+    }
+
+    function writeToFile(type, args) {
+        // Prevent recursion during initialization or while already writing
+        if (isInitializing) return;
+        if (isWriting) return;
+        if (!isEnabled) return;
+
+        // Check if file logging is enabled in settings
+        if (typeof aSettings !== 'undefined' &&
+            aSettings.defaults &&
+            aSettings.defaults.Debug &&
+            !aSettings.defaults.Debug.logToFile) {
+            return;
+        }
+
+        isWriting = true;
+        try {
+            // Validate path (like aUtils.file.Write does)
+            if (typeof aUtils !== 'undefined' &&
+                aUtils.file &&
+                aUtils.file.validatePath &&
+                !aUtils.file.validatePath(logFilePath)) {
+                console.error('Logger: Write blocked - invalid path: ' + logFilePath);
+                return;
+            }
+
+            // Rotate log if needed before writing
+            rotateLogIfNeeded();
+
+            var timestamp = formatTimestamp();
+            var message = formatArgs(args);
+            var logEntry = '[' + type + '] [' + timestamp + '] ' + message + '\n';
+
+            var file = new air.File(logFilePath);
+
+            // Create parent directory if it doesn't exist
+            var parent = file.parent;
+            if (parent && !parent.exists) {
+                parent.createDirectory();
+            }
+
+            // Always use APPEND mode
+            var fileStream = new air.FileStream();
+            fileStream.open(file, air.FileMode.APPEND);
+            fileStream.writeUTFBytes(logEntry);
+            fileStream.close();
+        } catch (e) {
+            // Log error to console, protected by isWriting flag to prevent recursion
+            console.error('Logger: File write error: ' + e);
+        } finally {
+            isWriting = false;
+        }
+    }
+
+    return {
+        init: init,
+        write: writeToFile,
+        getLogPath: function() { return logFilePath; }
+    };
+})();
+
+// Console wrapper will be initialized in auto.load() when environment is ready
+
 // Debug Logging Helper
 const aDebug = {
     /**
@@ -687,6 +853,9 @@ const aSettings = {
             logCombat: true,
             logGeologists: false,
             logExplorers: false,
+            logToFile: true,
+            maxLogFileSize: 5000,
+            keepRotatedLogs: 3,
         },
         Security: {
             validateFilePaths: false,
@@ -1009,7 +1178,7 @@ const aUtils = {
             const tSeconds = Math.floor(ms / 1000);
             const minutes = Math.floor(tSeconds / 60);
             const seconds = tSeconds % 60;
-            return "{0}:{1}".format(minutes, seconds < 10 ? '0' + seconds : seconds);
+            return "{0}:{1}".format(minutes, lz(seconds));
         },
         Date: function (ms) {
             var date = new Date(ms);
@@ -2055,6 +2224,22 @@ const aUI = {
                         [3, createSwitch('aDebug_LogGeologists', aSettings.defaults.Debug.logGeologists)],
                     ]),
                     $('<br>'),
+                    createTableRow([[9, 'File Logging'], [3, '&nbsp;']], true),
+                    createTableRow([
+                        [9, "Enable file logging:"],
+                        [3, createSwitch('aDebug_LogToFile', aSettings.defaults.Debug.logToFile)],
+                    ]),
+                    createTableRow([
+                        [4, "Max log file size (KB):"],
+                        [4, $('<input>', { 'id': 'aDebug_MaxLogFileSize', 'class': 'form-control', 'type': 'number', 'value': aSettings.defaults.Debug.maxLogFileSize, 'min': 0 })],
+                        [4, ' (0 = no rotation)']
+                    ]),
+                    createTableRow([
+                        [4, "Keep rotated logs:"],
+                        [4, $('<input>', { 'id': 'aDebug_KeepRotatedLogs', 'class': 'form-control', 'type': 'number', 'value': aSettings.defaults.Debug.keepRotatedLogs, 'min': 1, 'max': 10 })],
+                        [4, ' files']
+                    ]),
+                    $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
                     createTableRow([
                         [4, "Restart Client when RAM used:"],
@@ -2160,7 +2345,10 @@ const aUI = {
                     aSettings.defaults.Debug.logAdventures = $('#aDebug_LogAdventures').is(':checked');
                     aSettings.defaults.Debug.logCombat = $('#aDebug_LogCombat').is(':checked');
                     aSettings.defaults.Debug.logExplorer = $('#aDebug_LogExplorer').is(':checked');
-                    aSettings.defaults.Debug.logGeologists = $('#aDebug_LogGeologists').is(':checked'); 
+                    aSettings.defaults.Debug.logGeologists = $('#aDebug_LogGeologists').is(':checked');
+                    aSettings.defaults.Debug.logToFile = $('#aDebug_LogToFile').is(':checked');
+                    aSettings.defaults.Debug.maxLogFileSize = parseInt($('#aDebug_MaxLogFileSize').val()) || 0;
+                    aSettings.defaults.Debug.keepRotatedLogs = parseInt($('#aDebug_KeepRotatedLogs').val()) || 3;
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');
@@ -3870,7 +4058,6 @@ const aUI = {
     },
     updateStatus: function (status, from) {
         var date = new Date();
-        var lz = function (n) { return n < 10 ? '0' + n : n; };
         var time = "[{0}:{1}:{2}]".format(lz(date.getHours()), lz(date.getMinutes()), lz(date.getSeconds()));
         from = from ? '[{0}]'.format(from) : '';
         menu.nativeMenu.getItemByName("aStatus").label = time + from + ' ' + status;
@@ -6509,12 +6696,9 @@ const aAdventure = {
                     // This prevents wasting buff time while specialists are still traveling
                     var allSpecialists = [];
                     game.getSpecialists().forEach(function (spec) {
-                        var allSpecialists = [];
-                        game.getSpecialists().forEach(function (spec) {
-                            if (aSpecialists.isOwnedByPlayer(spec)) {
-                                allSpecialists.push(spec.GetUniqueID().toKeyString());
-                            }
-                        });
+                        if (aSpecialists.isOwnedByPlayer(spec)) {
+                            allSpecialists.push(spec.GetUniqueID().toKeyString());
+                        }
                     });
 
                     aDebug.log('adventure', 'UseSpeedBuff: Found', allSpecialists.length, 'specialists on adventure');
@@ -7237,6 +7421,10 @@ const auto = {
                             aUI.menu.Progress = 90;
                             setTimeout(function () {
                                 aUI.Alert("Updated Successfully ^_^", 'TransporterAdmiral');
+                                // Reset logger initialization flag to ensure proper re-initialization
+                                if (typeof console !== 'undefined' && console._loggerInitialized) {
+                                    delete console._loggerInitialized;
+                                }
                                 reloadScripts();
                             }, TIMEOUTS.ADVENTURE_RETRY_DELAY);
                         } catch (writeError) {
@@ -7347,13 +7535,51 @@ const auto = {
     },
     load: function (count) {
         try{
+            // Initialize console file logging on first load
+            if (count === 1 && typeof console !== 'undefined' && !console._loggerInitialized) {
+                aConsoleLogger.init();
+
+                var originalConsole = {
+                    log: console.log,
+                    error: console.error,
+                    warn: console.warn,
+                    info: console.info
+                };
+
+                console.log = function() {
+                    originalConsole.log.apply(console, arguments);
+                    aConsoleLogger.write('LOG', arguments);
+                };
+
+                console.error = function() {
+                    originalConsole.error.apply(console, arguments);
+                    aConsoleLogger.write('ERROR', arguments);
+                };
+
+                console.warn = function() {
+                    originalConsole.warn.apply(console, arguments);
+                    aConsoleLogger.write('WARN', arguments);
+                };
+
+                console.info = function() {
+                    originalConsole.info.apply(console, arguments);
+                    aConsoleLogger.write('INFO', arguments);
+                };
+
+                console._loggerInitialized = true;
+                console.log('Console file logging initialized. Log file: ' + aConsoleLogger.getLogPath());
+
+                // Write session marker directly to file (bypassing normal logging to get [SESSION] prefix)
+                aConsoleLogger.write('SESSION', ['========== Script Starting/Restarting ==========']);
+            }
+
             if (!game.hasOwnProperty('auto')) game.auto = {};
             aQueue.clearIDs();
             aUI.menu.Progress = 0;
             aUI.menu.init(true);
             aSettings.load();
             auto.update.fetchReleaseData();
-        }catch(e){ 
+        }catch(e){
             if(count < 6)
                 auto.load(++count);
             else

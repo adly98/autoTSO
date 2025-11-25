@@ -17,13 +17,13 @@
  * @version 2.0.3
  */
 
-var AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
-
+const AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
+const console = air.Introspector.Console;
 // Global utility function for zero-padding numbers
-var lz = function(n) { return n < 10 ? '0' + n : n; };
+var lz = function (n) { return n < 10 ? '0' + n : n; };
 
 // Console File Logger
-var aConsoleLogger = (function() {
+var aConsoleLogger = (function () {
     var logFilePath = null;
     var isEnabled = false;
     var isInitializing = false;
@@ -179,7 +179,7 @@ var aConsoleLogger = (function() {
     return {
         init: init,
         write: writeToFile,
-        getLogPath: function() { return logFilePath; }
+        getLogPath: function () { return logFilePath; }
     };
 })();
 
@@ -276,10 +276,6 @@ const SPECIALIST_TYPE = {
 }
 
 const WORK_TIME_OFFSET_SECONDS = 12;
-
-if (typeof console === 'undefined') {
-    var console = air.Introspector.Console;
-}
 
 // Session Data
 const aSession = {
@@ -714,14 +710,14 @@ const aQueue = {
                 case 'show':
                     try {
                         globalFlash.gui.mMailWindow.Show();
-                    } catch(e) {
+                    } catch (e) {
                         console.warn(e)
                     }
                     break;
                 case 'hide':
                     try {
                         globalFlash.gui.mMailWindow.Hide();
-                    } catch(e) {
+                    } catch (e) {
                         console.warn(e)
                     }
                     break;
@@ -1237,7 +1233,7 @@ const aUtils = {
      * @param {string} filename - The filename to sanitize
      * @returns {string} Sanitized filename safe for Windows filesystems
      */
-    sanitizeFilename: function(filename) {
+    sanitizeFilename: function (filename) {
         if (!filename) return 'default';
 
         // Remove/replace Windows invalid characters: < > : " / \ | ? *
@@ -1261,7 +1257,7 @@ const aUtils = {
      * This is set by the client when started with --clientconfig parameter
      * @returns {string|null} Sanitized config nickname or null if using default
      */
-    getConfigNickname: function() {
+    getConfigNickname: function () {
         // settingsFile is a global variable set by the client in index.html
         // Default value is "settings.json", custom configs have different names
         // eslint-disable-next-line no-undef
@@ -3839,26 +3835,30 @@ const aUI = {
                     aWindow.withBody('#aTradeReceiveSelect').change(function () {
                         aWindow.withBody('#aTradeReceiveImg').empty().append(getImage(assets.GetResourceIcon($(this).val()).bitmapData, "23px"));
                     });
-                    aWindow.withBody('#aTradeSendItem').click(function () {
+                    aWindow.withFooter('#aTradeSendItem').click(function () {
                         var trade = {
-                            'SendResource': $('#aTradeSendSelect option:selected').val(),
-                            'SendAmount': parseInt($("#aTradeAmountSendSelect").val()),
-                            'ReceiveResource': $('#aTradeReceiveSelect option:selected').val(),
-                            'ReceiveAmount': parseInt($("#aTradeAmountReceiveSelect").val()),
-                            'ISDT': $("#aTradeDoubleTradeCheck").prop("checked"),
-                            'FriendID': $('#aTradeFriendSelect option:selected').val(),
-                            'FriendName': $('#aTradeFriendSelect option:selected').text()
-                        };
-                        if (trade.SendResource === "" ||
-                            trade.ReceiveResource === "" ||
-                            trade.FriendID === "" ||
-                            trade.SendAmount < 1 ||
-                            trade.ReceiveAmount < 1)
+                            Send: [$('#aTradeSendSelect option:selected').val(), parseInt($("#aTradeAmountSendSelect").val())],
+                            Receive: [$('#aTradeReceiveSelect option:selected').val(), parseInt($("#aTradeAmountReceiveSelect").val())],
+                            friendID: $('#aTradeFriendSelect option:selected').val()
+                        }
+                        if (trade.Send[0] === "" ||
+                            trade.Receive[0] === "" ||
+                            trade.friendID === "" ||
+                            trade.Send[1] < 1 ||
+                            trade.Receive[1] < 1)
                             return;
-                        aTrade.exec(trade);
+                        aTrade.send(trade);
+                        if ($("#aTradeDoubleTradeCheck").prop("checked")) {
+                            var back = {
+                                Send: trade.Receive,
+                                Receive: trade.Send,
+                                friendID: trade.friendID
+                            }
+                            setTimeout(function () { aTrade.send(back) }, 5000);
+                        }
                     });
 
-                    aWindow.withBody('#aTradeAddItem').click(function () {
+                    aWindow.withFooter('#aTradeAddItem').click(function () {
                         var trade = {
                             'ID': new Date().getTime(),
                             'SendResource': $('#aTradeSendSelect option:selected').val(),
@@ -4487,7 +4487,7 @@ const aResources = {
             });
             $.each(resources, function (i, Resource) {
                 const event = game.def('ServerState::gEconomics').mMap_EventResourceDefaultDefinition[Resource.name_string];
-                if (game.def('ServerState::gEconomics').GetResourcesDefaultDefinition(Resource.name_string).tradable && ((event === null) || (game.gi.mEventManager.isEventStarted(event.requiredEventName_string) || AllResources))) {
+                if (game.def('ServerState::gEconomics').GetResourcesDefaultDefinition(Resource.name_string).tradable && ((!event) || (game.gi.mEventManager.isEventStarted(event.requiredEventName_string) || AllResources))) {
                     result.push(Resource.name_string);
                 };
             });
@@ -4612,7 +4612,7 @@ const aSpecialists = {
             } catch (e) { return false }
         });
     },
-    
+
     /**
      * Returns if the specialist belongs to the current player.
      * @param {Object} spec
@@ -4630,7 +4630,7 @@ const aSpecialists = {
      * @returns {boolean}
      */
     isType: function (spec, type) {
-        if (!aSpecialists.isOwnedByPlayer(spec)) 
+        if (!aSpecialists.isOwnedByPlayer(spec))
             return false;
         if (spec && type === 0) return spec.GetSpecialistDescription().isGeneral();
         if (typeof type !== 'number') return true;
@@ -4723,12 +4723,12 @@ const aSpecialists = {
                         return;
                     }
                     aQueue.add('sendExplorer', [expl.GetUniqueID().toKeyString(), finalTask, index + 1 - sub, explorers.length - sub]);
-                } catch (er) { 
+                } catch (er) {
                     console.error('There has been an error while preparing explorer', er);
                 }
             });
             //aUI.updateStatus("Sending: {0} Explorers".format(explorers.length), 'Explorers');
-        } catch (e) { 
+        } catch (e) {
             console.error('There has been an error while sending explorer', e);
         }
     },
@@ -4750,14 +4750,14 @@ const aSpecialists = {
             if (!geo) { continue; }
             var allowed = false;
             for (var j = 0; j < geos.length; j++) {
-            if (geos[j] === geo.GetType()) {
-                allowed = true;
-                break;
-            }
+                if (geos[j] === geo.GetType()) {
+                    allowed = true;
+                    break;
+                }
             }
             if (!allowed) {
-            aDebug.log('geologist', 'Skipping geologist', geo.GetType(), 'not in allowed list for', depo);
-            continue;
+                aDebug.log('geologist', 'Skipping geologist', geo.GetType(), 'not in allowed list for', depo);
+                continue;
             }
             sent++;
             aDebug.log('geologist', 'Sending geologist', geo.GetUniqueID().toKeyString(), '(', sent, '/', count, ') for', depo);
@@ -4918,7 +4918,7 @@ const aBuildings = {
                         });
                     } else if (depoData.options[4]) {
                         var _mason = game.zone.mStreetDataMap.getBuildingsByName_vector(depoName === "Stone" ? "Mason" : depoName + "Mason")
-                        if(_mason){
+                        if (_mason) {
                             _mason.forEach(function (mason) { aBuildings.buffBuilding(mason, depoData.options[5]); });
                         }
                     }
@@ -7620,7 +7620,7 @@ const auto = {
         }
     },
     load: function (count) {
-        try{
+        try {
             // Initialize console file logging on first load
             if (count === 1 && typeof console !== 'undefined' && !console._loggerInitialized) {
                 aConsoleLogger.init();
@@ -7632,22 +7632,22 @@ const auto = {
                     info: console.info
                 };
 
-                console.log = function() {
+                console.log = function () {
                     originalConsole.log.apply(console, arguments);
                     aConsoleLogger.write('LOG', arguments);
                 };
 
-                console.error = function() {
+                console.error = function () {
                     originalConsole.error.apply(console, arguments);
                     aConsoleLogger.write('ERROR', arguments);
                 };
 
-                console.warn = function() {
+                console.warn = function () {
                     originalConsole.warn.apply(console, arguments);
                     aConsoleLogger.write('WARN', arguments);
                 };
 
-                console.info = function() {
+                console.info = function () {
                     originalConsole.info.apply(console, arguments);
                     aConsoleLogger.write('INFO', arguments);
                 };
@@ -7665,8 +7665,8 @@ const auto = {
             aUI.menu.init(true);
             aSettings.load();
             auto.update.fetchReleaseData();
-        }catch(e){
-            if(count < 6)
+        } catch (e) {
+            if (count < 6)
                 auto.load(++count);
             else
                 setTimeout(auto.load, 10000);
@@ -7721,4 +7721,3 @@ const auto = {
 }
 
 auto.load(1);
-

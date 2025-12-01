@@ -6217,6 +6217,28 @@ const aAdventure = {
                         ), false, 1);
                 }
 
+                // Check if any general still has units assigned - unload all before loading new wave
+                aDebug.log('adventure', 'attemptLoad: Checking if any generals have units assigned');
+                var generalsWithUnits = aSpecialists.getSpecialists(SPECIALIST_TYPE.GENNERAL).filter(function(g) {
+                    var army = g.GetArmy();
+                    var hasUnits = army && army.GetUnitsCount() > 0;
+                    if (hasUnits) {
+                        var name = g.GetName ? g.GetName() : 'Unknown';
+                        aDebug.log('adventure', 'attemptLoad: General', name, 'has', army.GetUnitsCount(), 'units');
+                    }
+                    return hasUnits;
+                });
+
+                aDebug.log('adventure', 'attemptLoad: Found', generalsWithUnits.length, 'generals with units assigned');
+
+                if (generalsWithUnits.length > 0) {
+                    aDebug.log('adventure', 'attemptLoad: Unloading all generals before loading new wave');
+                    shortcutsFreeAllUnits();
+                    return aAdventure.auto.result("Unloading units from all generals", false, 1);
+                }
+
+                aDebug.log('adventure', 'attemptLoad: All generals are empty, proceeding to load');
+
                 if (state.army.canSubmit) {
                     aDebug.log('adventure', 'attemptLoad: Army available, loading generals');
                     aUI.playSound('UnitProduced');
@@ -6245,9 +6267,8 @@ const aAdventure = {
                     });
                     return aAdventure.auto.result(result.substring(0, result.length - 1));
                 }
-                aDebug.log('adventure', 'attemptLoad: Freeing all units');
-                shortcutsFreeAllUnits();
-                return aAdventure.auto.result("Unloading all Units");
+
+                return aAdventure.auto.result();
             } catch (er) { console.error(er) }
         },
         attemptAttack: function (state, killAll) {

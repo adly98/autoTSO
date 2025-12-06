@@ -79,9 +79,10 @@ var aConsoleLogger = (function () {
             var maxSize = 5000; // Default 5MB
             if (typeof aSettings !== 'undefined' &&
                 aSettings.defaults &&
-                aSettings.defaults.Debug &&
-                aSettings.defaults.Debug.maxLogFileSize) {
-                maxSize = aSettings.defaults.Debug.maxLogFileSize;
+                aSettings.defaults.Auto &&
+                aSettings.defaults.Auto.Logging &&
+                aSettings.defaults.Auto.Logging.maxLogFileSize) {
+                maxSize = aSettings.defaults.Auto.Logging.maxLogFileSize;
             }
 
             if (maxSize === 0) return; // Rotation disabled
@@ -94,9 +95,10 @@ var aConsoleLogger = (function () {
             var keepLogs = 3; // Default
             if (typeof aSettings !== 'undefined' &&
                 aSettings.defaults &&
-                aSettings.defaults.Debug &&
-                aSettings.defaults.Debug.keepRotatedLogs) {
-                keepLogs = aSettings.defaults.Debug.keepRotatedLogs;
+                aSettings.defaults.Auto &&
+                aSettings.defaults.Auto.Logging &&
+                aSettings.defaults.Auto.Logging.keepRotatedLogs) {
+                keepLogs = aSettings.defaults.Auto.Logging.keepRotatedLogs;
             }
 
             // Delete oldest log if we're at the limit
@@ -132,8 +134,9 @@ var aConsoleLogger = (function () {
         // Check if file logging is enabled in settings
         if (typeof aSettings !== 'undefined' &&
             aSettings.defaults &&
-            aSettings.defaults.Debug &&
-            !aSettings.defaults.Debug.logToFile) {
+            aSettings.defaults.Auto &&
+            aSettings.defaults.Auto.Logging &&
+            !aSettings.defaults.Auto.Logging.logToFile) {
             return;
         }
 
@@ -245,9 +248,10 @@ var aConsoleLogger = (function() {
             var maxSize = 5000; // Default 5MB
             if (typeof aSettings !== 'undefined' &&
                 aSettings.defaults &&
-                aSettings.defaults.Debug &&
-                aSettings.defaults.Debug.maxLogFileSize) {
-                maxSize = aSettings.defaults.Debug.maxLogFileSize;
+                aSettings.defaults.Auto &&
+                aSettings.defaults.Auto.Logging &&
+                aSettings.defaults.Auto.Logging.maxLogFileSize) {
+                maxSize = aSettings.defaults.Auto.Logging.maxLogFileSize;
             }
 
             if (maxSize === 0) return; // Rotation disabled
@@ -260,9 +264,10 @@ var aConsoleLogger = (function() {
             var keepLogs = 3; // Default
             if (typeof aSettings !== 'undefined' &&
                 aSettings.defaults &&
-                aSettings.defaults.Debug &&
-                aSettings.defaults.Debug.keepRotatedLogs) {
-                keepLogs = aSettings.defaults.Debug.keepRotatedLogs;
+                aSettings.defaults.Auto &&
+                aSettings.defaults.Auto.Logging &&
+                aSettings.defaults.Auto.Logging.keepRotatedLogs) {
+                keepLogs = aSettings.defaults.Auto.Logging.keepRotatedLogs;
             }
 
             // Delete oldest log if we're at the limit
@@ -298,8 +303,9 @@ var aConsoleLogger = (function() {
         // Check if file logging is enabled in settings
         if (typeof aSettings !== 'undefined' &&
             aSettings.defaults &&
-            aSettings.defaults.Debug &&
-            !aSettings.defaults.Debug.logToFile) {
+            aSettings.defaults.Auto &&
+            aSettings.defaults.Auto.Logging &&
+            !aSettings.defaults.Auto.Logging.logToFile) {
             return;
         }
 
@@ -371,10 +377,10 @@ const aDebug = {
         }
 
         const flags = {
-            adventure: aSettings.defaults.Debug.logAdventures,
-            combat: aSettings.defaults.Debug.logCombat,
-            geologists: aSettings.defaults.Debug.logGeologists,
-            explorers: aSettings.defaults.Debug.logExplorers
+            adventure: aSettings.defaults.Debug.Adventures,
+            combat: aSettings.defaults.Debug.Combat,
+            geologists: aSettings.defaults.Debug.Geologists,
+            explorers: aSettings.defaults.Debug.Explorers
         };
         return !!flags[category];
     },
@@ -385,7 +391,7 @@ const aDebug = {
             !aSettings.defaults.Debug) {
             return true;
         }
-        return !!aSettings.defaults.Debug.enableLogging;
+        return !!aSettings.defaults.Debug.enable;
     },
 
     log: function (category) {
@@ -1044,16 +1050,18 @@ const aSettings = {
             RestartRAM: 0,
             increaseTimeout: false,
             showGrid: false,
+            Logging: {
+                logToFile: true,
+                maxLogFileSize: 5000,
+                keepRotatedLogs: 3,
+            },
         },
         Debug: {
-            enableLogging: true,
-            logAdventures: true,
-            logCombat: true,
-            logGeologists: true,
-            logExplorers: true,
-            logToFile: true,
-            maxLogFileSize: 5000,
-            keepRotatedLogs: 3,
+            enable: true,
+            Adventures: true,
+            Combat: true,
+            Geologists: true,
+            Explorers: true,
         },
         Security: {
             validateFilePaths: false,
@@ -2514,6 +2522,22 @@ const aUI = {
                     ]),
                     createTableRow([[12, '&#10551; Older backups are automatically deleted (0 = keep all)']]),
                     $('<br>'),
+                    createTableRow([[9, 'File Logging'], [3, '&nbsp;']], true),
+                    createTableRow([
+                        [9, "Enable file logging:"],
+                        [3, createSwitch('aLogging_LogToFile', aSettings.defaults.Auto.Logging.logToFile)],
+                    ]),
+                    createTableRow([
+                        [4, "Max log file size (KB):"],
+                        [4, $('<input>', { 'id': 'aLogging_MaxLogFileSize', 'class': 'form-control', 'type': 'number', 'value': aSettings.defaults.Auto.Logging.maxLogFileSize, 'min': 0 })],
+                        [4, ' (0 = no rotation)']
+                    ]),
+                    createTableRow([
+                        [4, "Keep rotated logs:"],
+                        [4, $('<input>', { 'id': 'aLogging_KeepRotatedLogs', 'class': 'form-control', 'type': 'number', 'value': aSettings.defaults.Auto.Logging.keepRotatedLogs, 'min': 1, 'max': 10 })],
+                        [4, ' files']
+                    ]),
+                    $('<br>'),
                     createTableRow([[9, 'Security'], [3, '&nbsp;']], true),
                     createTableRow([
                         [9, "Enable file path validation (recommended)"],
@@ -2524,39 +2548,23 @@ const aUI = {
                     createTableRow([[9, 'Debug Logging'], [3, '&nbsp;']], true),
                     createTableRow([
                         [9, "Enable debug logging"],
-                        [3, createSwitch('aDebug_EnableLogging', aSettings.defaults.Debug.enableLogging)],
+                        [3, createSwitch('aDebug_EnableLogging', aSettings.defaults.Debug.enable)],
                     ]),
                     createTableRow([
                         [9, "&#10551; Log adventure events"],
-                        [3, createSwitch('aDebug_LogAdventures', aSettings.defaults.Debug.logAdventures)],
+                        [3, createSwitch('aDebug_LogAdventures', aSettings.defaults.Debug.Adventures)],
                     ]),
                     createTableRow([
                         [9, "&#10551; Log combat events"],
-                        [3, createSwitch('aDebug_LogCombat', aSettings.defaults.Debug.logCombat)],
+                        [3, createSwitch('aDebug_LogCombat', aSettings.defaults.Debug.Combat)],
                     ]),
                     createTableRow([
                         [9, "&#10551; Log explorer events"],
-                        [3, createSwitch('aDebug_LogExplorer', aSettings.defaults.Debug.logExplorer)],
+                        [3, createSwitch('aDebug_LogExplorer', aSettings.defaults.Debug.Explorer)],
                     ]),
                     createTableRow([
                         [9, "&#10551; Log geologists events"],
-                        [3, createSwitch('aDebug_LogGeologists', aSettings.defaults.Debug.logGeologists)],
-                    ]),
-                    $('<br>'),
-                    createTableRow([[9, 'File Logging'], [3, '&nbsp;']], true),
-                    createTableRow([
-                        [9, "Enable file logging:"],
-                        [3, createSwitch('aDebug_LogToFile', aSettings.defaults.Debug.logToFile)],
-                    ]),
-                    createTableRow([
-                        [4, "Max log file size (KB):"],
-                        [4, $('<input>', { 'id': 'aDebug_MaxLogFileSize', 'class': 'form-control', 'type': 'number', 'value': aSettings.defaults.Debug.maxLogFileSize, 'min': 0 })],
-                        [4, ' (0 = no rotation)']
-                    ]),
-                    createTableRow([
-                        [4, "Keep rotated logs:"],
-                        [4, $('<input>', { 'id': 'aDebug_KeepRotatedLogs', 'class': 'form-control', 'type': 'number', 'value': aSettings.defaults.Debug.keepRotatedLogs, 'min': 1, 'max': 10 })],
-                        [4, ' files']
+                        [3, createSwitch('aDebug_LogGeologists', aSettings.defaults.Debug.Geologists)],
                     ]),
                     $('<br>'),
                     createTableRow([[9, 'Connectivity'], [3, '&nbsp;']], true),
@@ -2660,14 +2668,15 @@ const aUI = {
                     //Security
                     aSettings.defaults.Security.validateFilePaths = $('#aSecurity_ValidateFilePaths').is(':checked');
                     //Debug
-                    aSettings.defaults.Debug.enableLogging = $('#aDebug_EnableLogging').is(':checked');
-                    aSettings.defaults.Debug.logAdventures = $('#aDebug_LogAdventures').is(':checked');
-                    aSettings.defaults.Debug.logCombat = $('#aDebug_LogCombat').is(':checked');
-                    aSettings.defaults.Debug.logExplorer = $('#aDebug_LogExplorer').is(':checked');
-                    aSettings.defaults.Debug.logGeologists = $('#aDebug_LogGeologists').is(':checked');
-                    aSettings.defaults.Debug.logToFile = $('#aDebug_LogToFile').is(':checked');
-                    aSettings.defaults.Debug.maxLogFileSize = parseInt($('#aDebug_MaxLogFileSize').val()) || 0;
-                    aSettings.defaults.Debug.keepRotatedLogs = parseInt($('#aDebug_KeepRotatedLogs').val()) || 3;
+                    aSettings.defaults.Debug.enable = $('#aDebug_EnableLogging').is(':checked');
+                    aSettings.defaults.Debug.Adventures = $('#aDebug_LogAdventures').is(':checked');
+                    aSettings.defaults.Debug.Combat = $('#aDebug_LogCombat').is(':checked');
+                    aSettings.defaults.Debug.Explorer = $('#aDebug_LogExplorer').is(':checked');
+                    aSettings.defaults.Debug.Geologists = $('#aDebug_LogGeologists').is(':checked');
+                    //Logging
+                    aSettings.defaults.Auto.Logging.logToFile = $('#aLogging_LogToFile').is(':checked');
+                    aSettings.defaults.Auto.Logging.maxLogFileSize = parseInt($('#aLogging_MaxLogFileSize').val()) || 0;
+                    aSettings.defaults.Auto.Logging.keepRotatedLogs = parseInt($('#aLogging_KeepRotatedLogs').val()) || 3;
                     // Auto Adventures
                     aSettings.defaults.Adventures.reTrain = $('#aAdventure_RetrainUnits').is(':checked');
                     aSettings.defaults.Adventures.blackVortex = $('#aAdventure_BlackVortex').is(':checked');

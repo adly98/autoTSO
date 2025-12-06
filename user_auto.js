@@ -18,6 +18,8 @@
  */
 
 const AdventureManager = game.def("com.bluebyte.tso.adventure.logic::AdventureManager").getInstance();
+
+// Console wrapper will be initialized in auto.load() when environment is ready
 const console = air.Introspector.Console;
 // Global utility function for zero-padding numbers
 var lz = function (n) { return n < 10 ? '0' + n : n; };
@@ -185,11 +187,6 @@ var aConsoleLogger = (function () {
         getLogPath: function () { return logFilePath; }
     };
 })();
-
-// Console wrapper will be initialized in auto.load() when environment is ready
-
-// Global utility function for zero-padding numbers
-var lz = function(n) { return n < 10 ? '0' + n : n; };
 
 // Console File Logger
 var aConsoleLogger = (function() {
